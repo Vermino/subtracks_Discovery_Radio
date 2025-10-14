@@ -92,10 +92,13 @@ class DownloadService extends _$DownloadService {
   }
 
   Future<void> init() async {
-    await FlutterDownloader.initialize(
-      // debug: true,
-      ignoreSsl: true,
-    );
+    // FlutterDownloader only supports Android and iOS
+    if (Platform.isAndroid || Platform.isIOS) {
+      await FlutterDownloader.initialize(
+        // debug: true,
+        ignoreSsl: true,
+      );
+    }
 
     state = state.copyWith(
       saveDir: path.join(
@@ -107,7 +110,9 @@ class DownloadService extends _$DownloadService {
     _bindBackgroundIsolate();
     await _syncDownloadTasks();
 
-    FlutterDownloader.registerCallback(downloadCallback, step: 1);
+    if (Platform.isAndroid || Platform.isIOS) {
+      FlutterDownloader.registerCallback(downloadCallback, step: 1);
+    }
   }
 
   Future<void> downloadAlbum(Album album) async {
@@ -423,6 +428,10 @@ class DownloadService extends _$DownloadService {
   }
 
   Future<void> _syncDownloadTasks() async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return; // Download service not supported on this platform
+    }
+
     final tasks = await FlutterDownloader.loadTasks() ?? [];
     final downloads = tasks.map((e) => Download.fromTask(e)).toIList();
 

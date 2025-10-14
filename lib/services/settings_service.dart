@@ -46,7 +46,7 @@ class SettingsService extends _$SettingsService {
         features: IList(),
         username: subsonic.username.value,
         password: subsonic.password.value,
-        useTokenAuth: subsonic.useTokenAuth.value,
+        useTokenAuth: true,
         isActive: true,
         createdAt: DateTime.now(),
       ),

@@ -14,10 +14,12 @@ import 'pages/library_page.dart';
 import 'pages/library_playlists_page.dart';
 import 'pages/library_songs_page.dart';
 import 'pages/now_playing_page.dart';
+import 'pages/queue_page.dart';
 import 'pages/search_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/songs_page.dart';
 import 'pages/source_page.dart';
+import 'pages/station_builder_page.dart';
 
 part 'app_router.gr.dart';
 
@@ -87,6 +89,13 @@ class EmptyRouterPage extends AutoRouter {
             page: EmptyRouterPage,
             children: [
               AutoRoute(path: '', page: BrowsePage),
+              CustomRoute(
+                path: 'station-builder',
+                page: StationBuilderPage,
+                transitionsBuilder: kCustomTransitionBuilder,
+                durationInMilliseconds: kCustomTransitionDuration,
+                reverseDurationInMilliseconds: kCustomTransitionDuration,
+              ),
               ...itemRoutes,
             ]),
         AutoRoute(
@@ -119,6 +128,13 @@ class EmptyRouterPage extends AutoRouter {
       transitionsBuilder: TransitionsBuilders.slideBottom,
       durationInMilliseconds: 200,
       reverseDurationInMilliseconds: 160,
+    ),
+    CustomRoute(
+      path: '/queue',
+      page: QueuePage,
+      transitionsBuilder: kCustomTransitionBuilder,
+      durationInMilliseconds: kCustomTransitionDuration,
+      reverseDurationInMilliseconds: kCustomTransitionDuration,
     ),
   ],
 )

@@ -12,9 +12,11 @@ import '../../models/music.dart';
 import '../../models/query.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
+import '../../services/discovery_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../app_router.dart';
+import '../buttons.dart';
 import '../items.dart';
 import 'songs_page.dart';
 
@@ -179,24 +181,6 @@ class _SongsSection extends HookConsumerWidget {
           child: SongListTile(
             song: song,
             image: true,
-            onTap: () async {
-              const query = ListQuery(
-                sort: SortBy(column: 'disc, track'),
-              );
-              final albumSongs = await ref.read(
-                albumSongsListProvider(song.albumId!, query).future,
-              );
-
-              ref.read(audioControlProvider).playSongs(
-                    context: QueueContextType.album,
-                    contextId: song.albumId!,
-                    shuffle: true,
-                    startIndex: albumSongs.indexOf(song),
-                    query: query,
-                    getSongs: (query) => ref.read(
-                        albumSongsListProvider(song.albumId!, query).future),
-                  );
-            },
           ),
         ),
       ),

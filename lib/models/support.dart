@@ -69,7 +69,8 @@ enum QueueContextType {
   playlist('playlist'),
   library('library'),
   genre('genre'),
-  artist('artist');
+  artist('artist'),
+  discovery('discovery');
 
   const QueueContextType(this.value);
   final String value;

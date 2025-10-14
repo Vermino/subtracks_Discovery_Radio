@@ -53,9 +53,10 @@ class Queue extends Table with TableInfo<Queue, QueueData> {
   List<GeneratedColumn> get $columns =>
       [index, sourceId, id, context, contextId, currentTrack];
   @override
-  String get aliasedName => _alias ?? 'queue';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'queue';
+  String get actualTableName => $name;
+  static const String $name = 'queue';
   @override
   VerificationContext validateIntegrity(Insertable<QueueData> instance,
       {bool isInserting = false}) {
@@ -144,8 +145,7 @@ class QueueData extends DataClass implements Insertable<QueueData> {
     map['source_id'] = Variable<int>(sourceId);
     map['id'] = Variable<String>(id);
     {
-      final converter = Queue.$convertercontext;
-      map['context'] = Variable<String>(converter.toSql(context));
+      map['context'] = Variable<String>(Queue.$convertercontext.toSql(context));
     }
     if (!nullToAbsent || contextId != null) {
       map['context_id'] = Variable<String>(contextId);
@@ -315,8 +315,8 @@ class QueueCompanion extends UpdateCompanion<QueueData> {
       map['id'] = Variable<String>(id.value);
     }
     if (context.present) {
-      final converter = Queue.$convertercontext;
-      map['context'] = Variable<String>(converter.toSql(context.value));
+      map['context'] =
+          Variable<String>(Queue.$convertercontext.toSql(context.value));
     }
     if (contextId.present) {
       map['context_id'] = Variable<String>(contextId.value);
@@ -382,9 +382,10 @@ class LastAudioState extends Table
   List<GeneratedColumn> get $columns =>
       [id, queueMode, shuffleIndicies, repeat];
   @override
-  String get aliasedName => _alias ?? 'last_audio_state';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'last_audio_state';
+  String get actualTableName => $name;
+  static const String $name = 'last_audio_state';
   @override
   VerificationContext validateIntegrity(Insertable<LastAudioStateData> instance,
       {bool isInserting = false}) {
@@ -452,17 +453,16 @@ class LastAudioStateData extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     {
-      final converter = LastAudioState.$converterqueueMode;
-      map['queue_mode'] = Variable<int>(converter.toSql(queueMode));
+      map['queue_mode'] =
+          Variable<int>(LastAudioState.$converterqueueMode.toSql(queueMode));
     }
     if (!nullToAbsent || shuffleIndicies != null) {
-      final converter = LastAudioState.$convertershuffleIndiciesn;
-      map['shuffle_indicies'] =
-          Variable<String>(converter.toSql(shuffleIndicies));
+      map['shuffle_indicies'] = Variable<String>(
+          LastAudioState.$convertershuffleIndiciesn.toSql(shuffleIndicies));
     }
     {
-      final converter = LastAudioState.$converterrepeat;
-      map['repeat'] = Variable<int>(converter.toSql(repeat));
+      map['repeat'] =
+          Variable<int>(LastAudioState.$converterrepeat.toSql(repeat));
     }
     return map;
   }
@@ -592,17 +592,17 @@ class LastAudioStateCompanion extends UpdateCompanion<LastAudioStateData> {
       map['id'] = Variable<int>(id.value);
     }
     if (queueMode.present) {
-      final converter = LastAudioState.$converterqueueMode;
-      map['queue_mode'] = Variable<int>(converter.toSql(queueMode.value));
+      map['queue_mode'] = Variable<int>(
+          LastAudioState.$converterqueueMode.toSql(queueMode.value));
     }
     if (shuffleIndicies.present) {
-      final converter = LastAudioState.$convertershuffleIndiciesn;
-      map['shuffle_indicies'] =
-          Variable<String>(converter.toSql(shuffleIndicies.value));
+      map['shuffle_indicies'] = Variable<String>(LastAudioState
+          .$convertershuffleIndiciesn
+          .toSql(shuffleIndicies.value));
     }
     if (repeat.present) {
-      final converter = LastAudioState.$converterrepeat;
-      map['repeat'] = Variable<int>(converter.toSql(repeat.value));
+      map['repeat'] =
+          Variable<int>(LastAudioState.$converterrepeat.toSql(repeat.value));
     }
     return map;
   }
@@ -640,9 +640,10 @@ class LastBottomNavState extends Table
   @override
   List<GeneratedColumn> get $columns => [id, tab];
   @override
-  String get aliasedName => _alias ?? 'last_bottom_nav_state';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'last_bottom_nav_state';
+  String get actualTableName => $name;
+  static const String $name = 'last_bottom_nav_state';
   @override
   VerificationContext validateIntegrity(
       Insertable<LastBottomNavStateData> instance,
@@ -849,9 +850,10 @@ class LastLibraryState extends Table
   List<GeneratedColumn> get $columns =>
       [id, tab, albumsList, artistsList, playlistsList, songsList];
   @override
-  String get aliasedName => _alias ?? 'last_library_state';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'last_library_state';
+  String get actualTableName => $name;
+  static const String $name = 'last_library_state';
   @override
   VerificationContext validateIntegrity(
       Insertable<LastLibraryStateData> instance,
@@ -937,20 +939,20 @@ class LastLibraryStateData extends DataClass
     map['id'] = Variable<int>(id);
     map['tab'] = Variable<String>(tab);
     {
-      final converter = LastLibraryState.$converteralbumsList;
-      map['albums_list'] = Variable<String>(converter.toSql(albumsList));
+      map['albums_list'] = Variable<String>(
+          LastLibraryState.$converteralbumsList.toSql(albumsList));
     }
     {
-      final converter = LastLibraryState.$converterartistsList;
-      map['artists_list'] = Variable<String>(converter.toSql(artistsList));
+      map['artists_list'] = Variable<String>(
+          LastLibraryState.$converterartistsList.toSql(artistsList));
     }
     {
-      final converter = LastLibraryState.$converterplaylistsList;
-      map['playlists_list'] = Variable<String>(converter.toSql(playlistsList));
+      map['playlists_list'] = Variable<String>(
+          LastLibraryState.$converterplaylistsList.toSql(playlistsList));
     }
     {
-      final converter = LastLibraryState.$convertersongsList;
-      map['songs_list'] = Variable<String>(converter.toSql(songsList));
+      map['songs_list'] = Variable<String>(
+          LastLibraryState.$convertersongsList.toSql(songsList));
     }
     return map;
   }
@@ -1106,22 +1108,20 @@ class LastLibraryStateCompanion extends UpdateCompanion<LastLibraryStateData> {
       map['tab'] = Variable<String>(tab.value);
     }
     if (albumsList.present) {
-      final converter = LastLibraryState.$converteralbumsList;
-      map['albums_list'] = Variable<String>(converter.toSql(albumsList.value));
+      map['albums_list'] = Variable<String>(
+          LastLibraryState.$converteralbumsList.toSql(albumsList.value));
     }
     if (artistsList.present) {
-      final converter = LastLibraryState.$converterartistsList;
-      map['artists_list'] =
-          Variable<String>(converter.toSql(artistsList.value));
+      map['artists_list'] = Variable<String>(
+          LastLibraryState.$converterartistsList.toSql(artistsList.value));
     }
     if (playlistsList.present) {
-      final converter = LastLibraryState.$converterplaylistsList;
-      map['playlists_list'] =
-          Variable<String>(converter.toSql(playlistsList.value));
+      map['playlists_list'] = Variable<String>(
+          LastLibraryState.$converterplaylistsList.toSql(playlistsList.value));
     }
     if (songsList.present) {
-      final converter = LastLibraryState.$convertersongsList;
-      map['songs_list'] = Variable<String>(converter.toSql(songsList.value));
+      map['songs_list'] = Variable<String>(
+          LastLibraryState.$convertersongsList.toSql(songsList.value));
     }
     return map;
   }
@@ -1177,9 +1177,10 @@ class AppSettingsTable extends Table
   List<GeneratedColumn> get $columns =>
       [id, maxBitrateWifi, maxBitrateMobile, streamFormat];
   @override
-  String get aliasedName => _alias ?? 'app_settings';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'app_settings';
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
   @override
   VerificationContext validateIntegrity(Insertable<AppSettings> instance,
       {bool isInserting = false}) {
@@ -1359,9 +1360,10 @@ class Sources extends Table with TableInfo<Sources, Source> {
   List<GeneratedColumn> get $columns =>
       [id, name, address, isActive, createdAt];
   @override
-  String get aliasedName => _alias ?? 'sources';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'sources';
+  String get actualTableName => $name;
+  static const String $name = 'sources';
   @override
   VerificationContext validateIntegrity(Insertable<Source> instance,
       {bool isInserting = false}) {
@@ -1435,8 +1437,8 @@ class Source extends DataClass implements Insertable<Source> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     {
-      final converter = Sources.$converteraddress;
-      map['address'] = Variable<String>(converter.toSql(address));
+      map['address'] =
+          Variable<String>(Sources.$converteraddress.toSql(address));
     }
     if (!nullToAbsent || isActive != null) {
       map['is_active'] = Variable<bool>(isActive);
@@ -1580,8 +1582,8 @@ class SourcesCompanion extends UpdateCompanion<Source> {
       map['name'] = Variable<String>(name.value);
     }
     if (address.present) {
-      final converter = Sources.$converteraddress;
-      map['address'] = Variable<String>(converter.toSql(address.value));
+      map['address'] =
+          Variable<String>(Sources.$converteraddress.toSql(address.value));
     }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
@@ -1653,9 +1655,10 @@ class SubsonicSources extends Table
   List<GeneratedColumn> get $columns =>
       [sourceId, features, username, password, useTokenAuth];
   @override
-  String get aliasedName => _alias ?? 'subsonic_sources';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'subsonic_sources';
+  String get actualTableName => $name;
+  static const String $name = 'subsonic_sources';
   @override
   VerificationContext validateIntegrity(Insertable<SubsonicSource> instance,
       {bool isInserting = false}) {
@@ -1738,8 +1741,8 @@ class SubsonicSource extends DataClass implements Insertable<SubsonicSource> {
     final map = <String, Expression>{};
     map['source_id'] = Variable<int>(sourceId);
     {
-      final converter = SubsonicSources.$converterfeatures;
-      map['features'] = Variable<String>(converter.toSql(features));
+      map['features'] =
+          Variable<String>(SubsonicSources.$converterfeatures.toSql(features));
     }
     map['username'] = Variable<String>(username);
     map['password'] = Variable<String>(password);
@@ -1879,8 +1882,8 @@ class SubsonicSourcesCompanion extends UpdateCompanion<SubsonicSource> {
       map['source_id'] = Variable<int>(sourceId.value);
     }
     if (features.present) {
-      final converter = SubsonicSources.$converterfeatures;
-      map['features'] = Variable<String>(converter.toSql(features.value));
+      map['features'] = Variable<String>(
+          SubsonicSources.$converterfeatures.toSql(features.value));
     }
     if (username.present) {
       map['username'] = Variable<String>(username.value);
@@ -1959,9 +1962,10 @@ class Artists extends Table with TableInfo<Artists, Artist> {
   List<GeneratedColumn> get $columns =>
       [sourceId, id, name, albumCount, starred, updated];
   @override
-  String get aliasedName => _alias ?? 'artists';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'artists';
+  String get actualTableName => $name;
+  static const String $name = 'artists';
   @override
   VerificationContext validateIntegrity(Insertable<Artist> instance,
       {bool isInserting = false}) {
@@ -2170,9 +2174,10 @@ class ArtistsFts extends Table
   @override
   List<GeneratedColumn> get $columns => [sourceId, name];
   @override
-  String get aliasedName => _alias ?? 'artists_fts';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'artists_fts';
+  String get actualTableName => $name;
+  static const String $name = 'artists_fts';
   @override
   VerificationContext validateIntegrity(Insertable<ArtistsFt> instance,
       {bool isInserting = false}) {
@@ -2468,9 +2473,10 @@ class Albums extends Table with TableInfo<Albums, Album> {
         updated
       ];
   @override
-  String get aliasedName => _alias ?? 'albums';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'albums';
+  String get actualTableName => $name;
+  static const String $name = 'albums';
   @override
   VerificationContext validateIntegrity(Insertable<Album> instance,
       {bool isInserting = false}) {
@@ -2837,9 +2843,10 @@ class AlbumsFts extends Table
   @override
   List<GeneratedColumn> get $columns => [sourceId, name];
   @override
-  String get aliasedName => _alias ?? 'albums_fts';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'albums_fts';
+  String get actualTableName => $name;
+  static const String $name = 'albums_fts';
   @override
   VerificationContext validateIntegrity(Insertable<AlbumsFt> instance,
       {bool isInserting = false}) {
@@ -3072,9 +3079,10 @@ class Playlists extends Table with TableInfo<Playlists, Playlist> {
   List<GeneratedColumn> get $columns =>
       [sourceId, id, name, comment, coverArt, songCount, created, updated];
   @override
-  String get aliasedName => _alias ?? 'playlists';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'playlists';
+  String get actualTableName => $name;
+  static const String $name = 'playlists';
   @override
   VerificationContext validateIntegrity(Insertable<Playlist> instance,
       {bool isInserting = false}) {
@@ -3340,9 +3348,10 @@ class PlaylistSongs extends Table with TableInfo<PlaylistSongs, PlaylistSong> {
   List<GeneratedColumn> get $columns =>
       [sourceId, playlistId, songId, position, updated];
   @override
-  String get aliasedName => _alias ?? 'playlist_songs';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'playlist_songs';
+  String get actualTableName => $name;
+  static const String $name = 'playlist_songs';
   @override
   VerificationContext validateIntegrity(Insertable<PlaylistSong> instance,
       {bool isInserting = false}) {
@@ -3632,9 +3641,10 @@ class PlaylistsFts extends Table
   @override
   List<GeneratedColumn> get $columns => [sourceId, name];
   @override
-  String get aliasedName => _alias ?? 'playlists_fts';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'playlists_fts';
+  String get actualTableName => $name;
+  static const String $name = 'playlists_fts';
   @override
   VerificationContext validateIntegrity(Insertable<PlaylistsFt> instance,
       {bool isInserting = false}) {
@@ -3906,6 +3916,31 @@ class Songs extends Table with TableInfo<Songs, Song> {
       requiredDuringInsert: false,
       $customConstraints: 'NOT NULL DEFAULT 0',
       defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _userRatingMeta =
+      const VerificationMeta('userRating');
+  late final GeneratedColumnWithTypeConverter<UserRating, String> userRating =
+      GeneratedColumn<String>('user_rating', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              $customConstraints: 'NOT NULL DEFAULT \'unrated\'',
+              defaultValue: const CustomExpression('\'unrated\''))
+          .withConverter<UserRating>(Songs.$converteruserRating);
+  static const VerificationMeta _thumbsUpCountMeta =
+      const VerificationMeta('thumbsUpCount');
+  late final GeneratedColumn<int> thumbsUpCount = GeneratedColumn<int>(
+      'thumbs_up_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _thumbsDownCountMeta =
+      const VerificationMeta('thumbsDownCount');
+  late final GeneratedColumn<int> thumbsDownCount = GeneratedColumn<int>(
+      'thumbs_down_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   static const VerificationMeta _updatedMeta =
       const VerificationMeta('updated');
   late final GeneratedColumn<DateTime> updated = GeneratedColumn<DateTime>(
@@ -3933,12 +3968,16 @@ class Songs extends Table with TableInfo<Songs, Song> {
         downloadTaskId,
         downloadFilePath,
         isDeleted,
+        userRating,
+        thumbsUpCount,
+        thumbsDownCount,
         updated
       ];
   @override
-  String get aliasedName => _alias ?? 'songs';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'songs';
+  String get actualTableName => $name;
+  static const String $name = 'songs';
   @override
   VerificationContext validateIntegrity(Insertable<Song> instance,
       {bool isInserting = false}) {
@@ -4010,6 +4049,19 @@ class Songs extends Table with TableInfo<Songs, Song> {
       context.handle(_isDeletedMeta,
           isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta));
     }
+    context.handle(_userRatingMeta, const VerificationResult.success());
+    if (data.containsKey('thumbs_up_count')) {
+      context.handle(
+          _thumbsUpCountMeta,
+          thumbsUpCount.isAcceptableOrUnknown(
+              data['thumbs_up_count']!, _thumbsUpCountMeta));
+    }
+    if (data.containsKey('thumbs_down_count')) {
+      context.handle(
+          _thumbsDownCountMeta,
+          thumbsDownCount.isAcceptableOrUnknown(
+              data['thumbs_down_count']!, _thumbsDownCountMeta));
+    }
     if (data.containsKey('updated')) {
       context.handle(_updatedMeta,
           updated.isAcceptableOrUnknown(data['updated']!, _updatedMeta));
@@ -4053,6 +4105,13 @@ class Songs extends Table with TableInfo<Songs, Song> {
           DriftSqlType.string, data['${effectivePrefix}download_file_path']),
       isDeleted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_deleted'])!,
+      userRating: Songs.$converteruserRating.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_rating'])!),
+      thumbsUpCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}thumbs_up_count'])!,
+      thumbsDownCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}thumbs_down_count'])!,
     );
   }
 
@@ -4065,6 +4124,8 @@ class Songs extends Table with TableInfo<Songs, Song> {
       const DurationSecondsConverter();
   static TypeConverter<Duration?, int?> $converterdurationn =
       NullAwareTypeConverter.wrap($converterduration);
+  static TypeConverter<UserRating, String> $converteruserRating =
+      const UserRatingConverter();
   @override
   List<String> get customConstraints => const [
         'PRIMARY KEY(source_id, id)',
@@ -4090,6 +4151,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
   final Value<String?> downloadTaskId;
   final Value<String?> downloadFilePath;
   final Value<bool> isDeleted;
+  final Value<UserRating> userRating;
+  final Value<int> thumbsUpCount;
+  final Value<int> thumbsDownCount;
   final Value<DateTime> updated;
   final Value<int> rowid;
   const SongsCompanion({
@@ -4108,6 +4172,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.downloadTaskId = const Value.absent(),
     this.downloadFilePath = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.userRating = const Value.absent(),
+    this.thumbsUpCount = const Value.absent(),
+    this.thumbsDownCount = const Value.absent(),
     this.updated = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -4127,6 +4194,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.downloadTaskId = const Value.absent(),
     this.downloadFilePath = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.userRating = const Value.absent(),
+    this.thumbsUpCount = const Value.absent(),
+    this.thumbsDownCount = const Value.absent(),
     this.updated = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : sourceId = Value(sourceId),
@@ -4148,6 +4218,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
     Expression<String>? downloadTaskId,
     Expression<String>? downloadFilePath,
     Expression<bool>? isDeleted,
+    Expression<String>? userRating,
+    Expression<int>? thumbsUpCount,
+    Expression<int>? thumbsDownCount,
     Expression<DateTime>? updated,
     Expression<int>? rowid,
   }) {
@@ -4167,6 +4240,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
       if (downloadTaskId != null) 'download_task_id': downloadTaskId,
       if (downloadFilePath != null) 'download_file_path': downloadFilePath,
       if (isDeleted != null) 'is_deleted': isDeleted,
+      if (userRating != null) 'user_rating': userRating,
+      if (thumbsUpCount != null) 'thumbs_up_count': thumbsUpCount,
+      if (thumbsDownCount != null) 'thumbs_down_count': thumbsDownCount,
       if (updated != null) 'updated': updated,
       if (rowid != null) 'rowid': rowid,
     });
@@ -4188,6 +4264,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
       Value<String?>? downloadTaskId,
       Value<String?>? downloadFilePath,
       Value<bool>? isDeleted,
+      Value<UserRating>? userRating,
+      Value<int>? thumbsUpCount,
+      Value<int>? thumbsDownCount,
       Value<DateTime>? updated,
       Value<int>? rowid}) {
     return SongsCompanion(
@@ -4206,6 +4285,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
       downloadTaskId: downloadTaskId ?? this.downloadTaskId,
       downloadFilePath: downloadFilePath ?? this.downloadFilePath,
       isDeleted: isDeleted ?? this.isDeleted,
+      userRating: userRating ?? this.userRating,
+      thumbsUpCount: thumbsUpCount ?? this.thumbsUpCount,
+      thumbsDownCount: thumbsDownCount ?? this.thumbsDownCount,
       updated: updated ?? this.updated,
       rowid: rowid ?? this.rowid,
     );
@@ -4236,8 +4318,8 @@ class SongsCompanion extends UpdateCompanion<Song> {
       map['artist'] = Variable<String>(artist.value);
     }
     if (duration.present) {
-      final converter = Songs.$converterdurationn;
-      map['duration'] = Variable<int>(converter.toSql(duration.value));
+      map['duration'] =
+          Variable<int>(Songs.$converterdurationn.toSql(duration.value));
     }
     if (track.present) {
       map['track'] = Variable<int>(track.value);
@@ -4259,6 +4341,16 @@ class SongsCompanion extends UpdateCompanion<Song> {
     }
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (userRating.present) {
+      map['user_rating'] =
+          Variable<String>(Songs.$converteruserRating.toSql(userRating.value));
+    }
+    if (thumbsUpCount.present) {
+      map['thumbs_up_count'] = Variable<int>(thumbsUpCount.value);
+    }
+    if (thumbsDownCount.present) {
+      map['thumbs_down_count'] = Variable<int>(thumbsDownCount.value);
     }
     if (updated.present) {
       map['updated'] = Variable<DateTime>(updated.value);
@@ -4287,6 +4379,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
           ..write('downloadTaskId: $downloadTaskId, ')
           ..write('downloadFilePath: $downloadFilePath, ')
           ..write('isDeleted: $isDeleted, ')
+          ..write('userRating: $userRating, ')
+          ..write('thumbsUpCount: $thumbsUpCount, ')
+          ..write('thumbsDownCount: $thumbsDownCount, ')
           ..write('updated: $updated, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -4316,9 +4411,10 @@ class SongsFts extends Table
   @override
   List<GeneratedColumn> get $columns => [sourceId, title];
   @override
-  String get aliasedName => _alias ?? 'songs_fts';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'songs_fts';
+  String get actualTableName => $name;
+  static const String $name = 'songs_fts';
   @override
   VerificationContext validateIntegrity(Insertable<SongsFt> instance,
       {bool isInserting = false}) {
@@ -4485,8 +4581,1040 @@ class SongsFtsCompanion extends UpdateCompanion<SongsFt> {
   }
 }
 
+class DiscoverySessions extends Table
+    with TableInfo<DiscoverySessions, DiscoverySession> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DiscoverySessions(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  static const VerificationMeta _seedSongIdMeta =
+      const VerificationMeta('seedSongId');
+  late final GeneratedColumn<String> seedSongId = GeneratedColumn<String>(
+      'seed_song_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _seedArtistMeta =
+      const VerificationMeta('seedArtist');
+  late final GeneratedColumn<String> seedArtist = GeneratedColumn<String>(
+      'seed_artist', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _seedGenreMeta =
+      const VerificationMeta('seedGenre');
+  late final GeneratedColumn<String> seedGenre = GeneratedColumn<String>(
+      'seed_genre', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _sourceIdMeta =
+      const VerificationMeta('sourceId');
+  late final GeneratedColumn<int> sourceId = GeneratedColumn<int>(
+      'source_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _modeMeta = const VerificationMeta('mode');
+  late final GeneratedColumn<String> mode = GeneratedColumn<String>(
+      'mode', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _playlistSizeMeta =
+      const VerificationMeta('playlistSize');
+  late final GeneratedColumn<int> playlistSize = GeneratedColumn<int>(
+      'playlist_size', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 50',
+      defaultValue: const CustomExpression('50'));
+  static const VerificationMeta _stationNameMeta =
+      const VerificationMeta('stationName');
+  late final GeneratedColumn<String> stationName = GeneratedColumn<String>(
+      'station_name', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _lastPlayedAtMeta =
+      const VerificationMeta('lastPlayedAt');
+  late final GeneratedColumn<int> lastPlayedAt = GeneratedColumn<int>(
+      'last_played_at', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _playCountMeta =
+      const VerificationMeta('playCount');
+  late final GeneratedColumn<int> playCount = GeneratedColumn<int>(
+      'play_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _isFavoriteMeta =
+      const VerificationMeta('isFavorite');
+  late final GeneratedColumn<int> isFavorite = GeneratedColumn<int>(
+      'is_favorite', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'NOT NULL DEFAULT (strftime(\'%s\', CURRENT_TIMESTAMP))',
+      defaultValue:
+          const CustomExpression('strftime(\'%s\', CURRENT_TIMESTAMP)'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        seedSongId,
+        seedArtist,
+        seedGenre,
+        sourceId,
+        mode,
+        playlistSize,
+        stationName,
+        lastPlayedAt,
+        playCount,
+        isFavorite,
+        createdAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'discovery_sessions';
+  @override
+  VerificationContext validateIntegrity(Insertable<DiscoverySession> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('seed_song_id')) {
+      context.handle(
+          _seedSongIdMeta,
+          seedSongId.isAcceptableOrUnknown(
+              data['seed_song_id']!, _seedSongIdMeta));
+    } else if (isInserting) {
+      context.missing(_seedSongIdMeta);
+    }
+    if (data.containsKey('seed_artist')) {
+      context.handle(
+          _seedArtistMeta,
+          seedArtist.isAcceptableOrUnknown(
+              data['seed_artist']!, _seedArtistMeta));
+    }
+    if (data.containsKey('seed_genre')) {
+      context.handle(_seedGenreMeta,
+          seedGenre.isAcceptableOrUnknown(data['seed_genre']!, _seedGenreMeta));
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta,
+          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('mode')) {
+      context.handle(
+          _modeMeta, mode.isAcceptableOrUnknown(data['mode']!, _modeMeta));
+    } else if (isInserting) {
+      context.missing(_modeMeta);
+    }
+    if (data.containsKey('playlist_size')) {
+      context.handle(
+          _playlistSizeMeta,
+          playlistSize.isAcceptableOrUnknown(
+              data['playlist_size']!, _playlistSizeMeta));
+    }
+    if (data.containsKey('station_name')) {
+      context.handle(
+          _stationNameMeta,
+          stationName.isAcceptableOrUnknown(
+              data['station_name']!, _stationNameMeta));
+    }
+    if (data.containsKey('last_played_at')) {
+      context.handle(
+          _lastPlayedAtMeta,
+          lastPlayedAt.isAcceptableOrUnknown(
+              data['last_played_at']!, _lastPlayedAtMeta));
+    }
+    if (data.containsKey('play_count')) {
+      context.handle(_playCountMeta,
+          playCount.isAcceptableOrUnknown(data['play_count']!, _playCountMeta));
+    }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+          _isFavoriteMeta,
+          isFavorite.isAcceptableOrUnknown(
+              data['is_favorite']!, _isFavoriteMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DiscoverySession map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DiscoverySession(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      seedSongId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}seed_song_id'])!,
+      seedArtist: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}seed_artist']),
+      seedGenre: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}seed_genre']),
+      sourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}source_id'])!,
+      mode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mode'])!,
+      playlistSize: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}playlist_size'])!,
+      stationName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}station_name']),
+      lastPlayedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_played_at']),
+      playCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}play_count'])!,
+      isFavorite: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_favorite'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  DiscoverySessions createAlias(String alias) {
+    return DiscoverySessions(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints =>
+      const ['FOREIGN KEY(source_id)REFERENCES sources(id)ON DELETE CASCADE'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DiscoverySession extends DataClass
+    implements Insertable<DiscoverySession> {
+  final int id;
+  final String seedSongId;
+  final String? seedArtist;
+  final String? seedGenre;
+  final int sourceId;
+  final String mode;
+
+  /// 'online' or 'offline'
+  final int playlistSize;
+  final String? stationName;
+  final int? lastPlayedAt;
+  final int playCount;
+  final int isFavorite;
+  final int createdAt;
+  const DiscoverySession(
+      {required this.id,
+      required this.seedSongId,
+      this.seedArtist,
+      this.seedGenre,
+      required this.sourceId,
+      required this.mode,
+      required this.playlistSize,
+      this.stationName,
+      this.lastPlayedAt,
+      required this.playCount,
+      required this.isFavorite,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['seed_song_id'] = Variable<String>(seedSongId);
+    if (!nullToAbsent || seedArtist != null) {
+      map['seed_artist'] = Variable<String>(seedArtist);
+    }
+    if (!nullToAbsent || seedGenre != null) {
+      map['seed_genre'] = Variable<String>(seedGenre);
+    }
+    map['source_id'] = Variable<int>(sourceId);
+    map['mode'] = Variable<String>(mode);
+    map['playlist_size'] = Variable<int>(playlistSize);
+    if (!nullToAbsent || stationName != null) {
+      map['station_name'] = Variable<String>(stationName);
+    }
+    if (!nullToAbsent || lastPlayedAt != null) {
+      map['last_played_at'] = Variable<int>(lastPlayedAt);
+    }
+    map['play_count'] = Variable<int>(playCount);
+    map['is_favorite'] = Variable<int>(isFavorite);
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  DiscoverySessionsCompanion toCompanion(bool nullToAbsent) {
+    return DiscoverySessionsCompanion(
+      id: Value(id),
+      seedSongId: Value(seedSongId),
+      seedArtist: seedArtist == null && nullToAbsent
+          ? const Value.absent()
+          : Value(seedArtist),
+      seedGenre: seedGenre == null && nullToAbsent
+          ? const Value.absent()
+          : Value(seedGenre),
+      sourceId: Value(sourceId),
+      mode: Value(mode),
+      playlistSize: Value(playlistSize),
+      stationName: stationName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stationName),
+      lastPlayedAt: lastPlayedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastPlayedAt),
+      playCount: Value(playCount),
+      isFavorite: Value(isFavorite),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory DiscoverySession.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DiscoverySession(
+      id: serializer.fromJson<int>(json['id']),
+      seedSongId: serializer.fromJson<String>(json['seed_song_id']),
+      seedArtist: serializer.fromJson<String?>(json['seed_artist']),
+      seedGenre: serializer.fromJson<String?>(json['seed_genre']),
+      sourceId: serializer.fromJson<int>(json['source_id']),
+      mode: serializer.fromJson<String>(json['mode']),
+      playlistSize: serializer.fromJson<int>(json['playlist_size']),
+      stationName: serializer.fromJson<String?>(json['station_name']),
+      lastPlayedAt: serializer.fromJson<int?>(json['last_played_at']),
+      playCount: serializer.fromJson<int>(json['play_count']),
+      isFavorite: serializer.fromJson<int>(json['is_favorite']),
+      createdAt: serializer.fromJson<int>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'seed_song_id': serializer.toJson<String>(seedSongId),
+      'seed_artist': serializer.toJson<String?>(seedArtist),
+      'seed_genre': serializer.toJson<String?>(seedGenre),
+      'source_id': serializer.toJson<int>(sourceId),
+      'mode': serializer.toJson<String>(mode),
+      'playlist_size': serializer.toJson<int>(playlistSize),
+      'station_name': serializer.toJson<String?>(stationName),
+      'last_played_at': serializer.toJson<int?>(lastPlayedAt),
+      'play_count': serializer.toJson<int>(playCount),
+      'is_favorite': serializer.toJson<int>(isFavorite),
+      'created_at': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  DiscoverySession copyWith(
+          {int? id,
+          String? seedSongId,
+          Value<String?> seedArtist = const Value.absent(),
+          Value<String?> seedGenre = const Value.absent(),
+          int? sourceId,
+          String? mode,
+          int? playlistSize,
+          Value<String?> stationName = const Value.absent(),
+          Value<int?> lastPlayedAt = const Value.absent(),
+          int? playCount,
+          int? isFavorite,
+          int? createdAt}) =>
+      DiscoverySession(
+        id: id ?? this.id,
+        seedSongId: seedSongId ?? this.seedSongId,
+        seedArtist: seedArtist.present ? seedArtist.value : this.seedArtist,
+        seedGenre: seedGenre.present ? seedGenre.value : this.seedGenre,
+        sourceId: sourceId ?? this.sourceId,
+        mode: mode ?? this.mode,
+        playlistSize: playlistSize ?? this.playlistSize,
+        stationName: stationName.present ? stationName.value : this.stationName,
+        lastPlayedAt:
+            lastPlayedAt.present ? lastPlayedAt.value : this.lastPlayedAt,
+        playCount: playCount ?? this.playCount,
+        isFavorite: isFavorite ?? this.isFavorite,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('DiscoverySession(')
+          ..write('id: $id, ')
+          ..write('seedSongId: $seedSongId, ')
+          ..write('seedArtist: $seedArtist, ')
+          ..write('seedGenre: $seedGenre, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('mode: $mode, ')
+          ..write('playlistSize: $playlistSize, ')
+          ..write('stationName: $stationName, ')
+          ..write('lastPlayedAt: $lastPlayedAt, ')
+          ..write('playCount: $playCount, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      seedSongId,
+      seedArtist,
+      seedGenre,
+      sourceId,
+      mode,
+      playlistSize,
+      stationName,
+      lastPlayedAt,
+      playCount,
+      isFavorite,
+      createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DiscoverySession &&
+          other.id == this.id &&
+          other.seedSongId == this.seedSongId &&
+          other.seedArtist == this.seedArtist &&
+          other.seedGenre == this.seedGenre &&
+          other.sourceId == this.sourceId &&
+          other.mode == this.mode &&
+          other.playlistSize == this.playlistSize &&
+          other.stationName == this.stationName &&
+          other.lastPlayedAt == this.lastPlayedAt &&
+          other.playCount == this.playCount &&
+          other.isFavorite == this.isFavorite &&
+          other.createdAt == this.createdAt);
+}
+
+class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
+  final Value<int> id;
+  final Value<String> seedSongId;
+  final Value<String?> seedArtist;
+  final Value<String?> seedGenre;
+  final Value<int> sourceId;
+  final Value<String> mode;
+  final Value<int> playlistSize;
+  final Value<String?> stationName;
+  final Value<int?> lastPlayedAt;
+  final Value<int> playCount;
+  final Value<int> isFavorite;
+  final Value<int> createdAt;
+  const DiscoverySessionsCompanion({
+    this.id = const Value.absent(),
+    this.seedSongId = const Value.absent(),
+    this.seedArtist = const Value.absent(),
+    this.seedGenre = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.mode = const Value.absent(),
+    this.playlistSize = const Value.absent(),
+    this.stationName = const Value.absent(),
+    this.lastPlayedAt = const Value.absent(),
+    this.playCount = const Value.absent(),
+    this.isFavorite = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  DiscoverySessionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String seedSongId,
+    this.seedArtist = const Value.absent(),
+    this.seedGenre = const Value.absent(),
+    required int sourceId,
+    required String mode,
+    this.playlistSize = const Value.absent(),
+    this.stationName = const Value.absent(),
+    this.lastPlayedAt = const Value.absent(),
+    this.playCount = const Value.absent(),
+    this.isFavorite = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  })  : seedSongId = Value(seedSongId),
+        sourceId = Value(sourceId),
+        mode = Value(mode);
+  static Insertable<DiscoverySession> custom({
+    Expression<int>? id,
+    Expression<String>? seedSongId,
+    Expression<String>? seedArtist,
+    Expression<String>? seedGenre,
+    Expression<int>? sourceId,
+    Expression<String>? mode,
+    Expression<int>? playlistSize,
+    Expression<String>? stationName,
+    Expression<int>? lastPlayedAt,
+    Expression<int>? playCount,
+    Expression<int>? isFavorite,
+    Expression<int>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (seedSongId != null) 'seed_song_id': seedSongId,
+      if (seedArtist != null) 'seed_artist': seedArtist,
+      if (seedGenre != null) 'seed_genre': seedGenre,
+      if (sourceId != null) 'source_id': sourceId,
+      if (mode != null) 'mode': mode,
+      if (playlistSize != null) 'playlist_size': playlistSize,
+      if (stationName != null) 'station_name': stationName,
+      if (lastPlayedAt != null) 'last_played_at': lastPlayedAt,
+      if (playCount != null) 'play_count': playCount,
+      if (isFavorite != null) 'is_favorite': isFavorite,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  DiscoverySessionsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? seedSongId,
+      Value<String?>? seedArtist,
+      Value<String?>? seedGenre,
+      Value<int>? sourceId,
+      Value<String>? mode,
+      Value<int>? playlistSize,
+      Value<String?>? stationName,
+      Value<int?>? lastPlayedAt,
+      Value<int>? playCount,
+      Value<int>? isFavorite,
+      Value<int>? createdAt}) {
+    return DiscoverySessionsCompanion(
+      id: id ?? this.id,
+      seedSongId: seedSongId ?? this.seedSongId,
+      seedArtist: seedArtist ?? this.seedArtist,
+      seedGenre: seedGenre ?? this.seedGenre,
+      sourceId: sourceId ?? this.sourceId,
+      mode: mode ?? this.mode,
+      playlistSize: playlistSize ?? this.playlistSize,
+      stationName: stationName ?? this.stationName,
+      lastPlayedAt: lastPlayedAt ?? this.lastPlayedAt,
+      playCount: playCount ?? this.playCount,
+      isFavorite: isFavorite ?? this.isFavorite,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (seedSongId.present) {
+      map['seed_song_id'] = Variable<String>(seedSongId.value);
+    }
+    if (seedArtist.present) {
+      map['seed_artist'] = Variable<String>(seedArtist.value);
+    }
+    if (seedGenre.present) {
+      map['seed_genre'] = Variable<String>(seedGenre.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<int>(sourceId.value);
+    }
+    if (mode.present) {
+      map['mode'] = Variable<String>(mode.value);
+    }
+    if (playlistSize.present) {
+      map['playlist_size'] = Variable<int>(playlistSize.value);
+    }
+    if (stationName.present) {
+      map['station_name'] = Variable<String>(stationName.value);
+    }
+    if (lastPlayedAt.present) {
+      map['last_played_at'] = Variable<int>(lastPlayedAt.value);
+    }
+    if (playCount.present) {
+      map['play_count'] = Variable<int>(playCount.value);
+    }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<int>(isFavorite.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiscoverySessionsCompanion(')
+          ..write('id: $id, ')
+          ..write('seedSongId: $seedSongId, ')
+          ..write('seedArtist: $seedArtist, ')
+          ..write('seedGenre: $seedGenre, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('mode: $mode, ')
+          ..write('playlistSize: $playlistSize, ')
+          ..write('stationName: $stationName, ')
+          ..write('lastPlayedAt: $lastPlayedAt, ')
+          ..write('playCount: $playCount, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class DiscoveryInteractions extends Table
+    with TableInfo<DiscoveryInteractions, DiscoveryInteraction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DiscoveryInteractions(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  static const VerificationMeta _sessionIdMeta =
+      const VerificationMeta('sessionId');
+  late final GeneratedColumn<int> sessionId = GeneratedColumn<int>(
+      'session_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _songIdMeta = const VerificationMeta('songId');
+  late final GeneratedColumn<String> songId = GeneratedColumn<String>(
+      'song_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _interactionTypeMeta =
+      const VerificationMeta('interactionType');
+  late final GeneratedColumn<String> interactionType = GeneratedColumn<String>(
+      'interaction_type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _positionInPlaylistMeta =
+      const VerificationMeta('positionInPlaylist');
+  late final GeneratedColumn<int> positionInPlaylist = GeneratedColumn<int>(
+      'position_in_playlist', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _songDurationMsMeta =
+      const VerificationMeta('songDurationMs');
+  late final GeneratedColumn<int> songDurationMs = GeneratedColumn<int>(
+      'song_duration_ms', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _playDurationMsMeta =
+      const VerificationMeta('playDurationMs');
+  late final GeneratedColumn<int> playDurationMs = GeneratedColumn<int>(
+      'play_duration_ms', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
+  late final GeneratedColumn<int> timestamp = GeneratedColumn<int>(
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'NOT NULL DEFAULT (strftime(\'%s\', CURRENT_TIMESTAMP))',
+      defaultValue:
+          const CustomExpression('strftime(\'%s\', CURRENT_TIMESTAMP)'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        sessionId,
+        songId,
+        interactionType,
+        positionInPlaylist,
+        songDurationMs,
+        playDurationMs,
+        timestamp
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'discovery_interactions';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DiscoveryInteraction> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(_sessionIdMeta,
+          sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta));
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('song_id')) {
+      context.handle(_songIdMeta,
+          songId.isAcceptableOrUnknown(data['song_id']!, _songIdMeta));
+    } else if (isInserting) {
+      context.missing(_songIdMeta);
+    }
+    if (data.containsKey('interaction_type')) {
+      context.handle(
+          _interactionTypeMeta,
+          interactionType.isAcceptableOrUnknown(
+              data['interaction_type']!, _interactionTypeMeta));
+    } else if (isInserting) {
+      context.missing(_interactionTypeMeta);
+    }
+    if (data.containsKey('position_in_playlist')) {
+      context.handle(
+          _positionInPlaylistMeta,
+          positionInPlaylist.isAcceptableOrUnknown(
+              data['position_in_playlist']!, _positionInPlaylistMeta));
+    } else if (isInserting) {
+      context.missing(_positionInPlaylistMeta);
+    }
+    if (data.containsKey('song_duration_ms')) {
+      context.handle(
+          _songDurationMsMeta,
+          songDurationMs.isAcceptableOrUnknown(
+              data['song_duration_ms']!, _songDurationMsMeta));
+    }
+    if (data.containsKey('play_duration_ms')) {
+      context.handle(
+          _playDurationMsMeta,
+          playDurationMs.isAcceptableOrUnknown(
+              data['play_duration_ms']!, _playDurationMsMeta));
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DiscoveryInteraction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DiscoveryInteraction(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      sessionId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}session_id'])!,
+      songId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}song_id'])!,
+      interactionType: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}interaction_type'])!,
+      positionInPlaylist: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}position_in_playlist'])!,
+      songDurationMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}song_duration_ms']),
+      playDurationMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}play_duration_ms']),
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}timestamp'])!,
+    );
+  }
+
+  @override
+  DiscoveryInteractions createAlias(String alias) {
+    return DiscoveryInteractions(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+        'FOREIGN KEY(session_id)REFERENCES discovery_sessions(id)ON DELETE CASCADE'
+      ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DiscoveryInteraction extends DataClass
+    implements Insertable<DiscoveryInteraction> {
+  final int id;
+  final int sessionId;
+  final String songId;
+  final String interactionType;
+
+  /// 'played', 'skipped', 'thumbs_up', 'thumbs_down', 'completed'
+  final int positionInPlaylist;
+  final int? songDurationMs;
+  final int? playDurationMs;
+
+  /// How long the song was actually played
+  final int timestamp;
+  const DiscoveryInteraction(
+      {required this.id,
+      required this.sessionId,
+      required this.songId,
+      required this.interactionType,
+      required this.positionInPlaylist,
+      this.songDurationMs,
+      this.playDurationMs,
+      required this.timestamp});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['session_id'] = Variable<int>(sessionId);
+    map['song_id'] = Variable<String>(songId);
+    map['interaction_type'] = Variable<String>(interactionType);
+    map['position_in_playlist'] = Variable<int>(positionInPlaylist);
+    if (!nullToAbsent || songDurationMs != null) {
+      map['song_duration_ms'] = Variable<int>(songDurationMs);
+    }
+    if (!nullToAbsent || playDurationMs != null) {
+      map['play_duration_ms'] = Variable<int>(playDurationMs);
+    }
+    map['timestamp'] = Variable<int>(timestamp);
+    return map;
+  }
+
+  DiscoveryInteractionsCompanion toCompanion(bool nullToAbsent) {
+    return DiscoveryInteractionsCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      songId: Value(songId),
+      interactionType: Value(interactionType),
+      positionInPlaylist: Value(positionInPlaylist),
+      songDurationMs: songDurationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(songDurationMs),
+      playDurationMs: playDurationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(playDurationMs),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  factory DiscoveryInteraction.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DiscoveryInteraction(
+      id: serializer.fromJson<int>(json['id']),
+      sessionId: serializer.fromJson<int>(json['session_id']),
+      songId: serializer.fromJson<String>(json['song_id']),
+      interactionType: serializer.fromJson<String>(json['interaction_type']),
+      positionInPlaylist:
+          serializer.fromJson<int>(json['position_in_playlist']),
+      songDurationMs: serializer.fromJson<int?>(json['song_duration_ms']),
+      playDurationMs: serializer.fromJson<int?>(json['play_duration_ms']),
+      timestamp: serializer.fromJson<int>(json['timestamp']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'session_id': serializer.toJson<int>(sessionId),
+      'song_id': serializer.toJson<String>(songId),
+      'interaction_type': serializer.toJson<String>(interactionType),
+      'position_in_playlist': serializer.toJson<int>(positionInPlaylist),
+      'song_duration_ms': serializer.toJson<int?>(songDurationMs),
+      'play_duration_ms': serializer.toJson<int?>(playDurationMs),
+      'timestamp': serializer.toJson<int>(timestamp),
+    };
+  }
+
+  DiscoveryInteraction copyWith(
+          {int? id,
+          int? sessionId,
+          String? songId,
+          String? interactionType,
+          int? positionInPlaylist,
+          Value<int?> songDurationMs = const Value.absent(),
+          Value<int?> playDurationMs = const Value.absent(),
+          int? timestamp}) =>
+      DiscoveryInteraction(
+        id: id ?? this.id,
+        sessionId: sessionId ?? this.sessionId,
+        songId: songId ?? this.songId,
+        interactionType: interactionType ?? this.interactionType,
+        positionInPlaylist: positionInPlaylist ?? this.positionInPlaylist,
+        songDurationMs:
+            songDurationMs.present ? songDurationMs.value : this.songDurationMs,
+        playDurationMs:
+            playDurationMs.present ? playDurationMs.value : this.playDurationMs,
+        timestamp: timestamp ?? this.timestamp,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('DiscoveryInteraction(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('songId: $songId, ')
+          ..write('interactionType: $interactionType, ')
+          ..write('positionInPlaylist: $positionInPlaylist, ')
+          ..write('songDurationMs: $songDurationMs, ')
+          ..write('playDurationMs: $playDurationMs, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, sessionId, songId, interactionType,
+      positionInPlaylist, songDurationMs, playDurationMs, timestamp);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DiscoveryInteraction &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.songId == this.songId &&
+          other.interactionType == this.interactionType &&
+          other.positionInPlaylist == this.positionInPlaylist &&
+          other.songDurationMs == this.songDurationMs &&
+          other.playDurationMs == this.playDurationMs &&
+          other.timestamp == this.timestamp);
+}
+
+class DiscoveryInteractionsCompanion
+    extends UpdateCompanion<DiscoveryInteraction> {
+  final Value<int> id;
+  final Value<int> sessionId;
+  final Value<String> songId;
+  final Value<String> interactionType;
+  final Value<int> positionInPlaylist;
+  final Value<int?> songDurationMs;
+  final Value<int?> playDurationMs;
+  final Value<int> timestamp;
+  const DiscoveryInteractionsCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.songId = const Value.absent(),
+    this.interactionType = const Value.absent(),
+    this.positionInPlaylist = const Value.absent(),
+    this.songDurationMs = const Value.absent(),
+    this.playDurationMs = const Value.absent(),
+    this.timestamp = const Value.absent(),
+  });
+  DiscoveryInteractionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int sessionId,
+    required String songId,
+    required String interactionType,
+    required int positionInPlaylist,
+    this.songDurationMs = const Value.absent(),
+    this.playDurationMs = const Value.absent(),
+    this.timestamp = const Value.absent(),
+  })  : sessionId = Value(sessionId),
+        songId = Value(songId),
+        interactionType = Value(interactionType),
+        positionInPlaylist = Value(positionInPlaylist);
+  static Insertable<DiscoveryInteraction> custom({
+    Expression<int>? id,
+    Expression<int>? sessionId,
+    Expression<String>? songId,
+    Expression<String>? interactionType,
+    Expression<int>? positionInPlaylist,
+    Expression<int>? songDurationMs,
+    Expression<int>? playDurationMs,
+    Expression<int>? timestamp,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (songId != null) 'song_id': songId,
+      if (interactionType != null) 'interaction_type': interactionType,
+      if (positionInPlaylist != null)
+        'position_in_playlist': positionInPlaylist,
+      if (songDurationMs != null) 'song_duration_ms': songDurationMs,
+      if (playDurationMs != null) 'play_duration_ms': playDurationMs,
+      if (timestamp != null) 'timestamp': timestamp,
+    });
+  }
+
+  DiscoveryInteractionsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? sessionId,
+      Value<String>? songId,
+      Value<String>? interactionType,
+      Value<int>? positionInPlaylist,
+      Value<int?>? songDurationMs,
+      Value<int?>? playDurationMs,
+      Value<int>? timestamp}) {
+    return DiscoveryInteractionsCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      songId: songId ?? this.songId,
+      interactionType: interactionType ?? this.interactionType,
+      positionInPlaylist: positionInPlaylist ?? this.positionInPlaylist,
+      songDurationMs: songDurationMs ?? this.songDurationMs,
+      playDurationMs: playDurationMs ?? this.playDurationMs,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<int>(sessionId.value);
+    }
+    if (songId.present) {
+      map['song_id'] = Variable<String>(songId.value);
+    }
+    if (interactionType.present) {
+      map['interaction_type'] = Variable<String>(interactionType.value);
+    }
+    if (positionInPlaylist.present) {
+      map['position_in_playlist'] = Variable<int>(positionInPlaylist.value);
+    }
+    if (songDurationMs.present) {
+      map['song_duration_ms'] = Variable<int>(songDurationMs.value);
+    }
+    if (playDurationMs.present) {
+      map['play_duration_ms'] = Variable<int>(playDurationMs.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<int>(timestamp.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiscoveryInteractionsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('songId: $songId, ')
+          ..write('interactionType: $interactionType, ')
+          ..write('positionInPlaylist: $positionInPlaylist, ')
+          ..write('songDurationMs: $songDurationMs, ')
+          ..write('playDurationMs: $playDurationMs, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$SubtracksDatabase extends GeneratedDatabase {
   _$SubtracksDatabase(QueryExecutor e) : super(e);
+  _$SubtracksDatabaseManager get managers => _$SubtracksDatabaseManager(this);
   late final Queue queue = Queue(this);
   late final Index queueIndex =
       Index('queue_index', 'CREATE INDEX queue_index ON queue ("index")');
@@ -4566,6 +5694,30 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
   late final Trigger songsAu = Trigger(
       'CREATE TRIGGER songs_au AFTER UPDATE ON songs BEGIN INSERT INTO songs_fts (songs_fts, "rowid", source_id, title) VALUES (\'delete\', old."rowid", old.source_id, old.title);INSERT INTO songs_fts ("rowid", source_id, title) VALUES (new."rowid", new.source_id, new.title);END',
       'songs_au');
+  late final DiscoverySessions discoverySessions = DiscoverySessions(this);
+  late final Index discoverySessionsSourceId = Index(
+      'discovery_sessions_source_id',
+      'CREATE INDEX discovery_sessions_source_id ON discovery_sessions (source_id)');
+  late final Index discoverySessionsCreatedAt = Index(
+      'discovery_sessions_created_at',
+      'CREATE INDEX discovery_sessions_created_at ON discovery_sessions (created_at)');
+  late final Index discoverySessionsLastPlayedAt = Index(
+      'discovery_sessions_last_played_at',
+      'CREATE INDEX discovery_sessions_last_played_at ON discovery_sessions (last_played_at)');
+  late final Index discoverySessionsIsFavorite = Index(
+      'discovery_sessions_is_favorite',
+      'CREATE INDEX discovery_sessions_is_favorite ON discovery_sessions (is_favorite)');
+  late final DiscoveryInteractions discoveryInteractions =
+      DiscoveryInteractions(this);
+  late final Index discoveryInteractionsSessionId = Index(
+      'discovery_interactions_session_id',
+      'CREATE INDEX discovery_interactions_session_id ON discovery_interactions (session_id)');
+  late final Index discoveryInteractionsSongId = Index(
+      'discovery_interactions_song_id',
+      'CREATE INDEX discovery_interactions_song_id ON discovery_interactions (song_id)');
+  late final Index discoveryInteractionsInteractionType = Index(
+      'discovery_interactions_interaction_type',
+      'CREATE INDEX discovery_interactions_interaction_type ON discovery_interactions (interaction_type)');
   Selectable<int> sourcesCount() {
     return customSelect('SELECT COUNT(*) AS _c0 FROM sources',
         variables: [],
@@ -5326,12 +6478,294 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         }).asyncMap(queue.mapFromRow);
   }
 
+  Selectable<QueueData> allQueueItems() {
+    return customSelect('SELECT * FROM queue ORDER BY queue."index" ASC',
+        variables: [],
+        readsFrom: {
+          queue,
+        }).asyncMap(queue.mapFromRow);
+  }
+
   Selectable<AppSettings> getAppSettings() {
     return customSelect('SELECT * FROM app_settings WHERE id = 1',
         variables: [],
         readsFrom: {
           appSettings,
         }).asyncMap(appSettings.mapFromRow);
+  }
+
+  Selectable<Song> songsWithRating(int sourceId, UserRating rating) {
+    return customSelect(
+        'SELECT * FROM songs WHERE source_id = ?1 AND user_rating = ?2',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<String>(Songs.$converteruserRating.toSql(rating))
+        ],
+        readsFrom: {
+          songs,
+        }).asyncMap(songs.mapFromRow);
+  }
+
+  Selectable<Song> likedSongs(int sourceId) {
+    return customSelect(
+        'SELECT * FROM songs WHERE source_id = ?1 AND user_rating = \'thumbsUp\' ORDER BY updated DESC',
+        variables: [
+          Variable<int>(sourceId)
+        ],
+        readsFrom: {
+          songs,
+        }).asyncMap(songs.mapFromRow);
+  }
+
+  Selectable<Song> dislikedSongs(int sourceId) {
+    return customSelect(
+        'SELECT * FROM songs WHERE source_id = ?1 AND user_rating = \'thumbsDown\' ORDER BY updated DESC',
+        variables: [
+          Variable<int>(sourceId)
+        ],
+        readsFrom: {
+          songs,
+        }).asyncMap(songs.mapFromRow);
+  }
+
+  Selectable<RatingStatsResult> ratingStats(int sourceId) {
+    return customSelect(
+        'SELECT user_rating, COUNT(*) AS count FROM songs WHERE source_id = ?1 GROUP BY user_rating',
+        variables: [
+          Variable<int>(sourceId)
+        ],
+        readsFrom: {
+          songs,
+        }).map((QueryRow row) => RatingStatsResult(
+          userRating: Songs.$converteruserRating
+              .fromSql(row.read<String>('user_rating')),
+          count: row.read<int>('count'),
+        ));
+  }
+
+  Selectable<DiscoverySession> discoverySessionsBySource(
+      int sourceId, int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM discovery_sessions WHERE source_id = ?1 ORDER BY created_at DESC LIMIT ?2 OFFSET ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          discoverySessions,
+        }).asyncMap(discoverySessions.mapFromRow);
+  }
+
+  Selectable<DiscoveryInteraction> discoveryInteractionsBySession(
+      int sessionId) {
+    return customSelect(
+        'SELECT * FROM discovery_interactions WHERE session_id = ?1 ORDER BY position_in_playlist ASC',
+        variables: [
+          Variable<int>(sessionId)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+        }).asyncMap(discoveryInteractions.mapFromRow);
+  }
+
+  Selectable<DiscoverySession> discoveryRecentSessions(
+      int sourceId, int sinceTimestamp) {
+    return customSelect(
+        'SELECT * FROM discovery_sessions WHERE source_id = ?1 AND created_at > ?2 ORDER BY created_at DESC',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(sinceTimestamp)
+        ],
+        readsFrom: {
+          discoverySessions,
+        }).asyncMap(discoverySessions.mapFromRow);
+  }
+
+  Selectable<DiscoveryPopularSongsResult> discoveryPopularSongs(
+      int sourceId, int sinceTimestamp, int limit) {
+    return customSelect(
+        'SELECT di.song_id, COUNT(*) AS play_count, AVG(CASE WHEN di.play_duration_ms IS NOT NULL AND di.song_duration_ms > 0 THEN CAST(di.play_duration_ms AS REAL) / di.song_duration_ms ELSE 0 END) AS avg_completion_rate FROM discovery_interactions AS di JOIN discovery_sessions AS ds ON di.session_id = ds.id WHERE ds.source_id = ?1 AND di.interaction_type IN (\'played\', \'completed\') AND di.timestamp > ?2 GROUP BY di.song_id ORDER BY play_count DESC LIMIT ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(sinceTimestamp),
+          Variable<int>(limit)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+          discoverySessions,
+        }).map((QueryRow row) => DiscoveryPopularSongsResult(
+          songId: row.read<String>('song_id'),
+          playCount: row.read<int>('play_count'),
+          avgCompletionRate: row.read<double>('avg_completion_rate'),
+        ));
+  }
+
+  Selectable<DiscoverySkippedSongsResult> discoverySkippedSongs(
+      int sourceId, int sinceTimestamp, int limit) {
+    return customSelect(
+        'SELECT di.song_id, COUNT(*) AS skip_count FROM discovery_interactions AS di JOIN discovery_sessions AS ds ON di.session_id = ds.id WHERE ds.source_id = ?1 AND di.interaction_type = \'skipped\' AND di.timestamp > ?2 GROUP BY di.song_id ORDER BY skip_count DESC LIMIT ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(sinceTimestamp),
+          Variable<int>(limit)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+          discoverySessions,
+        }).map((QueryRow row) => DiscoverySkippedSongsResult(
+          songId: row.read<String>('song_id'),
+          skipCount: row.read<int>('skip_count'),
+        ));
+  }
+
+  Future<int> discoveryUpdateStationName(String? stationName, int sessionId) {
+    return customUpdate(
+      'UPDATE discovery_sessions SET station_name = ?1 WHERE id = ?2',
+      variables: [Variable<String>(stationName), Variable<int>(sessionId)],
+      updates: {discoverySessions},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<int> discoveryUpdateLastPlayed(int? timestamp, int sessionId) {
+    return customUpdate(
+      'UPDATE discovery_sessions SET last_played_at = ?1 WHERE id = ?2',
+      variables: [Variable<int>(timestamp), Variable<int>(sessionId)],
+      updates: {discoverySessions},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<int> discoveryIncrementPlayCount(int sessionId) {
+    return customUpdate(
+      'UPDATE discovery_sessions SET play_count = play_count + 1 WHERE id = ?1',
+      variables: [Variable<int>(sessionId)],
+      updates: {discoverySessions},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<int> discoveryToggleFavorite(int isFavorite, int sessionId) {
+    return customUpdate(
+      'UPDATE discovery_sessions SET is_favorite = ?1 WHERE id = ?2',
+      variables: [Variable<int>(isFavorite), Variable<int>(sessionId)],
+      updates: {discoverySessions},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Selectable<DiscoverySession> discoveryFavoriteStations(int sourceId) {
+    return customSelect(
+        'SELECT * FROM discovery_sessions WHERE source_id = ?1 AND is_favorite = 1 ORDER BY last_played_at DESC NULLS LAST, created_at DESC',
+        variables: [
+          Variable<int>(sourceId)
+        ],
+        readsFrom: {
+          discoverySessions,
+        }).asyncMap(discoverySessions.mapFromRow);
+  }
+
+  Selectable<DiscoverySession> discoveryStationsSortedByRecent(
+      int sourceId, int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM discovery_sessions WHERE source_id = ?1 ORDER BY last_played_at DESC NULLS LAST, created_at DESC LIMIT ?2 OFFSET ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          discoverySessions,
+        }).asyncMap(discoverySessions.mapFromRow);
+  }
+
+  Selectable<DiscoverySession> discoveryStationsSortedByPlayCount(
+      int sourceId, int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM discovery_sessions WHERE source_id = ?1 ORDER BY play_count DESC, last_played_at DESC NULLS LAST LIMIT ?2 OFFSET ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          discoverySessions,
+        }).asyncMap(discoverySessions.mapFromRow);
+  }
+
+  Selectable<String> discoveryThumbsUpSongsByStation(int sessionId) {
+    return customSelect(
+        'SELECT DISTINCT di.song_id FROM discovery_interactions AS di WHERE di.session_id = ?1 AND di.interaction_type = \'thumbs_up\'',
+        variables: [
+          Variable<int>(sessionId)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+        }).map((QueryRow row) => row.read<String>('song_id'));
+  }
+
+  Selectable<String> discoveryThumbsDownSongsByStation(int sessionId) {
+    return customSelect(
+        'SELECT DISTINCT di.song_id FROM discovery_interactions AS di WHERE di.session_id = ?1 AND di.interaction_type = \'thumbs_down\'',
+        variables: [
+          Variable<int>(sessionId)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+        }).map((QueryRow row) => row.read<String>('song_id'));
+  }
+
+  Selectable<DiscoverySkippedSongsByStationResult>
+      discoverySkippedSongsByStation(int sessionId) {
+    return customSelect(
+        'SELECT di.song_id, COUNT(*) AS skip_count FROM discovery_interactions AS di WHERE di.session_id = ?1 AND di.interaction_type = \'skipped\' GROUP BY di.song_id HAVING skip_count >= 2 ORDER BY skip_count DESC',
+        variables: [
+          Variable<int>(sessionId)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+        }).map((QueryRow row) => DiscoverySkippedSongsByStationResult(
+          songId: row.read<String>('song_id'),
+          skipCount: row.read<int>('skip_count'),
+        ));
+  }
+
+  Selectable<String> discoveryCompletedSongsByStation(int sessionId) {
+    return customSelect(
+        'SELECT DISTINCT di.song_id FROM discovery_interactions AS di WHERE di.session_id = ?1 AND di.interaction_type = \'completed\'',
+        variables: [
+          Variable<int>(sessionId)
+        ],
+        readsFrom: {
+          discoveryInteractions,
+        }).map((QueryRow row) => row.read<String>('song_id'));
+  }
+
+  Selectable<Song> mostLovedSongs(int sourceId, int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM songs WHERE source_id = ?1 AND thumbs_up_count > 0 ORDER BY thumbs_up_count DESC, title ASC LIMIT ?2 OFFSET ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          songs,
+        }).asyncMap(songs.mapFromRow);
+  }
+
+  Selectable<Song> mostDislikedSongs(int sourceId, int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM songs WHERE source_id = ?1 AND thumbs_down_count > 0 ORDER BY thumbs_down_count DESC, title ASC LIMIT ?2 OFFSET ?3',
+        variables: [
+          Variable<int>(sourceId),
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          songs,
+        }).asyncMap(songs.mapFromRow);
   }
 
   @override
@@ -5377,7 +6811,16 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         songsFts,
         songsAi,
         songsAd,
-        songsAu
+        songsAu,
+        discoverySessions,
+        discoverySessionsSourceId,
+        discoverySessionsCreatedAt,
+        discoverySessionsLastPlayedAt,
+        discoverySessionsIsFavorite,
+        discoveryInteractions,
+        discoveryInteractionsSessionId,
+        discoveryInteractionsSongId,
+        discoveryInteractionsInteractionType
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -5508,8 +6951,1793 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
               TableUpdate('songs_fts', kind: UpdateKind.insert),
             ],
           ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('sources',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('discovery_sessions', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('discovery_sessions',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('discovery_interactions', kind: UpdateKind.delete),
+            ],
+          ),
         ],
       );
+}
+
+typedef $QueueInsertCompanionBuilder = QueueCompanion Function({
+  Value<int> index,
+  required int sourceId,
+  required String id,
+  required QueueContextType context,
+  Value<String?> contextId,
+  Value<bool?> currentTrack,
+});
+typedef $QueueUpdateCompanionBuilder = QueueCompanion Function({
+  Value<int> index,
+  Value<int> sourceId,
+  Value<String> id,
+  Value<QueueContextType> context,
+  Value<String?> contextId,
+  Value<bool?> currentTrack,
+});
+
+class $QueueTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    Queue,
+    QueueData,
+    $QueueFilterComposer,
+    $QueueOrderingComposer,
+    $QueueProcessedTableManager,
+    $QueueInsertCompanionBuilder,
+    $QueueUpdateCompanionBuilder> {
+  $QueueTableManager(_$SubtracksDatabase db, Queue table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $QueueFilterComposer(ComposerState(db, table)),
+          orderingComposer: $QueueOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $QueueProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> index = const Value.absent(),
+            Value<int> sourceId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<QueueContextType> context = const Value.absent(),
+            Value<String?> contextId = const Value.absent(),
+            Value<bool?> currentTrack = const Value.absent(),
+          }) =>
+              QueueCompanion(
+            index: index,
+            sourceId: sourceId,
+            id: id,
+            context: context,
+            contextId: contextId,
+            currentTrack: currentTrack,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> index = const Value.absent(),
+            required int sourceId,
+            required String id,
+            required QueueContextType context,
+            Value<String?> contextId = const Value.absent(),
+            Value<bool?> currentTrack = const Value.absent(),
+          }) =>
+              QueueCompanion.insert(
+            index: index,
+            sourceId: sourceId,
+            id: id,
+            context: context,
+            contextId: contextId,
+            currentTrack: currentTrack,
+          ),
+        ));
+}
+
+class $QueueProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    Queue,
+    QueueData,
+    $QueueFilterComposer,
+    $QueueOrderingComposer,
+    $QueueProcessedTableManager,
+    $QueueInsertCompanionBuilder,
+    $QueueUpdateCompanionBuilder> {
+  $QueueProcessedTableManager(super.$state);
+}
+
+class $QueueFilterComposer extends FilterComposer<_$SubtracksDatabase, Queue> {
+  $QueueFilterComposer(super.$state);
+  ColumnFilters<int> get index => $state.composableBuilder(
+      column: $state.table.index,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<QueueContextType, QueueContextType, String>
+      get context => $state.composableBuilder(
+          column: $state.table.context,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get contextId => $state.composableBuilder(
+      column: $state.table.contextId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get currentTrack => $state.composableBuilder(
+      column: $state.table.currentTrack,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $QueueOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, Queue> {
+  $QueueOrderingComposer(super.$state);
+  ColumnOrderings<int> get index => $state.composableBuilder(
+      column: $state.table.index,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get context => $state.composableBuilder(
+      column: $state.table.context,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get contextId => $state.composableBuilder(
+      column: $state.table.contextId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get currentTrack => $state.composableBuilder(
+      column: $state.table.currentTrack,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $LastAudioStateInsertCompanionBuilder = LastAudioStateCompanion
+    Function({
+  Value<int> id,
+  required QueueMode queueMode,
+  Value<IList<int>?> shuffleIndicies,
+  required RepeatMode repeat,
+});
+typedef $LastAudioStateUpdateCompanionBuilder = LastAudioStateCompanion
+    Function({
+  Value<int> id,
+  Value<QueueMode> queueMode,
+  Value<IList<int>?> shuffleIndicies,
+  Value<RepeatMode> repeat,
+});
+
+class $LastAudioStateTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    LastAudioState,
+    LastAudioStateData,
+    $LastAudioStateFilterComposer,
+    $LastAudioStateOrderingComposer,
+    $LastAudioStateProcessedTableManager,
+    $LastAudioStateInsertCompanionBuilder,
+    $LastAudioStateUpdateCompanionBuilder> {
+  $LastAudioStateTableManager(_$SubtracksDatabase db, LastAudioState table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $LastAudioStateFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $LastAudioStateOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $LastAudioStateProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<QueueMode> queueMode = const Value.absent(),
+            Value<IList<int>?> shuffleIndicies = const Value.absent(),
+            Value<RepeatMode> repeat = const Value.absent(),
+          }) =>
+              LastAudioStateCompanion(
+            id: id,
+            queueMode: queueMode,
+            shuffleIndicies: shuffleIndicies,
+            repeat: repeat,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required QueueMode queueMode,
+            Value<IList<int>?> shuffleIndicies = const Value.absent(),
+            required RepeatMode repeat,
+          }) =>
+              LastAudioStateCompanion.insert(
+            id: id,
+            queueMode: queueMode,
+            shuffleIndicies: shuffleIndicies,
+            repeat: repeat,
+          ),
+        ));
+}
+
+class $LastAudioStateProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    LastAudioState,
+    LastAudioStateData,
+    $LastAudioStateFilterComposer,
+    $LastAudioStateOrderingComposer,
+    $LastAudioStateProcessedTableManager,
+    $LastAudioStateInsertCompanionBuilder,
+    $LastAudioStateUpdateCompanionBuilder> {
+  $LastAudioStateProcessedTableManager(super.$state);
+}
+
+class $LastAudioStateFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, LastAudioState> {
+  $LastAudioStateFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<QueueMode, QueueMode, int> get queueMode =>
+      $state.composableBuilder(
+          column: $state.table.queueMode,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<IList<int>?, IList<int>, String>
+      get shuffleIndicies => $state.composableBuilder(
+          column: $state.table.shuffleIndicies,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<RepeatMode, RepeatMode, int> get repeat =>
+      $state.composableBuilder(
+          column: $state.table.repeat,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+}
+
+class $LastAudioStateOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, LastAudioState> {
+  $LastAudioStateOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get queueMode => $state.composableBuilder(
+      column: $state.table.queueMode,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get shuffleIndicies => $state.composableBuilder(
+      column: $state.table.shuffleIndicies,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get repeat => $state.composableBuilder(
+      column: $state.table.repeat,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $LastBottomNavStateInsertCompanionBuilder = LastBottomNavStateCompanion
+    Function({
+  Value<int> id,
+  required String tab,
+});
+typedef $LastBottomNavStateUpdateCompanionBuilder = LastBottomNavStateCompanion
+    Function({
+  Value<int> id,
+  Value<String> tab,
+});
+
+class $LastBottomNavStateTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    LastBottomNavState,
+    LastBottomNavStateData,
+    $LastBottomNavStateFilterComposer,
+    $LastBottomNavStateOrderingComposer,
+    $LastBottomNavStateProcessedTableManager,
+    $LastBottomNavStateInsertCompanionBuilder,
+    $LastBottomNavStateUpdateCompanionBuilder> {
+  $LastBottomNavStateTableManager(
+      _$SubtracksDatabase db, LastBottomNavState table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $LastBottomNavStateFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $LastBottomNavStateOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $LastBottomNavStateProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<String> tab = const Value.absent(),
+          }) =>
+              LastBottomNavStateCompanion(
+            id: id,
+            tab: tab,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required String tab,
+          }) =>
+              LastBottomNavStateCompanion.insert(
+            id: id,
+            tab: tab,
+          ),
+        ));
+}
+
+class $LastBottomNavStateProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    LastBottomNavState,
+    LastBottomNavStateData,
+    $LastBottomNavStateFilterComposer,
+    $LastBottomNavStateOrderingComposer,
+    $LastBottomNavStateProcessedTableManager,
+    $LastBottomNavStateInsertCompanionBuilder,
+    $LastBottomNavStateUpdateCompanionBuilder> {
+  $LastBottomNavStateProcessedTableManager(super.$state);
+}
+
+class $LastBottomNavStateFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, LastBottomNavState> {
+  $LastBottomNavStateFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get tab => $state.composableBuilder(
+      column: $state.table.tab,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $LastBottomNavStateOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, LastBottomNavState> {
+  $LastBottomNavStateOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get tab => $state.composableBuilder(
+      column: $state.table.tab,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $LastLibraryStateInsertCompanionBuilder = LastLibraryStateCompanion
+    Function({
+  Value<int> id,
+  required String tab,
+  required ListQuery albumsList,
+  required ListQuery artistsList,
+  required ListQuery playlistsList,
+  required ListQuery songsList,
+});
+typedef $LastLibraryStateUpdateCompanionBuilder = LastLibraryStateCompanion
+    Function({
+  Value<int> id,
+  Value<String> tab,
+  Value<ListQuery> albumsList,
+  Value<ListQuery> artistsList,
+  Value<ListQuery> playlistsList,
+  Value<ListQuery> songsList,
+});
+
+class $LastLibraryStateTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    LastLibraryState,
+    LastLibraryStateData,
+    $LastLibraryStateFilterComposer,
+    $LastLibraryStateOrderingComposer,
+    $LastLibraryStateProcessedTableManager,
+    $LastLibraryStateInsertCompanionBuilder,
+    $LastLibraryStateUpdateCompanionBuilder> {
+  $LastLibraryStateTableManager(_$SubtracksDatabase db, LastLibraryState table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $LastLibraryStateFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $LastLibraryStateOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $LastLibraryStateProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<String> tab = const Value.absent(),
+            Value<ListQuery> albumsList = const Value.absent(),
+            Value<ListQuery> artistsList = const Value.absent(),
+            Value<ListQuery> playlistsList = const Value.absent(),
+            Value<ListQuery> songsList = const Value.absent(),
+          }) =>
+              LastLibraryStateCompanion(
+            id: id,
+            tab: tab,
+            albumsList: albumsList,
+            artistsList: artistsList,
+            playlistsList: playlistsList,
+            songsList: songsList,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required String tab,
+            required ListQuery albumsList,
+            required ListQuery artistsList,
+            required ListQuery playlistsList,
+            required ListQuery songsList,
+          }) =>
+              LastLibraryStateCompanion.insert(
+            id: id,
+            tab: tab,
+            albumsList: albumsList,
+            artistsList: artistsList,
+            playlistsList: playlistsList,
+            songsList: songsList,
+          ),
+        ));
+}
+
+class $LastLibraryStateProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    LastLibraryState,
+    LastLibraryStateData,
+    $LastLibraryStateFilterComposer,
+    $LastLibraryStateOrderingComposer,
+    $LastLibraryStateProcessedTableManager,
+    $LastLibraryStateInsertCompanionBuilder,
+    $LastLibraryStateUpdateCompanionBuilder> {
+  $LastLibraryStateProcessedTableManager(super.$state);
+}
+
+class $LastLibraryStateFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, LastLibraryState> {
+  $LastLibraryStateFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get tab => $state.composableBuilder(
+      column: $state.table.tab,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String> get albumsList =>
+      $state.composableBuilder(
+          column: $state.table.albumsList,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String>
+      get artistsList => $state.composableBuilder(
+          column: $state.table.artistsList,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String>
+      get playlistsList => $state.composableBuilder(
+          column: $state.table.playlistsList,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String> get songsList =>
+      $state.composableBuilder(
+          column: $state.table.songsList,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+}
+
+class $LastLibraryStateOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, LastLibraryState> {
+  $LastLibraryStateOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get tab => $state.composableBuilder(
+      column: $state.table.tab,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get albumsList => $state.composableBuilder(
+      column: $state.table.albumsList,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get artistsList => $state.composableBuilder(
+      column: $state.table.artistsList,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get playlistsList => $state.composableBuilder(
+      column: $state.table.playlistsList,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get songsList => $state.composableBuilder(
+      column: $state.table.songsList,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $SourcesInsertCompanionBuilder = SourcesCompanion Function({
+  Value<int> id,
+  required String name,
+  required Uri address,
+  Value<bool?> isActive,
+  Value<DateTime> createdAt,
+});
+typedef $SourcesUpdateCompanionBuilder = SourcesCompanion Function({
+  Value<int> id,
+  Value<String> name,
+  Value<Uri> address,
+  Value<bool?> isActive,
+  Value<DateTime> createdAt,
+});
+
+class $SourcesTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    Sources,
+    Source,
+    $SourcesFilterComposer,
+    $SourcesOrderingComposer,
+    $SourcesProcessedTableManager,
+    $SourcesInsertCompanionBuilder,
+    $SourcesUpdateCompanionBuilder> {
+  $SourcesTableManager(_$SubtracksDatabase db, Sources table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $SourcesFilterComposer(ComposerState(db, table)),
+          orderingComposer: $SourcesOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $SourcesProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<Uri> address = const Value.absent(),
+            Value<bool?> isActive = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              SourcesCompanion(
+            id: id,
+            name: name,
+            address: address,
+            isActive: isActive,
+            createdAt: createdAt,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            required Uri address,
+            Value<bool?> isActive = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              SourcesCompanion.insert(
+            id: id,
+            name: name,
+            address: address,
+            isActive: isActive,
+            createdAt: createdAt,
+          ),
+        ));
+}
+
+class $SourcesProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    Sources,
+    Source,
+    $SourcesFilterComposer,
+    $SourcesOrderingComposer,
+    $SourcesProcessedTableManager,
+    $SourcesInsertCompanionBuilder,
+    $SourcesUpdateCompanionBuilder> {
+  $SourcesProcessedTableManager(super.$state);
+}
+
+class $SourcesFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, Sources> {
+  $SourcesFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<Uri, Uri, String> get address =>
+      $state.composableBuilder(
+          column: $state.table.address,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get isActive => $state.composableBuilder(
+      column: $state.table.isActive,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get createdAt => $state.composableBuilder(
+      column: $state.table.createdAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $SourcesOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, Sources> {
+  $SourcesOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get address => $state.composableBuilder(
+      column: $state.table.address,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get isActive => $state.composableBuilder(
+      column: $state.table.isActive,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get createdAt => $state.composableBuilder(
+      column: $state.table.createdAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $SubsonicSourcesInsertCompanionBuilder = SubsonicSourcesCompanion
+    Function({
+  Value<int> sourceId,
+  required IList<SubsonicFeature> features,
+  required String username,
+  required String password,
+  Value<bool> useTokenAuth,
+});
+typedef $SubsonicSourcesUpdateCompanionBuilder = SubsonicSourcesCompanion
+    Function({
+  Value<int> sourceId,
+  Value<IList<SubsonicFeature>> features,
+  Value<String> username,
+  Value<String> password,
+  Value<bool> useTokenAuth,
+});
+
+class $SubsonicSourcesTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    SubsonicSources,
+    SubsonicSource,
+    $SubsonicSourcesFilterComposer,
+    $SubsonicSourcesOrderingComposer,
+    $SubsonicSourcesProcessedTableManager,
+    $SubsonicSourcesInsertCompanionBuilder,
+    $SubsonicSourcesUpdateCompanionBuilder> {
+  $SubsonicSourcesTableManager(_$SubtracksDatabase db, SubsonicSources table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $SubsonicSourcesFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $SubsonicSourcesOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $SubsonicSourcesProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> sourceId = const Value.absent(),
+            Value<IList<SubsonicFeature>> features = const Value.absent(),
+            Value<String> username = const Value.absent(),
+            Value<String> password = const Value.absent(),
+            Value<bool> useTokenAuth = const Value.absent(),
+          }) =>
+              SubsonicSourcesCompanion(
+            sourceId: sourceId,
+            features: features,
+            username: username,
+            password: password,
+            useTokenAuth: useTokenAuth,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> sourceId = const Value.absent(),
+            required IList<SubsonicFeature> features,
+            required String username,
+            required String password,
+            Value<bool> useTokenAuth = const Value.absent(),
+          }) =>
+              SubsonicSourcesCompanion.insert(
+            sourceId: sourceId,
+            features: features,
+            username: username,
+            password: password,
+            useTokenAuth: useTokenAuth,
+          ),
+        ));
+}
+
+class $SubsonicSourcesProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    SubsonicSources,
+    SubsonicSource,
+    $SubsonicSourcesFilterComposer,
+    $SubsonicSourcesOrderingComposer,
+    $SubsonicSourcesProcessedTableManager,
+    $SubsonicSourcesInsertCompanionBuilder,
+    $SubsonicSourcesUpdateCompanionBuilder> {
+  $SubsonicSourcesProcessedTableManager(super.$state);
+}
+
+class $SubsonicSourcesFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, SubsonicSources> {
+  $SubsonicSourcesFilterComposer(super.$state);
+  ColumnFilters<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<IList<SubsonicFeature>, IList<SubsonicFeature>,
+          String>
+      get features => $state.composableBuilder(
+          column: $state.table.features,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get username => $state.composableBuilder(
+      column: $state.table.username,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get password => $state.composableBuilder(
+      column: $state.table.password,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get useTokenAuth => $state.composableBuilder(
+      column: $state.table.useTokenAuth,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $SubsonicSourcesOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, SubsonicSources> {
+  $SubsonicSourcesOrderingComposer(super.$state);
+  ColumnOrderings<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get features => $state.composableBuilder(
+      column: $state.table.features,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get username => $state.composableBuilder(
+      column: $state.table.username,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get password => $state.composableBuilder(
+      column: $state.table.password,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get useTokenAuth => $state.composableBuilder(
+      column: $state.table.useTokenAuth,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $ArtistsFtsInsertCompanionBuilder = ArtistsFtsCompanion Function({
+  required String sourceId,
+  required String name,
+  Value<int> rowid,
+});
+typedef $ArtistsFtsUpdateCompanionBuilder = ArtistsFtsCompanion Function({
+  Value<String> sourceId,
+  Value<String> name,
+  Value<int> rowid,
+});
+
+class $ArtistsFtsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    ArtistsFts,
+    ArtistsFt,
+    $ArtistsFtsFilterComposer,
+    $ArtistsFtsOrderingComposer,
+    $ArtistsFtsProcessedTableManager,
+    $ArtistsFtsInsertCompanionBuilder,
+    $ArtistsFtsUpdateCompanionBuilder> {
+  $ArtistsFtsTableManager(_$SubtracksDatabase db, ArtistsFts table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $ArtistsFtsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $ArtistsFtsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $ArtistsFtsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<String> sourceId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ArtistsFtsCompanion(
+            sourceId: sourceId,
+            name: name,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required String sourceId,
+            required String name,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ArtistsFtsCompanion.insert(
+            sourceId: sourceId,
+            name: name,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $ArtistsFtsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    ArtistsFts,
+    ArtistsFt,
+    $ArtistsFtsFilterComposer,
+    $ArtistsFtsOrderingComposer,
+    $ArtistsFtsProcessedTableManager,
+    $ArtistsFtsInsertCompanionBuilder,
+    $ArtistsFtsUpdateCompanionBuilder> {
+  $ArtistsFtsProcessedTableManager(super.$state);
+}
+
+class $ArtistsFtsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, ArtistsFts> {
+  $ArtistsFtsFilterComposer(super.$state);
+  ColumnFilters<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $ArtistsFtsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, ArtistsFts> {
+  $ArtistsFtsOrderingComposer(super.$state);
+  ColumnOrderings<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $AlbumsFtsInsertCompanionBuilder = AlbumsFtsCompanion Function({
+  required String sourceId,
+  required String name,
+  Value<int> rowid,
+});
+typedef $AlbumsFtsUpdateCompanionBuilder = AlbumsFtsCompanion Function({
+  Value<String> sourceId,
+  Value<String> name,
+  Value<int> rowid,
+});
+
+class $AlbumsFtsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    AlbumsFts,
+    AlbumsFt,
+    $AlbumsFtsFilterComposer,
+    $AlbumsFtsOrderingComposer,
+    $AlbumsFtsProcessedTableManager,
+    $AlbumsFtsInsertCompanionBuilder,
+    $AlbumsFtsUpdateCompanionBuilder> {
+  $AlbumsFtsTableManager(_$SubtracksDatabase db, AlbumsFts table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $AlbumsFtsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $AlbumsFtsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $AlbumsFtsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<String> sourceId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AlbumsFtsCompanion(
+            sourceId: sourceId,
+            name: name,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required String sourceId,
+            required String name,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AlbumsFtsCompanion.insert(
+            sourceId: sourceId,
+            name: name,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $AlbumsFtsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    AlbumsFts,
+    AlbumsFt,
+    $AlbumsFtsFilterComposer,
+    $AlbumsFtsOrderingComposer,
+    $AlbumsFtsProcessedTableManager,
+    $AlbumsFtsInsertCompanionBuilder,
+    $AlbumsFtsUpdateCompanionBuilder> {
+  $AlbumsFtsProcessedTableManager(super.$state);
+}
+
+class $AlbumsFtsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, AlbumsFts> {
+  $AlbumsFtsFilterComposer(super.$state);
+  ColumnFilters<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $AlbumsFtsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, AlbumsFts> {
+  $AlbumsFtsOrderingComposer(super.$state);
+  ColumnOrderings<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $PlaylistSongsInsertCompanionBuilder = PlaylistSongsCompanion Function({
+  required int sourceId,
+  required String playlistId,
+  required String songId,
+  required int position,
+  Value<DateTime> updated,
+  Value<int> rowid,
+});
+typedef $PlaylistSongsUpdateCompanionBuilder = PlaylistSongsCompanion Function({
+  Value<int> sourceId,
+  Value<String> playlistId,
+  Value<String> songId,
+  Value<int> position,
+  Value<DateTime> updated,
+  Value<int> rowid,
+});
+
+class $PlaylistSongsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    PlaylistSongs,
+    PlaylistSong,
+    $PlaylistSongsFilterComposer,
+    $PlaylistSongsOrderingComposer,
+    $PlaylistSongsProcessedTableManager,
+    $PlaylistSongsInsertCompanionBuilder,
+    $PlaylistSongsUpdateCompanionBuilder> {
+  $PlaylistSongsTableManager(_$SubtracksDatabase db, PlaylistSongs table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $PlaylistSongsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $PlaylistSongsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $PlaylistSongsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> sourceId = const Value.absent(),
+            Value<String> playlistId = const Value.absent(),
+            Value<String> songId = const Value.absent(),
+            Value<int> position = const Value.absent(),
+            Value<DateTime> updated = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PlaylistSongsCompanion(
+            sourceId: sourceId,
+            playlistId: playlistId,
+            songId: songId,
+            position: position,
+            updated: updated,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required int sourceId,
+            required String playlistId,
+            required String songId,
+            required int position,
+            Value<DateTime> updated = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PlaylistSongsCompanion.insert(
+            sourceId: sourceId,
+            playlistId: playlistId,
+            songId: songId,
+            position: position,
+            updated: updated,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $PlaylistSongsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    PlaylistSongs,
+    PlaylistSong,
+    $PlaylistSongsFilterComposer,
+    $PlaylistSongsOrderingComposer,
+    $PlaylistSongsProcessedTableManager,
+    $PlaylistSongsInsertCompanionBuilder,
+    $PlaylistSongsUpdateCompanionBuilder> {
+  $PlaylistSongsProcessedTableManager(super.$state);
+}
+
+class $PlaylistSongsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, PlaylistSongs> {
+  $PlaylistSongsFilterComposer(super.$state);
+  ColumnFilters<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get playlistId => $state.composableBuilder(
+      column: $state.table.playlistId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get songId => $state.composableBuilder(
+      column: $state.table.songId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get position => $state.composableBuilder(
+      column: $state.table.position,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get updated => $state.composableBuilder(
+      column: $state.table.updated,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $PlaylistSongsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, PlaylistSongs> {
+  $PlaylistSongsOrderingComposer(super.$state);
+  ColumnOrderings<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get playlistId => $state.composableBuilder(
+      column: $state.table.playlistId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get songId => $state.composableBuilder(
+      column: $state.table.songId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get position => $state.composableBuilder(
+      column: $state.table.position,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get updated => $state.composableBuilder(
+      column: $state.table.updated,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $PlaylistsFtsInsertCompanionBuilder = PlaylistsFtsCompanion Function({
+  required String sourceId,
+  required String name,
+  Value<int> rowid,
+});
+typedef $PlaylistsFtsUpdateCompanionBuilder = PlaylistsFtsCompanion Function({
+  Value<String> sourceId,
+  Value<String> name,
+  Value<int> rowid,
+});
+
+class $PlaylistsFtsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    PlaylistsFts,
+    PlaylistsFt,
+    $PlaylistsFtsFilterComposer,
+    $PlaylistsFtsOrderingComposer,
+    $PlaylistsFtsProcessedTableManager,
+    $PlaylistsFtsInsertCompanionBuilder,
+    $PlaylistsFtsUpdateCompanionBuilder> {
+  $PlaylistsFtsTableManager(_$SubtracksDatabase db, PlaylistsFts table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $PlaylistsFtsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $PlaylistsFtsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $PlaylistsFtsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<String> sourceId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PlaylistsFtsCompanion(
+            sourceId: sourceId,
+            name: name,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required String sourceId,
+            required String name,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PlaylistsFtsCompanion.insert(
+            sourceId: sourceId,
+            name: name,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $PlaylistsFtsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    PlaylistsFts,
+    PlaylistsFt,
+    $PlaylistsFtsFilterComposer,
+    $PlaylistsFtsOrderingComposer,
+    $PlaylistsFtsProcessedTableManager,
+    $PlaylistsFtsInsertCompanionBuilder,
+    $PlaylistsFtsUpdateCompanionBuilder> {
+  $PlaylistsFtsProcessedTableManager(super.$state);
+}
+
+class $PlaylistsFtsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, PlaylistsFts> {
+  $PlaylistsFtsFilterComposer(super.$state);
+  ColumnFilters<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $PlaylistsFtsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, PlaylistsFts> {
+  $PlaylistsFtsOrderingComposer(super.$state);
+  ColumnOrderings<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $SongsFtsInsertCompanionBuilder = SongsFtsCompanion Function({
+  required String sourceId,
+  required String title,
+  Value<int> rowid,
+});
+typedef $SongsFtsUpdateCompanionBuilder = SongsFtsCompanion Function({
+  Value<String> sourceId,
+  Value<String> title,
+  Value<int> rowid,
+});
+
+class $SongsFtsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    SongsFts,
+    SongsFt,
+    $SongsFtsFilterComposer,
+    $SongsFtsOrderingComposer,
+    $SongsFtsProcessedTableManager,
+    $SongsFtsInsertCompanionBuilder,
+    $SongsFtsUpdateCompanionBuilder> {
+  $SongsFtsTableManager(_$SubtracksDatabase db, SongsFts table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $SongsFtsFilterComposer(ComposerState(db, table)),
+          orderingComposer: $SongsFtsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) => $SongsFtsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<String> sourceId = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SongsFtsCompanion(
+            sourceId: sourceId,
+            title: title,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required String sourceId,
+            required String title,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SongsFtsCompanion.insert(
+            sourceId: sourceId,
+            title: title,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $SongsFtsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    SongsFts,
+    SongsFt,
+    $SongsFtsFilterComposer,
+    $SongsFtsOrderingComposer,
+    $SongsFtsProcessedTableManager,
+    $SongsFtsInsertCompanionBuilder,
+    $SongsFtsUpdateCompanionBuilder> {
+  $SongsFtsProcessedTableManager(super.$state);
+}
+
+class $SongsFtsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, SongsFts> {
+  $SongsFtsFilterComposer(super.$state);
+  ColumnFilters<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get title => $state.composableBuilder(
+      column: $state.table.title,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $SongsFtsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, SongsFts> {
+  $SongsFtsOrderingComposer(super.$state);
+  ColumnOrderings<String> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get title => $state.composableBuilder(
+      column: $state.table.title,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $DiscoverySessionsInsertCompanionBuilder = DiscoverySessionsCompanion
+    Function({
+  Value<int> id,
+  required String seedSongId,
+  Value<String?> seedArtist,
+  Value<String?> seedGenre,
+  required int sourceId,
+  required String mode,
+  Value<int> playlistSize,
+  Value<String?> stationName,
+  Value<int?> lastPlayedAt,
+  Value<int> playCount,
+  Value<int> isFavorite,
+  Value<int> createdAt,
+});
+typedef $DiscoverySessionsUpdateCompanionBuilder = DiscoverySessionsCompanion
+    Function({
+  Value<int> id,
+  Value<String> seedSongId,
+  Value<String?> seedArtist,
+  Value<String?> seedGenre,
+  Value<int> sourceId,
+  Value<String> mode,
+  Value<int> playlistSize,
+  Value<String?> stationName,
+  Value<int?> lastPlayedAt,
+  Value<int> playCount,
+  Value<int> isFavorite,
+  Value<int> createdAt,
+});
+
+class $DiscoverySessionsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    DiscoverySessions,
+    DiscoverySession,
+    $DiscoverySessionsFilterComposer,
+    $DiscoverySessionsOrderingComposer,
+    $DiscoverySessionsProcessedTableManager,
+    $DiscoverySessionsInsertCompanionBuilder,
+    $DiscoverySessionsUpdateCompanionBuilder> {
+  $DiscoverySessionsTableManager(
+      _$SubtracksDatabase db, DiscoverySessions table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $DiscoverySessionsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $DiscoverySessionsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $DiscoverySessionsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<String> seedSongId = const Value.absent(),
+            Value<String?> seedArtist = const Value.absent(),
+            Value<String?> seedGenre = const Value.absent(),
+            Value<int> sourceId = const Value.absent(),
+            Value<String> mode = const Value.absent(),
+            Value<int> playlistSize = const Value.absent(),
+            Value<String?> stationName = const Value.absent(),
+            Value<int?> lastPlayedAt = const Value.absent(),
+            Value<int> playCount = const Value.absent(),
+            Value<int> isFavorite = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+          }) =>
+              DiscoverySessionsCompanion(
+            id: id,
+            seedSongId: seedSongId,
+            seedArtist: seedArtist,
+            seedGenre: seedGenre,
+            sourceId: sourceId,
+            mode: mode,
+            playlistSize: playlistSize,
+            stationName: stationName,
+            lastPlayedAt: lastPlayedAt,
+            playCount: playCount,
+            isFavorite: isFavorite,
+            createdAt: createdAt,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required String seedSongId,
+            Value<String?> seedArtist = const Value.absent(),
+            Value<String?> seedGenre = const Value.absent(),
+            required int sourceId,
+            required String mode,
+            Value<int> playlistSize = const Value.absent(),
+            Value<String?> stationName = const Value.absent(),
+            Value<int?> lastPlayedAt = const Value.absent(),
+            Value<int> playCount = const Value.absent(),
+            Value<int> isFavorite = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+          }) =>
+              DiscoverySessionsCompanion.insert(
+            id: id,
+            seedSongId: seedSongId,
+            seedArtist: seedArtist,
+            seedGenre: seedGenre,
+            sourceId: sourceId,
+            mode: mode,
+            playlistSize: playlistSize,
+            stationName: stationName,
+            lastPlayedAt: lastPlayedAt,
+            playCount: playCount,
+            isFavorite: isFavorite,
+            createdAt: createdAt,
+          ),
+        ));
+}
+
+class $DiscoverySessionsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    DiscoverySessions,
+    DiscoverySession,
+    $DiscoverySessionsFilterComposer,
+    $DiscoverySessionsOrderingComposer,
+    $DiscoverySessionsProcessedTableManager,
+    $DiscoverySessionsInsertCompanionBuilder,
+    $DiscoverySessionsUpdateCompanionBuilder> {
+  $DiscoverySessionsProcessedTableManager(super.$state);
+}
+
+class $DiscoverySessionsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, DiscoverySessions> {
+  $DiscoverySessionsFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get seedSongId => $state.composableBuilder(
+      column: $state.table.seedSongId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get seedArtist => $state.composableBuilder(
+      column: $state.table.seedArtist,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get seedGenre => $state.composableBuilder(
+      column: $state.table.seedGenre,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get mode => $state.composableBuilder(
+      column: $state.table.mode,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get playlistSize => $state.composableBuilder(
+      column: $state.table.playlistSize,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get stationName => $state.composableBuilder(
+      column: $state.table.stationName,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get lastPlayedAt => $state.composableBuilder(
+      column: $state.table.lastPlayedAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get playCount => $state.composableBuilder(
+      column: $state.table.playCount,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get isFavorite => $state.composableBuilder(
+      column: $state.table.isFavorite,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get createdAt => $state.composableBuilder(
+      column: $state.table.createdAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $DiscoverySessionsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, DiscoverySessions> {
+  $DiscoverySessionsOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get seedSongId => $state.composableBuilder(
+      column: $state.table.seedSongId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get seedArtist => $state.composableBuilder(
+      column: $state.table.seedArtist,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get seedGenre => $state.composableBuilder(
+      column: $state.table.seedGenre,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get sourceId => $state.composableBuilder(
+      column: $state.table.sourceId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get mode => $state.composableBuilder(
+      column: $state.table.mode,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get playlistSize => $state.composableBuilder(
+      column: $state.table.playlistSize,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get stationName => $state.composableBuilder(
+      column: $state.table.stationName,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get lastPlayedAt => $state.composableBuilder(
+      column: $state.table.lastPlayedAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get playCount => $state.composableBuilder(
+      column: $state.table.playCount,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get isFavorite => $state.composableBuilder(
+      column: $state.table.isFavorite,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get createdAt => $state.composableBuilder(
+      column: $state.table.createdAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $DiscoveryInteractionsInsertCompanionBuilder
+    = DiscoveryInteractionsCompanion Function({
+  Value<int> id,
+  required int sessionId,
+  required String songId,
+  required String interactionType,
+  required int positionInPlaylist,
+  Value<int?> songDurationMs,
+  Value<int?> playDurationMs,
+  Value<int> timestamp,
+});
+typedef $DiscoveryInteractionsUpdateCompanionBuilder
+    = DiscoveryInteractionsCompanion Function({
+  Value<int> id,
+  Value<int> sessionId,
+  Value<String> songId,
+  Value<String> interactionType,
+  Value<int> positionInPlaylist,
+  Value<int?> songDurationMs,
+  Value<int?> playDurationMs,
+  Value<int> timestamp,
+});
+
+class $DiscoveryInteractionsTableManager extends RootTableManager<
+    _$SubtracksDatabase,
+    DiscoveryInteractions,
+    DiscoveryInteraction,
+    $DiscoveryInteractionsFilterComposer,
+    $DiscoveryInteractionsOrderingComposer,
+    $DiscoveryInteractionsProcessedTableManager,
+    $DiscoveryInteractionsInsertCompanionBuilder,
+    $DiscoveryInteractionsUpdateCompanionBuilder> {
+  $DiscoveryInteractionsTableManager(
+      _$SubtracksDatabase db, DiscoveryInteractions table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $DiscoveryInteractionsFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $DiscoveryInteractionsOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $DiscoveryInteractionsProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<int> sessionId = const Value.absent(),
+            Value<String> songId = const Value.absent(),
+            Value<String> interactionType = const Value.absent(),
+            Value<int> positionInPlaylist = const Value.absent(),
+            Value<int?> songDurationMs = const Value.absent(),
+            Value<int?> playDurationMs = const Value.absent(),
+            Value<int> timestamp = const Value.absent(),
+          }) =>
+              DiscoveryInteractionsCompanion(
+            id: id,
+            sessionId: sessionId,
+            songId: songId,
+            interactionType: interactionType,
+            positionInPlaylist: positionInPlaylist,
+            songDurationMs: songDurationMs,
+            playDurationMs: playDurationMs,
+            timestamp: timestamp,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required int sessionId,
+            required String songId,
+            required String interactionType,
+            required int positionInPlaylist,
+            Value<int?> songDurationMs = const Value.absent(),
+            Value<int?> playDurationMs = const Value.absent(),
+            Value<int> timestamp = const Value.absent(),
+          }) =>
+              DiscoveryInteractionsCompanion.insert(
+            id: id,
+            sessionId: sessionId,
+            songId: songId,
+            interactionType: interactionType,
+            positionInPlaylist: positionInPlaylist,
+            songDurationMs: songDurationMs,
+            playDurationMs: playDurationMs,
+            timestamp: timestamp,
+          ),
+        ));
+}
+
+class $DiscoveryInteractionsProcessedTableManager extends ProcessedTableManager<
+    _$SubtracksDatabase,
+    DiscoveryInteractions,
+    DiscoveryInteraction,
+    $DiscoveryInteractionsFilterComposer,
+    $DiscoveryInteractionsOrderingComposer,
+    $DiscoveryInteractionsProcessedTableManager,
+    $DiscoveryInteractionsInsertCompanionBuilder,
+    $DiscoveryInteractionsUpdateCompanionBuilder> {
+  $DiscoveryInteractionsProcessedTableManager(super.$state);
+}
+
+class $DiscoveryInteractionsFilterComposer
+    extends FilterComposer<_$SubtracksDatabase, DiscoveryInteractions> {
+  $DiscoveryInteractionsFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get songId => $state.composableBuilder(
+      column: $state.table.songId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get interactionType => $state.composableBuilder(
+      column: $state.table.interactionType,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get positionInPlaylist => $state.composableBuilder(
+      column: $state.table.positionInPlaylist,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get songDurationMs => $state.composableBuilder(
+      column: $state.table.songDurationMs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get playDurationMs => $state.composableBuilder(
+      column: $state.table.playDurationMs,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get timestamp => $state.composableBuilder(
+      column: $state.table.timestamp,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $DiscoveryInteractionsOrderingComposer
+    extends OrderingComposer<_$SubtracksDatabase, DiscoveryInteractions> {
+  $DiscoveryInteractionsOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get sessionId => $state.composableBuilder(
+      column: $state.table.sessionId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get songId => $state.composableBuilder(
+      column: $state.table.songId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get interactionType => $state.composableBuilder(
+      column: $state.table.interactionType,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get positionInPlaylist => $state.composableBuilder(
+      column: $state.table.positionInPlaylist,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get songDurationMs => $state.composableBuilder(
+      column: $state.table.songDurationMs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get playDurationMs => $state.composableBuilder(
+      column: $state.table.playDurationMs,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get timestamp => $state.composableBuilder(
+      column: $state.table.timestamp,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+class _$SubtracksDatabaseManager {
+  final _$SubtracksDatabase _db;
+  _$SubtracksDatabaseManager(this._db);
+  $QueueTableManager get queue => $QueueTableManager(_db, _db.queue);
+  $LastAudioStateTableManager get lastAudioState =>
+      $LastAudioStateTableManager(_db, _db.lastAudioState);
+  $LastBottomNavStateTableManager get lastBottomNavState =>
+      $LastBottomNavStateTableManager(_db, _db.lastBottomNavState);
+  $LastLibraryStateTableManager get lastLibraryState =>
+      $LastLibraryStateTableManager(_db, _db.lastLibraryState);
+  $SourcesTableManager get sources => $SourcesTableManager(_db, _db.sources);
+  $SubsonicSourcesTableManager get subsonicSources =>
+      $SubsonicSourcesTableManager(_db, _db.subsonicSources);
+  $ArtistsFtsTableManager get artistsFts =>
+      $ArtistsFtsTableManager(_db, _db.artistsFts);
+  $AlbumsFtsTableManager get albumsFts =>
+      $AlbumsFtsTableManager(_db, _db.albumsFts);
+  $PlaylistSongsTableManager get playlistSongs =>
+      $PlaylistSongsTableManager(_db, _db.playlistSongs);
+  $PlaylistsFtsTableManager get playlistsFts =>
+      $PlaylistsFtsTableManager(_db, _db.playlistsFts);
+  $SongsFtsTableManager get songsFts =>
+      $SongsFtsTableManager(_db, _db.songsFts);
+  $DiscoverySessionsTableManager get discoverySessions =>
+      $DiscoverySessionsTableManager(_db, _db.discoverySessions);
+  $DiscoveryInteractionsTableManager get discoveryInteractions =>
+      $DiscoveryInteractionsTableManager(_db, _db.discoveryInteractions);
 }
 
 typedef FilterSongsByGenre$predicate = Expression<bool> Function(
@@ -5552,6 +8780,44 @@ typedef FilterSongsDownloaded$predicate = Expression<bool> Function(
 typedef FilterSongsDownloaded$order = OrderBy Function(Songs songs);
 typedef FilterSongsDownloaded$limit = Limit Function(Songs songs);
 
+class RatingStatsResult {
+  final UserRating userRating;
+  final int count;
+  RatingStatsResult({
+    required this.userRating,
+    required this.count,
+  });
+}
+
+class DiscoveryPopularSongsResult {
+  final String songId;
+  final int playCount;
+  final double avgCompletionRate;
+  DiscoveryPopularSongsResult({
+    required this.songId,
+    required this.playCount,
+    required this.avgCompletionRate,
+  });
+}
+
+class DiscoverySkippedSongsResult {
+  final String songId;
+  final int skipCount;
+  DiscoverySkippedSongsResult({
+    required this.songId,
+    required this.skipCount,
+  });
+}
+
+class DiscoverySkippedSongsByStationResult {
+  final String songId;
+  final int skipCount;
+  DiscoverySkippedSongsByStationResult({
+    required this.songId,
+    required this.skipCount,
+  });
+}
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
@@ -5570,4 +8836,5 @@ final databaseProvider = Provider<SubtracksDatabase>.internal(
 );
 
 typedef DatabaseRef = ProviderRef<SubtracksDatabase>;
-// ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

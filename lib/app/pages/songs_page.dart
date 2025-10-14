@@ -13,6 +13,7 @@ import '../../models/query.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../services/cache_service.dart';
+import '../../services/discovery_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../../state/theme.dart';
@@ -256,13 +257,11 @@ class GenreSongsPage extends HookConsumerWidget {
     );
 
     final play = useCallback(
-      ({int? index, bool? shuffle}) => ref.read(audioControlProvider).playRadio(
-            context: QueueContextType.genre,
-            contextId: genre,
-            query: query,
-            getSongs: getSongs,
+      ({int? index, bool? shuffle}) => ref.read(audioControlProvider).playDiscoveryRadioByGenre(
+            genre: genre,
+            mode: DiscoveryMode.online,
           ),
-      [query, getSongs],
+      [genre],
     );
 
     return QueueContext(
@@ -274,7 +273,7 @@ class GenreSongsPage extends HookConsumerWidget {
         // onSongTap: (song, index) => play(index: index),
         songImage: true,
         background: const BackgroundGradient(),
-        fab: RadioPlayFab(
+        fab: DiscoveryRadioFab(
           onPressed: () => play(),
         ),
         header: _GenreHeader(genre: genre),

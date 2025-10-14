@@ -7,8 +7,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:drift/drift.dart';
+
 import '../../database/database.dart';
 import '../../models/query.dart';
+import '../../services/sync_service.dart';
+import '../../state/settings.dart';
 import '../app_router.dart';
 import '../context_menus.dart';
 
@@ -136,6 +140,27 @@ class LibraryLists extends _$LibraryLists {
   Future<void> init() async {
     final db = ref.read(databaseProvider);
     final last = await db.getLastLibraryState().getSingleOrNull();
+
+    // Check if we have any albums in the database, if not, trigger initial sync
+    final sourceId = ref.read(sourceIdProvider);
+    final albumCountResult = await (db.selectOnly(db.albums)
+          ..addColumns([countAll()])
+          ..where(db.albums.sourceId.equals(sourceId)))
+        .getSingle();
+
+    final albumCount = albumCountResult.read(countAll()) ?? 0;
+
+    if (albumCount == 0) {
+      // No albums found, trigger initial sync
+      try {
+        final syncService = ref.read(syncServiceProvider.notifier);
+        await syncService.syncAll();
+      } catch (e) {
+        // Log error but don't fail init
+        print('Initial sync failed: $e');
+      }
+    }
+
     if (last == null) {
       return;
     }

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:pool/pool.dart';
@@ -20,6 +21,7 @@ import '../models/support.dart';
 import '../sources/music_source.dart';
 import '../state/settings.dart';
 import 'cache_service.dart';
+import 'discovery_service.dart';
 import 'settings_service.dart';
 
 part 'audio_service.g.dart';
@@ -88,6 +90,18 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   final ConcatenatingAudioSource _audioSource =
       ConcatenatingAudioSource(children: []);
+
+  // Track the current discovery session for interactions
+  int? _currentDiscoverySessionId;
+
+  /// Get the current discovery session ID if playing a discovery station
+  int? get currentDiscoverySessionId => _currentDiscoverySessionId;
+
+  /// Get the current discovery station details if playing one
+  Future<DiscoverySession?> getCurrentDiscoveryStation() async {
+    if (_currentDiscoverySessionId == null) return null;
+    return await _db.getDiscoverySessionById(_currentDiscoverySessionId!);
+  }
 
   SubtracksDatabase get _db => _ref.read(databaseProvider);
   CacheService get _cache => _ref.read(cacheServiceProvider);
@@ -270,12 +284,164 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       contextId: contextId,
       query: query.copyWith(
         sort: SortBy(
-          column: 'SIN(songs.ROWID + ${Random().nextInt(10000)})',
+          // Enhanced algorithm that prioritizes liked songs
+          // Weight: thumbsUp=3x, unrated=1x, thumbsDown=0.1x probability
+          column: '''
+            CASE
+              WHEN user_rating = 'thumbsUp' THEN SIN(songs.ROWID + ${Random().nextInt(3000)}) * 3.0
+              WHEN user_rating = 'unrated' THEN SIN(songs.ROWID + ${Random().nextInt(10000)})
+              WHEN user_rating = 'thumbsDown' THEN SIN(songs.ROWID + ${Random().nextInt(30000)}) * 0.1
+              ELSE SIN(songs.ROWID + ${Random().nextInt(10000)})
+            END
+          ''',
         ),
+        // Exclude thumbs down songs entirely - users don't want to hear them
+        filters: IList([
+          FilterWith.equals(column: 'user_rating', value: 'thumbsDown', invert: true),
+        ]),
       ),
       getSongs: getSongs,
       startIndex: 0,
     );
+  }
+
+  /// Play Discovery Radio - intelligent recommendations based on a seed song
+  Future<void> playDiscoveryRadio({
+    required Song seedSong,
+    DiscoveryMode mode = DiscoveryMode.online,
+    int playlistSize = 50,
+    int? sessionId,
+  }) async {
+    log.info('Starting Discovery Radio with seed: "${seedSong.title}" by ${seedSong.artist}');
+
+    final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+    try {
+      // Store the session ID for tracking interactions
+      _currentDiscoverySessionId = sessionId;
+
+      // Build the discovery playlist
+      // Pass sessionId so we reuse existing stations instead of creating duplicates
+      final playlist = await discoveryService.buildDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: !mode.isOnline,
+        playlistSize: playlistSize,
+        sessionId: sessionId, // Reuse existing session if provided
+      );
+
+      if (playlist.isEmpty) {
+        log.warning('Discovery Radio: No songs found for playlist');
+        return;
+      }
+
+      log.info('Discovery Radio: Generated playlist with ${playlist.length} songs');
+
+      // Update session metadata before starting playback
+      if (_currentDiscoverySessionId != null) {
+        await _db.updateStationLastPlayed(
+          _currentDiscoverySessionId!,
+          DateTime.now(),
+        );
+        await _db.incrementStationPlayCount(_currentDiscoverySessionId!);
+      }
+
+      // Use the existing playSongs method with our discovery playlist
+      // This will clear the queue and audio source automatically via _clearAudioSource
+      await playSongs(
+        mode: QueueMode.radio,
+        context: QueueContextType.discovery,
+        contextId: seedSong.id,
+        query: const ListQuery(), // Not used since we provide getSongs directly
+        getSongs: (query) => playlist,
+        startIndex: 0,
+      );
+
+      log.info('Discovery Radio: Started playback successfully');
+    } catch (e, stackTrace) {
+      log.severe('Discovery Radio: Failed to start playback', e, stackTrace);
+
+      // Fallback: play the seed song only
+      await playSongs(
+        mode: QueueMode.radio,
+        context: QueueContextType.discovery,
+        contextId: seedSong.id,
+        query: const ListQuery(),
+        getSongs: (query) => [seedSong],
+        startIndex: 0,
+      );
+    }
+  }
+
+  /// Play Discovery Radio based on an artist
+  Future<void> playDiscoveryRadioByArtist({
+    required String artistId,
+    DiscoveryMode mode = DiscoveryMode.online,
+    int playlistSize = 50,
+  }) async {
+    final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+    try {
+      final playlist = await discoveryService.getArtistSimilarSongs(
+        artistId,
+        sourceId: _sourceId,
+        limit: playlistSize,
+        mode: mode,
+      );
+
+      if (playlist.isEmpty) {
+        log.warning('Discovery Radio: No songs found for artist $artistId');
+        return;
+      }
+
+      await playSongs(
+        mode: QueueMode.radio,
+        context: QueueContextType.discovery,
+        contextId: artistId,
+        query: const ListQuery(),
+        getSongs: (query) => playlist,
+        startIndex: 0,
+      );
+
+      log.info('Discovery Radio: Started artist-based radio for $artistId with ${playlist.length} songs');
+    } catch (e, stackTrace) {
+      log.severe('Discovery Radio: Failed to start artist-based radio', e, stackTrace);
+    }
+  }
+
+  /// Play Discovery Radio based on a genre
+  Future<void> playDiscoveryRadioByGenre({
+    required String genre,
+    DiscoveryMode mode = DiscoveryMode.online,
+    int playlistSize = 50,
+  }) async {
+    final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+    try {
+      final playlist = await discoveryService.getGenreSimilarSongs(
+        genre,
+        sourceId: _sourceId,
+        limit: playlistSize,
+        mode: mode,
+      );
+
+      if (playlist.isEmpty) {
+        log.warning('Discovery Radio: No songs found for genre $genre');
+        return;
+      }
+
+      await playSongs(
+        mode: QueueMode.radio,
+        context: QueueContextType.discovery,
+        contextId: genre,
+        query: const ListQuery(),
+        getSongs: (query) => playlist,
+        startIndex: 0,
+      );
+
+      log.info('Discovery Radio: Started genre-based radio for $genre with ${playlist.length} songs');
+    } catch (e, stackTrace) {
+      log.severe('Discovery Radio: Failed to start genre-based radio', e, stackTrace);
+    }
   }
 
   Future<void> _playSongs({
@@ -289,6 +455,15 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   }) async {
     shuffle = shuffle ?? shuffleIndicies.valueOrNull != null;
     queueMode.add(mode);
+
+    // Add filter to exclude thumbs down songs for all playback modes
+    // Users don't want to hear songs they've given thumbs down
+    query = query.copyWith(
+      filters: IList([
+        ...query.filters,
+        FilterWith.equals(column: 'user_rating', value: 'thumbsDown', invert: true),
+      ]),
+    );
 
     if (mode == QueueMode.radio) {
       if (repeatMode.value != AudioServiceRepeatMode.none) {
@@ -529,6 +704,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       mediaItem.add(null);
       queue.add([]);
       queueTitle.add('');
+      // Clear discovery session when clearing metadata
+      _currentDiscoverySessionId = null;
     }
   }
 
@@ -698,6 +875,21 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         return _shuffle(startIndex: _player.sequenceState?.currentSource?.tag);
       case AudioServiceShuffleMode.none:
         return _shuffle(unshuffle: true);
+    }
+  }
+
+  /// Save the current discovery radio station with a name
+  Future<void> saveCurrentDiscoveryStation(String stationName) async {
+    if (_currentDiscoverySessionId == null) {
+      throw StateError('No active discovery session to save');
+    }
+
+    try {
+      await _db.updateStationName(_currentDiscoverySessionId!, stationName);
+      log.info('Discovery station saved: "$stationName" (session ID: $_currentDiscoverySessionId)');
+    } catch (e, stackTrace) {
+      log.severe('Failed to save discovery station', e, stackTrace);
+      rethrow;
     }
   }
 }
