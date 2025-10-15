@@ -16,6 +16,7 @@ import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../state/audio.dart';
 import '../../state/music.dart';
+import '../../state/settings.dart';
 import '../../state/theme.dart';
 import '../app_router.dart';
 import '../images.dart';
