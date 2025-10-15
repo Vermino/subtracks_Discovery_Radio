@@ -23,6 +23,10 @@ class AppSettings with _$AppSettings {
     @Default(0) int maxBitrateWifi,
     @Default(192) int maxBitrateMobile,
     @Default('mp3') String? streamFormat,
+    @Default(true) bool youtubeDiscoveryEnabled,
+    @Default(0.3) double youtubeDiscoveryRatio,
+    @Default('moderate') String youtubeQualityFilter,
+    @Default(true) bool youtubePreferOfficial,
   }) = _AppSettings;
 
   AppSettingsCompanion toCompanion() {
@@ -31,6 +35,10 @@ class AppSettings with _$AppSettings {
       maxBitrateWifi: maxBitrateWifi,
       maxBitrateMobile: maxBitrateMobile,
       streamFormat: Value(streamFormat),
+      youtubeDiscoveryEnabled: Value(youtubeDiscoveryEnabled),
+      youtubeDiscoveryRatio: Value(youtubeDiscoveryRatio),
+      youtubeQualityFilter: Value(youtubeQualityFilter),
+      youtubePreferOfficial: Value(youtubePreferOfficial),
     );
   }
 }

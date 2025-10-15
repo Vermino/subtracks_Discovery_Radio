@@ -29,13 +29,164 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
+      },
+      onUpgrade: (migrator, from, to) async {
+        if (from < 2) {
+          // Add user_rating column to songs table
+          await migrator.addColumn(songs, songs.userRating);
+        }
+        if (from < 3) {
+          // Add discovery tracking tables
+          await migrator.createTable(discoverySessions);
+          await migrator.createTable(discoveryInteractions);
+        }
+        if (from < 4) {
+          // Add station metadata columns to discovery_sessions table
+          await customStatement(
+            'ALTER TABLE discovery_sessions ADD COLUMN station_name TEXT',
+          );
+          await customStatement(
+            'ALTER TABLE discovery_sessions ADD COLUMN last_played_at INTEGER',
+          );
+          await customStatement(
+            'ALTER TABLE discovery_sessions ADD COLUMN play_count INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE discovery_sessions ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0',
+          );
+          // Add indexes for the new columns
+          await customStatement(
+            'CREATE INDEX discovery_sessions_last_played_at ON discovery_sessions (last_played_at)',
+          );
+          await customStatement(
+            'CREATE INDEX discovery_sessions_is_favorite ON discovery_sessions (is_favorite)',
+          );
+        }
+        if (from < 5) {
+          // Add global rating counter columns to songs table
+          await customStatement(
+            'ALTER TABLE songs ADD COLUMN thumbs_up_count INTEGER NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE songs ADD COLUMN thumbs_down_count INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 6) {
+          // Add YouTube tracks table
+          await customStatement('''
+            CREATE TABLE youtube_tracks (
+              id TEXT PRIMARY KEY NOT NULL,
+              title TEXT NOT NULL,
+              artist TEXT,
+              channel_name TEXT NOT NULL,
+              duration_seconds INTEGER NOT NULL,
+              thumbnail_url TEXT,
+              audio_url TEXT NOT NULL,
+              audio_bitrate INTEGER NOT NULL,
+              audio_codec TEXT NOT NULL,
+              audio_quality TEXT NOT NULL,
+              cached_at INTEGER NOT NULL,
+              expires_at INTEGER NOT NULL,
+              access_count INTEGER NOT NULL DEFAULT 0,
+              last_accessed INTEGER
+            )
+          ''');
+
+          // Create indexes for youtube_tracks
+          await customStatement(
+            'CREATE INDEX idx_youtube_tracks_expires ON youtube_tracks(expires_at)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_youtube_tracks_cached ON youtube_tracks(cached_at)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_youtube_tracks_last_accessed ON youtube_tracks(last_accessed)',
+          );
+
+          // Add youtube_discovery_items table
+          await customStatement('''
+            CREATE TABLE youtube_discovery_items (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              session_id INTEGER NOT NULL,
+              youtube_track_id TEXT NOT NULL,
+              position_in_playlist INTEGER NOT NULL,
+              discovered_at INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
+              FOREIGN KEY (session_id) REFERENCES discovery_sessions (id) ON DELETE CASCADE,
+              FOREIGN KEY (youtube_track_id) REFERENCES youtube_tracks (id) ON DELETE CASCADE
+            )
+          ''');
+
+          // Create indexes for youtube_discovery_items
+          await customStatement(
+            'CREATE INDEX idx_youtube_discovery_session ON youtube_discovery_items(session_id)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_youtube_discovery_track ON youtube_discovery_items(youtube_track_id)',
+          );
+        }
+        if (from < 7) {
+          // Add YouTube track source tracking to discovery_interactions
+          await customStatement(
+            'ALTER TABLE discovery_interactions ADD COLUMN track_source TEXT NOT NULL DEFAULT \'local\'',
+          );
+          await customStatement(
+            'ALTER TABLE discovery_interactions ADD COLUMN youtube_video_id TEXT',
+          );
+          // Create indexes for the new columns
+          await customStatement(
+            'CREATE INDEX discovery_interactions_track_source ON discovery_interactions (track_source)',
+          );
+          await customStatement(
+            'CREATE INDEX discovery_interactions_youtube_video_id ON discovery_interactions (youtube_video_id)',
+          );
+        }
+        if (from < 8) {
+          // Add YouTube discovery settings to app_settings table
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_discovery_enabled BOOLEAN NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_discovery_ratio REAL NOT NULL DEFAULT 0.3',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_quality_filter TEXT NOT NULL DEFAULT \'moderate\'',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_prefer_official BOOLEAN NOT NULL DEFAULT 1',
+          );
+
+          // Add Lidarr download requests tracking table
+          await customStatement('''
+            CREATE TABLE lidarr_requests (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              youtube_video_id TEXT NOT NULL,
+              artist_name TEXT NOT NULL,
+              foreign_artist_id TEXT,
+              status TEXT NOT NULL,
+              requested_at INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
+              completed_at INTEGER,
+              error_message TEXT,
+              UNIQUE(youtube_video_id)
+            )
+          ''');
+          // Create indexes for lidarr_requests
+          await customStatement(
+            'CREATE INDEX idx_lidarr_requests_status ON lidarr_requests(status)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_lidarr_requests_video ON lidarr_requests(youtube_video_id)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_lidarr_requests_requested_at ON lidarr_requests(requested_at)',
+          );
+        }
       },
     );
   }
@@ -429,6 +580,503 @@ class SubtracksDatabase extends _$SubtracksDatabase {
 
   Future<void> updateSettings(AppSettingsCompanion settings) async {
     await into(appSettings).insertOnConflictUpdate(settings);
+  }
+
+  // Rating-related methods
+  Future<void> updateSongRating(int sourceId, String songId, UserRating rating) async {
+    await (update(songs)
+          ..where((tbl) =>
+              tbl.sourceId.equals(sourceId) &
+              tbl.id.equals(songId)))
+        .write(SongsCompanion(userRating: Value(rating)));
+  }
+
+  Future<List<Song>> getSongsWithRating(int sourceId, UserRating rating) async {
+    return await songsWithRating(sourceId, rating).get();
+  }
+
+  Future<List<Song>> getLikedSongs(int sourceId) async {
+    return await likedSongs(sourceId).get();
+  }
+
+  Future<List<Song>> getDislikedSongs(int sourceId) async {
+    return await dislikedSongs(sourceId).get();
+  }
+
+  Future<Map<String, int>> getRatingStatistics(int sourceId) async {
+    final results = await ratingStats(sourceId).get();
+    return Map.fromEntries(
+      results.map((row) => MapEntry(row.userRating.toString().split('.').last, row.count)),
+    );
+  }
+
+  // Global rating counter methods
+
+  /// Increment the thumbs_up_count for a song
+  Future<void> incrementThumbsUpCount(int sourceId, String songId) async {
+    await customStatement(
+      'UPDATE songs SET thumbs_up_count = thumbs_up_count + 1 WHERE source_id = ? AND id = ?',
+      [sourceId, songId],
+    );
+  }
+
+  /// Decrement the thumbs_up_count for a song (with bounds checking)
+  Future<void> decrementThumbsUpCount(int sourceId, String songId) async {
+    await customStatement(
+      'UPDATE songs SET thumbs_up_count = MAX(0, thumbs_up_count - 1) WHERE source_id = ? AND id = ?',
+      [sourceId, songId],
+    );
+  }
+
+  /// Increment the thumbs_down_count for a song
+  Future<void> incrementThumbsDownCount(int sourceId, String songId) async {
+    await customStatement(
+      'UPDATE songs SET thumbs_down_count = thumbs_down_count + 1 WHERE source_id = ? AND id = ?',
+      [sourceId, songId],
+    );
+  }
+
+  /// Decrement the thumbs_down_count for a song (with bounds checking)
+  Future<void> decrementThumbsDownCount(int sourceId, String songId) async {
+    await customStatement(
+      'UPDATE songs SET thumbs_down_count = MAX(0, thumbs_down_count - 1) WHERE source_id = ? AND id = ?',
+      [sourceId, songId],
+    );
+  }
+
+  /// Get the current rating for a song
+  Future<UserRating?> getSongRating(int sourceId, String songId) async {
+    final song = await songById(sourceId, songId).getSingleOrNull();
+    return song?.userRating;
+  }
+
+  /// Get most loved songs (sorted by thumbs_up_count)
+  Future<List<Song>> getMostLovedSongs(int sourceId, {int limit = 50, int offset = 0}) async {
+    return await mostLovedSongs(sourceId, limit, offset).get();
+  }
+
+  /// Get most disliked songs (sorted by thumbs_down_count)
+  Future<List<Song>> getMostDislikedSongs(int sourceId, {int limit = 50, int offset = 0}) async {
+    return await mostDislikedSongs(sourceId, limit, offset).get();
+  }
+
+  // Discovery Radio tracking methods
+
+  /// Create a new discovery session
+  Future<int> createDiscoverySession({
+    required int sourceId,
+    required String seedSongId,
+    String? seedArtist,
+    String? seedGenre,
+    required String mode, // 'online' or 'offline'
+    int playlistSize = 50,
+    String? stationName,
+  }) async {
+    final result = await into(discoverySessions).insert(
+      DiscoverySessionsCompanion.insert(
+        sourceId: sourceId,
+        seedSongId: seedSongId,
+        seedArtist: Value(seedArtist),
+        seedGenre: Value(seedGenre),
+        mode: mode,
+        playlistSize: Value(playlistSize),
+        stationName: Value(stationName),
+      ),
+    );
+    return result;
+  }
+
+  /// Record a discovery interaction (play, skip, etc.)
+  Future<void> recordDiscoveryInteraction({
+    required int sessionId,
+    required String songId,
+    required String interactionType, // 'played', 'skipped', 'thumbs_up', 'thumbs_down', 'completed'
+    required int positionInPlaylist,
+    int? songDurationMs,
+    int? playDurationMs,
+    String trackSource = 'local', // 'local' or 'youtube'
+    String? youtubeVideoId, // NULL for local tracks, video ID for YouTube tracks
+  }) async {
+    await into(discoveryInteractions).insert(
+      DiscoveryInteractionsCompanion.insert(
+        sessionId: sessionId,
+        songId: songId,
+        interactionType: interactionType,
+        positionInPlaylist: positionInPlaylist,
+        songDurationMs: Value(songDurationMs),
+        playDurationMs: Value(playDurationMs),
+        trackSource: Value(trackSource),
+        youtubeVideoId: Value(youtubeVideoId),
+      ),
+    );
+  }
+
+  /// Get discovery sessions for a source
+  Future<List<DiscoverySession>> getDiscoverySessions(int sourceId, {int limit = 20, int offset = 0}) async {
+    return await discoverySessionsBySource(sourceId, limit, offset).get();
+  }
+
+  /// Get interactions for a discovery session
+  Future<List<DiscoveryInteraction>> getDiscoveryInteractions(int sessionId) async {
+    return await discoveryInteractionsBySession(sessionId).get();
+  }
+
+  /// Get recent discovery sessions
+  Future<List<DiscoverySession>> getRecentDiscoverySessions(int sourceId, DateTime since) async {
+    final timestamp = since.millisecondsSinceEpoch ~/ 1000;
+    return await discoveryRecentSessions(sourceId, timestamp).get();
+  }
+
+  /// Get popular songs from discovery sessions
+  Future<List<DiscoveryPopularSongsResult>> getDiscoveryPopularSongs(
+    int sourceId,
+    DateTime since, {
+    int limit = 50,
+  }) async {
+    final timestamp = since.millisecondsSinceEpoch ~/ 1000;
+    return await discoveryPopularSongs(sourceId, timestamp, limit).get();
+  }
+
+  /// Get frequently skipped songs from discovery sessions
+  Future<List<DiscoverySkippedSongsResult>> getDiscoverySkippedSongs(
+    int sourceId,
+    DateTime since, {
+    int limit = 50,
+  }) async {
+    final timestamp = since.millisecondsSinceEpoch ~/ 1000;
+    return await discoverySkippedSongs(sourceId, timestamp, limit).get();
+  }
+
+  // Station management methods
+
+  /// Update the name of a discovery station
+  Future<void> updateStationName(int sessionId, String stationName) async {
+    await discoveryUpdateStationName(stationName, sessionId);
+  }
+
+  /// Update the last played timestamp of a station
+  Future<void> updateStationLastPlayed(int sessionId, DateTime timestamp) async {
+    await discoveryUpdateLastPlayed(timestamp.millisecondsSinceEpoch ~/ 1000, sessionId);
+  }
+
+  /// Increment the play count of a station
+  Future<void> incrementStationPlayCount(int sessionId) async {
+    await discoveryIncrementPlayCount(sessionId);
+  }
+
+  /// Toggle the favorite status of a station
+  Future<void> toggleStationFavorite(int sessionId, bool isFavorite) async {
+    await discoveryToggleFavorite(isFavorite ? 1 : 0, sessionId);
+  }
+
+  /// Get all favorite stations for a source
+  Future<List<DiscoverySession>> getFavoriteStations(int sourceId) async {
+    return await discoveryFavoriteStations(sourceId).get();
+  }
+
+  /// Get stations sorted by most recently played
+  Future<List<DiscoverySession>> getStationsSortedByRecent(int sourceId, {int limit = 20, int offset = 0}) async {
+    return await discoveryStationsSortedByRecent(sourceId, limit, offset).get();
+  }
+
+  /// Get stations sorted by play count (most played first)
+  Future<List<DiscoverySession>> getStationsSortedByPlayCount(int sourceId, {int limit = 20, int offset = 0}) async {
+    return await discoveryStationsSortedByPlayCount(sourceId, limit, offset).get();
+  }
+
+  /// Get a single discovery session by ID
+  Future<DiscoverySession?> getDiscoverySessionById(int sessionId) async {
+    return await (select(discoverySessions)..where((tbl) => tbl.id.equals(sessionId))).getSingleOrNull();
+  }
+
+  /// Delete a discovery station and all its interactions
+  /// The foreign key constraint with ON DELETE CASCADE will automatically
+  /// delete all related interactions in the discovery_interactions table
+  Future<void> deleteDiscoveryStation(int sessionId) async {
+    await (delete(discoverySessions)..where((tbl) => tbl.id.equals(sessionId))).go();
+  }
+
+  // Station-specific personalization methods
+
+  /// Get song IDs that were thumbs up in a specific station
+  Future<Set<String>> getThumbsUpSongsForStation(int sessionId) async {
+    final results = await discoveryThumbsUpSongsByStation(sessionId).get();
+    return results.toSet();
+  }
+
+  /// Get song IDs that were thumbs down in a specific station
+  Future<Set<String>> getThumbsDownSongsForStation(int sessionId) async {
+    final results = await discoveryThumbsDownSongsByStation(sessionId).get();
+    return results.toSet();
+  }
+
+  /// Get song IDs that were frequently skipped in a specific station (2+ times)
+  Future<Set<String>> getFrequentlySkippedSongsForStation(int sessionId) async {
+    // This query returns a result type with songId and skip_count
+    final results = await discoverySkippedSongsByStation(sessionId).get();
+    return results.map((r) => r.songId).toSet();
+  }
+
+  /// Get song IDs that were completed in a specific station
+  Future<Set<String>> getCompletedSongsForStation(int sessionId) async {
+    final results = await discoveryCompletedSongsByStation(sessionId).get();
+    return results.toSet();
+  }
+
+  /// Remove a specific rating for a song in a discovery station
+  Future<void> removeDiscoveryRating(int sessionId, String songId, String interactionType) async {
+    await (delete(discoveryInteractions)
+          ..where((tbl) =>
+              tbl.sessionId.equals(sessionId) &
+              tbl.songId.equals(songId) &
+              tbl.interactionType.equals(interactionType)))
+        .go();
+  }
+
+  /// Get songs with their interaction details for a station
+  Future<List<DiscoveryInteraction>> getStationInteractionsBySongId(int sessionId, String songId) async {
+    return await (select(discoveryInteractions)
+          ..where((tbl) =>
+              tbl.sessionId.equals(sessionId) &
+              tbl.songId.equals(songId))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.timestamp)]))
+        .get();
+  }
+
+  // YouTube tracks management methods
+
+  /// Get a YouTube track by video ID
+  Future<YoutubeTrack?> getYouTubeTrack(String videoId) async {
+    return await youTubeTrackById(videoId).getSingleOrNull();
+  }
+
+  /// Cache a YouTube track
+  Future<void> cacheYouTubeTrack(YoutubeTracksCompanion track) async {
+    await into(youtubeTracks).insertOnConflictUpdate(track);
+  }
+
+  /// Update access tracking for a YouTube track
+  Future<void> updateYouTubeTrackAccess(String videoId) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await customStatement(
+      'UPDATE youtube_tracks SET access_count = access_count + 1, last_accessed = ? WHERE id = ?',
+      [now, videoId],
+    );
+  }
+
+  /// Refresh the audio URL and expiry time for a YouTube track
+  Future<void> refreshYouTubeTrackUrl(
+    String videoId,
+    String newUrl,
+    DateTime expiresAt,
+  ) async {
+    await (update(youtubeTracks)..where((tbl) => tbl.id.equals(videoId))).write(
+      YoutubeTracksCompanion(
+        audioUrl: Value(newUrl),
+        expiresAt: Value(expiresAt.millisecondsSinceEpoch ~/ 1000),
+      ),
+    );
+  }
+
+  /// Get YouTube tracks that are expiring soon
+  Future<List<YoutubeTrack>> getExpiringYouTubeTracks(Duration beforeExpiry) async {
+    final expiresBefore = DateTime.now().add(beforeExpiry).millisecondsSinceEpoch ~/ 1000;
+    return await youTubeTracksExpiringSoon(expiresBefore).get();
+  }
+
+  /// Get expired YouTube tracks
+  Future<List<YoutubeTrack>> getExpiredYouTubeTracks() async {
+    final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return await youTubeTracksExpired(currentTime).get();
+  }
+
+  /// Delete all expired YouTube tracks from cache
+  Future<void> deleteExpiredYouTubeTracks() async {
+    final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await (delete(youtubeTracks)..where((tbl) => tbl.expiresAt.isSmallerThanValue(currentTime))).go();
+  }
+
+  /// Add a YouTube track to a discovery session
+  Future<void> addYouTubeToDiscoverySession(
+    int sessionId,
+    String youtubeTrackId,
+    int position,
+  ) async {
+    await into(youtubeDiscoveryItems).insert(
+      YoutubeDiscoveryItemsCompanion.insert(
+        sessionId: sessionId,
+        youtubeTrackId: youtubeTrackId,
+        positionInPlaylist: position,
+      ),
+    );
+  }
+
+  /// Get all YouTube tracks for a discovery session
+  Future<List<YoutubeTrack>> getYouTubeTracksForSession(int sessionId) async {
+    // This uses a custom query that joins youtube_tracks with youtube_discovery_items
+    final results = await youTubeTracksForSession(sessionId).get();
+    // Extract just the youtube track from the joined result
+    return results.map((r) => YoutubeTrack(
+      id: r.id,
+      title: r.title,
+      artist: r.artist,
+      channelName: r.channelName,
+      durationSeconds: r.durationSeconds,
+      thumbnailUrl: r.thumbnailUrl,
+      audioUrl: r.audioUrl,
+      audioBitrate: r.audioBitrate,
+      audioCodec: r.audioCodec,
+      audioQuality: r.audioQuality,
+      cachedAt: r.cachedAt,
+      expiresAt: r.expiresAt,
+      accessCount: r.accessCount,
+      lastAccessed: r.lastAccessed,
+    )).toList();
+  }
+
+  /// Get the count of cached YouTube tracks
+  Future<int> getYouTubeCacheCount() async {
+    return await youTubeCacheCount().getSingle();
+  }
+
+  /// Get cache size information
+  Future<Map<String, int>> getYouTubeCacheSize() async {
+    final result = await youTubeCacheSize().getSingle();
+    return {
+      'track_count': result.trackCount ?? 0,
+      'approx_bytes': result.approxBytes ?? 0,
+    };
+  }
+
+  /// Prune old/unused YouTube tracks from cache
+  ///
+  /// Keeps tracks that are:
+  /// - Recently accessed (within maxAgeDays)
+  /// - Frequently accessed (top maxEntries by access count)
+  Future<void> pruneYouTubeCache({
+    int maxEntries = 500,
+    int maxAgeDays = 7,
+  }) async {
+    await transaction(() async {
+      final cutoffTime = DateTime.now()
+          .subtract(Duration(days: maxAgeDays))
+          .millisecondsSinceEpoch ~/
+          1000;
+
+      // Get IDs of tracks to keep (recently accessed or frequently accessed)
+      final recentTracks = await (select(youtubeTracks)
+            ..where((tbl) => tbl.lastAccessed.isBiggerOrEqualValue(cutoffTime))
+            ..orderBy([(tbl) => OrderingTerm.desc(tbl.lastAccessed)])
+            ..limit(maxEntries))
+          .map((row) => row.id)
+          .get();
+
+      final frequentTracks = await (select(youtubeTracks)
+            ..where((tbl) => tbl.accessCount.isBiggerThanValue(0))
+            ..orderBy([
+              (tbl) => OrderingTerm.desc(tbl.accessCount),
+              (tbl) => OrderingTerm.desc(tbl.lastAccessed),
+            ])
+            ..limit(maxEntries))
+          .map((row) => row.id)
+          .get();
+
+      final idsToKeep = {...recentTracks, ...frequentTracks};
+
+      if (idsToKeep.isNotEmpty) {
+        // Delete tracks not in the keep list
+        await (delete(youtubeTracks)
+              ..where((tbl) => tbl.id.isNotIn(idsToKeep)))
+            .go();
+      }
+    });
+  }
+
+  /// Get most recently accessed YouTube tracks
+  Future<List<YoutubeTrack>> getRecentYouTubeTracks({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    return await youTubeTracksByLastAccessed(limit, offset).get();
+  }
+
+  /// Get most frequently accessed YouTube tracks
+  Future<List<YoutubeTrack>> getFrequentYouTubeTracks({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    return await youTubeTracksByAccessCount(limit, offset).get();
+  }
+
+  /// Delete a specific YouTube track from cache
+  Future<void> deleteYouTubeTrack(String videoId) async {
+    await (delete(youtubeTracks)..where((tbl) => tbl.id.equals(videoId))).go();
+  }
+
+  /// Get discovery sessions that used a specific YouTube track
+  Future<List<DiscoverySession>> getDiscoverySessionsForYouTubeTrack(
+    String youtubeTrackId,
+  ) async {
+    return await discoverySessionsForYouTubeTrack(youtubeTrackId).get();
+  }
+
+  // Lidarr download requests tracking methods
+
+  /// Record a Lidarr download request
+  Future<void> recordLidarrRequest({
+    required String youtubeVideoId,
+    required String artistName,
+    required String? foreignArtistId,
+    required String status,
+    String? errorMessage,
+  }) async {
+    await into(lidarrRequests).insertOnConflictUpdate(
+      LidarrRequestsCompanion.insert(
+        youtubeVideoId: youtubeVideoId,
+        artistName: artistName,
+        foreignArtistId: Value(foreignArtistId),
+        status: status,
+        completedAt: Value(status == 'added' || status == 'already_exists'
+            ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+            : null),
+        errorMessage: Value(errorMessage),
+      ),
+    );
+  }
+
+  /// Get Lidarr request for a specific YouTube video
+  Future<LidarrRequest?> getLidarrRequestForVideo(String videoId) async {
+    return await lidarrRequestByVideoId(videoId).getSingleOrNull();
+  }
+
+  /// Get Lidarr requests by status
+  Future<List<LidarrRequest>> getLidarrRequestsByStatus(
+    String status, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    return await lidarrRequestsByStatus(status, limit, offset).get();
+  }
+
+  /// Get recent Lidarr requests
+  Future<List<LidarrRequest>> getRecentLidarrRequests({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    return await lidarrRequestsRecent(limit, offset).get();
+  }
+
+  /// Get count of all Lidarr requests
+  Future<int> getLidarrRequestsCount() async {
+    return await lidarrRequestsCount().getSingle();
+  }
+
+  /// Get count of Lidarr requests by status
+  Future<Map<String, int>> getLidarrRequestsCountByStatus() async {
+    final results = await lidarrRequestsCountByStatus().get();
+    return Map.fromEntries(
+      results.map((row) => MapEntry(row.status, row.count)),
+    );
   }
 }
 

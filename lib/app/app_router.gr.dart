@@ -34,6 +34,17 @@ class _$AppRouter extends RootStackRouter {
         barrierDismissible: false,
       );
     },
+    QueueRoute.name: (routeData) {
+      return CustomPage<dynamic>(
+        routeData: routeData,
+        child: const QueuePage(),
+        transitionsBuilder: TransitionsBuilders.slideRightWithFade,
+        durationInMilliseconds: 160,
+        reverseDurationInMilliseconds: 160,
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     BottomNavTabsRoute.name: (routeData) {
       return MaterialPageX<dynamic>(
         routeData: routeData,
@@ -169,6 +180,17 @@ class _$AppRouter extends RootStackRouter {
         child: const BrowsePage(),
       );
     },
+    StationBuilderRoute.name: (routeData) {
+      return CustomPage<dynamic>(
+        routeData: routeData,
+        child: const StationBuilderPage(),
+        transitionsBuilder: TransitionsBuilders.slideRightWithFade,
+        durationInMilliseconds: 160,
+        reverseDurationInMilliseconds: 160,
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     SearchRoute.name: (routeData) {
       return MaterialPageX<dynamic>(
         routeData: routeData,
@@ -276,6 +298,11 @@ class _$AppRouter extends RootStackRouter {
                       parent: BrowseRouter.name,
                     ),
                     RouteConfig(
+                      StationBuilderRoute.name,
+                      path: 'station-builder',
+                      parent: BrowseRouter.name,
+                    ),
+                    RouteConfig(
                       AlbumSongsRoute.name,
                       path: 'album/:id',
                       parent: BrowseRouter.name,
@@ -354,6 +381,10 @@ class _$AppRouter extends RootStackRouter {
           NowPlayingRoute.name,
           path: '/now-playing',
         ),
+        RouteConfig(
+          QueueRoute.name,
+          path: '/queue',
+        ),
       ];
 }
 
@@ -380,6 +411,18 @@ class NowPlayingRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'NowPlayingRoute';
+}
+
+/// generated route for
+/// [QueuePage]
+class QueueRoute extends PageRouteInfo<void> {
+  const QueueRoute()
+      : super(
+          QueueRoute.name,
+          path: '/queue',
+        );
+
+  static const String name = 'QueueRoute';
 }
 
 /// generated route for
@@ -658,6 +701,18 @@ class BrowseRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'BrowseRoute';
+}
+
+/// generated route for
+/// [StationBuilderPage]
+class StationBuilderRoute extends PageRouteInfo<void> {
+  const StationBuilderRoute()
+      : super(
+          StationBuilderRoute.name,
+          path: 'station-builder',
+        );
+
+  static const String name = 'StationBuilderRoute';
 }
 
 /// generated route for

@@ -4,7 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
@@ -17,6 +17,7 @@ import '../../state/init.dart';
 import '../../state/settings.dart';
 import '../app_router.dart';
 import '../dialogs.dart';
+import '../widgets/youtube_settings_section.dart';
 
 const kHorizontalPadding = 16.0;
 
@@ -38,6 +39,12 @@ class SettingsPage extends HookConsumerWidget {
           const _Sources(),
           _SectionHeader(l.settingsNetworkName),
           const _Network(),
+          const _SectionHeader('Discovery'),
+          const _Section(
+            children: [
+              YouTubeSettingsSection(),
+            ],
+          ),
           _SectionHeader(l.settingsAboutName),
           _About(),
           // const _SectionHeader('Downloads'),
@@ -191,7 +198,7 @@ class _ShareLogsButton extends StatelessWidget {
             final files = await logFiles();
             if (files.isEmpty) return;
 
-            // ignore: use_build_context_synchronously
+            if (!context.mounted) return;
             final value = await showDialog<String>(
               context: context,
               builder: (context) => MultipleChoiceDialog<String>(

@@ -3,12 +3,17 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../database/database.dart';
 import '../models/music.dart';
+import '../services/audio_service.dart';
 import '../services/cache_service.dart';
+import '../services/discovery_service.dart';
+import '../services/settings_service.dart';
 import '../state/theme.dart';
 import 'app_router.dart';
 import 'hooks/use_download_actions.dart';
@@ -25,7 +30,7 @@ Future<T?> showContextMenu<T>({
   required WidgetBuilder builder,
 }) {
   return showModalBottomSheet<T>(
-    backgroundColor: ref.read(baseThemeProvider).theme.colorScheme.background,
+    backgroundColor: ref.read(baseThemeProvider).theme.colorScheme.surface,
     useRootNavigator: true,
     isScrollControlled: true,
     context: context,
@@ -93,6 +98,7 @@ class AlbumContextMenu extends HookConsumerWidget {
       children: [
         _AlbumHeader(album: album),
         const SizedBox(height: 8),
+        _PlayAlbumRadio(album: album),
         const _Star(),
         if (album.artistId != null) _ViewArtist(id: album.artistId!),
         for (var action in downloadActions)
@@ -116,6 +122,7 @@ class SongContextMenu extends HookConsumerWidget {
       children: [
         _SongHeader(song: song),
         const SizedBox(height: 8),
+        _PlayDiscoveryRadio(song: song),
         const _Star(),
         if (song.artistId != null) _ViewArtist(id: song.artistId!),
         if (song.albumId != null) _ViewAlbum(id: song.albumId!),
@@ -139,6 +146,7 @@ class ArtistContextMenu extends HookConsumerWidget {
       children: [
         _ArtistHeader(artist: artist),
         const SizedBox(height: 8),
+        _PlayArtistRadio(artist: artist),
         const _Star(),
         // const _Download(),
       ],
@@ -384,6 +392,112 @@ class _ViewAlbum extends HookConsumerWidget {
           await router.navigate(const LibraryRouter());
         }
         await router.navigate(AlbumSongsRoute(id: id));
+      },
+    );
+  }
+}
+
+class _PlayDiscoveryRadio extends HookConsumerWidget {
+  final Song song;
+
+  const _PlayDiscoveryRadio({
+    required this.song,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MenuItem(
+      title: 'Start Radio Station',
+      icon: const Icon(Icons.explore),
+      onTap: () async {
+        final audioControl = ref.read(audioControlProvider);
+        final settings = ref.read(settingsServiceProvider);
+        Navigator.of(context).pop(); // Close context menu
+
+        // Use hybrid discovery with YouTube integration if enabled
+        await audioControl.playHybridDiscoveryRadio(
+          seedSong: song,
+          mode: DiscoveryMode.online,
+          config: DiscoveryConfig(
+            youtubeEnabled: settings.app.youtubeDiscoveryEnabled,
+            youtubeRatio: settings.app.youtubeDiscoveryRatio,
+            youtubeQualityFilter: YouTubeQualityFilter.values.byName(
+              settings.app.youtubeQualityFilter,
+            ),
+            youtubePreferOfficial: settings.app.youtubePreferOfficial,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PlayArtistRadio extends HookConsumerWidget {
+  final Artist artist;
+
+  const _PlayArtistRadio({
+    required this.artist,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MenuItem(
+      title: 'Start Artist Radio',
+      icon: const Icon(Icons.explore),
+      onTap: () async {
+        final audioControl = ref.read(audioControlProvider);
+        Navigator.of(context).pop(); // Close context menu
+
+        await audioControl.playDiscoveryRadioByArtist(
+          artistId: artist.id,
+          mode: DiscoveryMode.online,
+        );
+      },
+    );
+  }
+}
+
+class _PlayAlbumRadio extends HookConsumerWidget {
+  final Album album;
+
+  const _PlayAlbumRadio({
+    required this.album,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final db = ref.watch(databaseProvider);
+
+    return _MenuItem(
+      title: 'Start Album Radio',
+      icon: const Icon(Icons.explore),
+      onTap: () async {
+        final audioControl = ref.read(audioControlProvider);
+        final settings = ref.read(settingsServiceProvider);
+        Navigator.of(context).pop(); // Close context menu
+
+        // Get first song from album as seed
+        final songs = await db.filterSongs(
+          (tbl) => tbl.albumId.equals(album.id),
+          (tbl) => OrderBy([OrderingTerm(expression: tbl.track)]),
+          (tbl) => Limit(1, null),
+        ).get();
+
+        if (songs.isNotEmpty) {
+          // Use hybrid discovery with YouTube integration if enabled
+          await audioControl.playHybridDiscoveryRadio(
+            seedSong: songs.first,
+            mode: DiscoveryMode.online,
+            config: DiscoveryConfig(
+              youtubeEnabled: settings.app.youtubeDiscoveryEnabled,
+              youtubeRatio: settings.app.youtubeDiscoveryRatio,
+              youtubeQualityFilter: YouTubeQualityFilter.values.byName(
+                settings.app.youtubeQualityFilter,
+              ),
+              youtubePreferOfficial: settings.app.youtubePreferOfficial,
+            ),
+          );
+        }
       },
     );
   }

@@ -15,4 +15,9 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- Media notification style with forced light icons -->
+    <style name="MediaNotificationStyle" parent="@android:style/TextAppearance.StatusBar.EventContent">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
 </resources>

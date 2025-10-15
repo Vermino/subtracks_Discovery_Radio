@@ -7,7 +7,7 @@ publish_to: 'none'
 version: 2.0.0-alpha.3+12
 
 environment:
-  sdk: '>=2.19.2 <3.0.0'
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -22,13 +22,13 @@ dependencies:
   path: ^1.8.2
   path_provider: ^2.0.12
   flutter_dotenv: ^5.0.2 # TODO: remove before release
-  collection: ^1.17.0
+  collection: ^1.17.1
   intl: any
   flutter_hooks: ^0.18.5+1
   hooks_riverpod: ^2.3.2
   riverpod_annotation: ^2.0.2
-  cached_network_image: ^3.2.3
-  flutter_staggered_grid_view: ^0.6.2
+  cached_network_image: ^3.3.0
+  flutter_staggered_grid_view: ^0.7.0
   flutter_cache_manager: ^3.3.0
   auto_route: ^5.0.0
   flutter_svg: ^2.0.2
@@ -40,13 +40,13 @@ dependencies:
   just_audio: ^0.9.31
   sqlite3_flutter_libs: ^0.5.12
   drift: ^2.6.0
-  sliver_tools: ^0.2.9
+  sliver_tools: ^0.2.12
   palette_generator: ^0.3.3+2
   json_annotation: ^4.8.0
   text_scroll: ^0.2.0
   auto_size_text: ^3.0.0
   stack_trace: ^1.11.0
-  infinite_scroll_pagination: ^3.2.0
+  infinite_scroll_pagination: ^4.0.0
   flutter_downloader: ^1.10.2
   mime: ^1.0.4
   rxdart: ^0.27.7
@@ -55,7 +55,7 @@ dependencies:
   synchronized: ^3.1.0
   flutter_keyboard_visibility: ^5.4.0
   connectivity_plus: ^3.0.4
-  package_info_plus: ^3.1.1
+  package_info_plus: ^8.1.1
   url_launcher: ^6.1.10
   logging: ^1.1.1
   share_plus: ^7.0.0
@@ -63,12 +63,10 @@ dependencies:
 # https://github.com/dart-lang/intl/issues/522#issuecomment-1469961807
 dependency_overrides:
   intl: ^0.18.0
+  palette_generator: 0.3.3+2
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^2.0.0
-  test: ^1.22.0
   build_runner: 
   riverpod_generator: ^2.1.4
   freezed: ^2.3.2

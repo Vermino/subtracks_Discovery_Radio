@@ -2,13 +2,17 @@ import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:drift/drift.dart';
+
 import '../../database/database.dart';
 import '../../models/query.dart';
+import '../../services/sync_service.dart';
+import '../../state/settings.dart';
 import '../app_router.dart';
 import '../context_menus.dart';
 
@@ -136,6 +140,31 @@ class LibraryLists extends _$LibraryLists {
   Future<void> init() async {
     final db = ref.read(databaseProvider);
     final last = await db.getLastLibraryState().getSingleOrNull();
+
+    // Check if a source is configured before trying to sync
+    final source = ref.read(musicSourceProvider);
+    if (source != null) {
+      // Check if we have any albums in the database, if not, trigger initial sync
+      final sourceId = source.id;
+      final albumCountResult = await (db.selectOnly(db.albums)
+            ..addColumns([countAll()])
+            ..where(db.albums.sourceId.equals(sourceId)))
+          .getSingle();
+
+      final albumCount = albumCountResult.read(countAll()) ?? 0;
+
+      if (albumCount == 0) {
+        // No albums found, trigger initial sync
+        try {
+          final syncService = ref.read(syncServiceProvider.notifier);
+          await syncService.syncAll();
+        } catch (e) {
+          // Log error but don't fail init
+          print('Initial sync failed: $e');
+        }
+      }
+    }
+
     if (last == null) {
       return;
     }

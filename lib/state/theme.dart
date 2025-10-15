@@ -87,17 +87,19 @@ ColorTheme _colorTheme(_ColorThemeRef ref, Palette palette) {
   final colorScheme = ColorScheme.fromSeed(
     brightness: Brightness.dark,
     seedColor: background?.color ?? Colors.purple[800]!,
-    background: background?.color,
     primaryContainer: primary?.color,
     onPrimaryContainer: primary?.bodyTextColor,
     secondaryContainer: secondary?.color,
     onSecondaryContainer: secondary?.bodyTextColor,
     surface: background?.color,
     surfaceTint: vibrant?.color,
+    // Ensure good contrast for controls in dark mode
+    onSurface: Colors.white.withOpacity(0.87),
+    onBackground: Colors.white.withOpacity(0.87),
   );
 
-  final hsv = HSVColor.fromColor(colorScheme.background);
-  final hsl = HSLColor.fromColor(colorScheme.background);
+  final hsv = HSVColor.fromColor(colorScheme.surface);
+  final hsl = HSLColor.fromColor(colorScheme.surface);
 
   return base.copyWith(
     theme: ThemeData(
@@ -106,7 +108,7 @@ ColorTheme _colorTheme(_ColorThemeRef ref, Palette palette) {
       brightness: base.theme.brightness,
       cardTheme: base.theme.cardTheme,
     ),
-    gradientHigh: colorScheme.background,
+    gradientHigh: colorScheme.surface,
     darkBackground: hsv.withValue(kDarkBackgroundValue).toColor(),
     darkerBackground: hsl.withLightness(kDarkerBackgroundLightness).toColor(),
     onDarkerBackground:
@@ -120,7 +122,7 @@ ColorTheme baseTheme(BaseThemeRef ref) {
     useMaterial3: true,
     colorSchemeSeed: Colors.purple[800],
     brightness: Brightness.dark,
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(2),
@@ -128,13 +130,13 @@ ColorTheme baseTheme(BaseThemeRef ref) {
     ),
   );
 
-  final hsv = HSVColor.fromColor(theme.colorScheme.background);
-  final hsl = HSLColor.fromColor(theme.colorScheme.background);
+  final hsv = HSVColor.fromColor(theme.colorScheme.surface);
+  final hsl = HSLColor.fromColor(theme.colorScheme.surface);
 
   return ColorTheme(
     theme: theme,
-    gradientHigh: theme.colorScheme.background,
-    gradientLow: HSLColor.fromColor(theme.colorScheme.background)
+    gradientHigh: theme.colorScheme.surface,
+    gradientLow: HSLColor.fromColor(theme.colorScheme.surface)
         .withLightness(0.06)
         .toColor(),
     darkBackground: hsv.withValue(kDarkBackgroundValue).toColor(),

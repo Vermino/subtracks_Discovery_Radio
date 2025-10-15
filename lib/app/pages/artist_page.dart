@@ -10,6 +10,7 @@ import '../../database/database.dart';
 import '../../models/query.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
+import '../../services/discovery_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../app_router.dart';
@@ -33,23 +34,11 @@ class ArtistPage extends HookConsumerWidget {
     final albums = ref.watch(albumsByArtistIdProvider(id));
 
     return Scaffold(
-      floatingActionButton: RadioPlayFab(
+      floatingActionButton: DiscoveryRadioFab(
         onPressed: () => artist.hasValue
-            ? ref.read(audioControlProvider).playRadio(
-                  context: QueueContextType.artist,
-                  contextId: artist.valueOrNull!.id,
-                  query: ListQuery(
-                    filters: IList([
-                      FilterWith.equals(
-                        column: 'artist_id',
-                        value: artist.valueOrNull!.id,
-                      )
-                    ]),
-                  ),
-                  getSongs: (query) => ref
-                      .read(databaseProvider)
-                      .songsList(ref.read(sourceIdProvider), query)
-                      .get(),
+            ? ref.read(audioControlProvider).playDiscoveryRadioByArtist(
+                  artistId: artist.valueOrNull!.id,
+                  mode: DiscoveryMode.online,
                 )
             : null,
       ),

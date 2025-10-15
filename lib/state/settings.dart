@@ -10,10 +10,15 @@ import '../sources/subsonic/source.dart';
 part 'settings.g.dart';
 
 @Riverpod(keepAlive: true)
-MusicSource musicSource(MusicSourceRef ref) {
+MusicSource? musicSource(MusicSourceRef ref) {
   final settings = ref.watch(settingsServiceProvider.select(
     (value) => value.activeSource,
-  )) as SubsonicSettings;
+  ));
+
+  // Return null if no source is configured (first run or cleared data)
+  if (settings == null) return null;
+
+  final subsonicSettings = settings as SubsonicSettings;
   final streamFormat = ref.watch(settingsServiceProvider.select(
     (value) => value.app.streamFormat,
   ));
@@ -22,7 +27,7 @@ MusicSource musicSource(MusicSourceRef ref) {
 
   return MusicSource(
     SubsonicSource(
-      opt: settings,
+      opt: subsonicSettings,
       http: http,
       maxBitrate: maxBitrate,
       streamFormat: streamFormat,
@@ -60,7 +65,11 @@ Future<int> maxBitrate(MaxBitrateRef ref) async {
 
 @Riverpod(keepAlive: true)
 int sourceId(SourceIdRef ref) {
-  return ref.watch(musicSourceProvider.select((value) => value.id));
+  final source = ref.watch(musicSourceProvider);
+  if (source == null) {
+    throw StateError('No music source configured - cannot get source ID');
+  }
+  return source.id;
 }
 
 @Riverpod(keepAlive: true)
@@ -78,7 +87,10 @@ class OfflineMode extends _$OfflineMode {
 
     if (value == false && state == true) {
       try {
-        await ref.read(musicSourceProvider).ping();
+        final source = ref.read(musicSourceProvider);
+        if (source != null) {
+          await source.ping();
+        }
       } catch (err) {
         return;
       }

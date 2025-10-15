@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -13,6 +13,7 @@ import '../../models/query.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../services/cache_service.dart';
+import '../../services/discovery_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../../state/theme.dart';
@@ -256,13 +257,11 @@ class GenreSongsPage extends HookConsumerWidget {
     );
 
     final play = useCallback(
-      ({int? index, bool? shuffle}) => ref.read(audioControlProvider).playRadio(
-            context: QueueContextType.genre,
-            contextId: genre,
-            query: query,
-            getSongs: getSongs,
+      ({int? index, bool? shuffle}) => ref.read(audioControlProvider).playDiscoveryRadioByGenre(
+            genre: genre,
+            mode: DiscoveryMode.online,
           ),
-      [query, getSongs],
+      [genre],
     );
 
     return QueueContext(
@@ -274,7 +273,7 @@ class GenreSongsPage extends HookConsumerWidget {
         // onSongTap: (song, index) => play(index: index),
         songImage: true,
         background: const BackgroundGradient(),
-        fab: RadioPlayFab(
+        fab: DiscoveryRadioFab(
           onPressed: () => play(),
         ),
         header: _GenreHeader(genre: genre),
@@ -355,7 +354,7 @@ class _SongsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final base = ref.watch(baseThemeProvider);
     ref.listen(musicSourceProvider, (previous, next) {
-      if (next.id != previous?.id) {
+      if (next?.id != previous?.id) {
         context.router.popUntilRoot();
       }
     });

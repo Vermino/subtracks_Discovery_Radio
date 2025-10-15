@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../models/music.dart';
@@ -12,6 +12,7 @@ import '../state/theme.dart';
 import 'context_menus.dart';
 import 'images.dart';
 import 'pages/songs_page.dart';
+import 'widgets/rating_buttons.dart';
 
 enum CardStyle {
   imageOnly,
@@ -286,12 +287,10 @@ class SongListTile extends HookConsumerWidget {
         title: _SongTitle(song: song),
         subtitle: _SongSubtitle(song: song),
         leading: image ? SongAlbumArt(song: song) : null,
-        trailing: IconButton(
-          icon: const Icon(
-            Icons.star_outline_rounded,
-            size: 36,
-          ),
-          onPressed: () {},
+        trailing: SongRatingButtons(
+          song: song,
+          size: 28,
+          showBoth: false, // Use single toggle button for space efficiency
         ),
         onTap: onTap,
         onLongPress: () {
@@ -370,6 +369,24 @@ class _SongSubtitle extends HookConsumerWidget {
             ),
           ),
         ),
+        // Show rating counter badges if the song has been rated
+        if (song.thumbsUpCount > 0 || song.thumbsDownCount > 0) ...[
+          const SizedBox(width: 8),
+          if (song.thumbsUpCount > 0)
+            _RatingCounterBadge(
+              icon: Icons.thumb_up,
+              count: song.thumbsUpCount,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          if (song.thumbsUpCount > 0 && song.thumbsDownCount > 0)
+            const SizedBox(width: 4),
+          if (song.thumbsDownCount > 0)
+            _RatingCounterBadge(
+              icon: Icons.thumb_down,
+              count: song.thumbsDownCount,
+              color: Theme.of(context).colorScheme.error,
+            ),
+        ],
       ],
     );
   }
@@ -429,5 +446,48 @@ class FabPadding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(height: 86);
+  }
+}
+
+/// Small badge displaying rating counter for song lists
+class _RatingCounterBadge extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final Color color;
+
+  const _RatingCounterBadge({
+    required this.icon,
+    required this.count,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 2),
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

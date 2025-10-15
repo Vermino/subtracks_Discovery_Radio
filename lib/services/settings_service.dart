@@ -46,7 +46,9 @@ class SettingsService extends _$SettingsService {
         features: IList(),
         username: subsonic.username.value,
         password: subsonic.password.value,
-        useTokenAuth: subsonic.useTokenAuth.value,
+        useTokenAuth: subsonic.useTokenAuth.present
+            ? subsonic.useTokenAuth.value
+            : true,
         isActive: true,
         createdAt: DateTime.now(),
       ),
@@ -123,6 +125,34 @@ class SettingsService extends _$SettingsService {
   Future<void> setStreamFormat(String? streamFormat) async {
     await _db.updateSettings(
       state.app.copyWith(streamFormat: streamFormat).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setYouTubeDiscoveryEnabled(bool enabled) async {
+    await _db.updateSettings(
+      state.app.copyWith(youtubeDiscoveryEnabled: enabled).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setYouTubeRatio(double ratio) async {
+    await _db.updateSettings(
+      state.app.copyWith(youtubeDiscoveryRatio: ratio).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setYouTubeQualityFilter(String filter) async {
+    await _db.updateSettings(
+      state.app.copyWith(youtubeQualityFilter: filter).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setYouTubePreferOfficial(bool prefer) async {
+    await _db.updateSettings(
+      state.app.copyWith(youtubePreferOfficial: prefer).toCompanion(),
     );
     await init();
   }

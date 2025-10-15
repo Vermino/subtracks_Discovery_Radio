@@ -4,6 +4,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'music.freezed.dart';
 
+enum UserRating {
+  unrated,
+  thumbsUp,
+  thumbsDown,
+}
+
 abstract class SourceIdentifiable {
   int get sourceId;
   String get id;
@@ -101,6 +107,9 @@ class Song with _$Song implements SourceIdentifiable {
     String? downloadTaskId,
     String? downloadFilePath,
     @Default(false) bool isDeleted,
+    @Default(UserRating.unrated) UserRating userRating,
+    @Default(0) int thumbsUpCount,
+    @Default(0) int thumbsDownCount,
   }) = _Song;
 }
 

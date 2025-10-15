@@ -5,6 +5,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/query.dart';
 import '../models/settings.dart';
+import '../models/music.dart';
 
 class DurationSecondsConverter extends TypeConverter<Duration, int> {
   const DurationSecondsConverter();
@@ -68,5 +69,22 @@ class IListIntConverter extends TypeConverter<IList<int>, String> {
   @override
   String toSql(IList<int> value) {
     return jsonEncode(value.toJson((e) => jsonEncode(e)));
+  }
+}
+
+class UserRatingConverter extends TypeConverter<UserRating, String> {
+  const UserRatingConverter();
+
+  @override
+  UserRating fromSql(String fromDb) {
+    return UserRating.values.firstWhere(
+      (rating) => rating.toString().split('.').last == fromDb,
+      orElse: () => UserRating.unrated,
+    );
+  }
+
+  @override
+  String toSql(UserRating value) {
+    return value.toString().split('.').last;
   }
 }

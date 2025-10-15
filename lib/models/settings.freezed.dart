@@ -12,7 +12,7 @@ part of 'settings.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$Settings {
@@ -81,10 +81,11 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
 }
 
 /// @nodoc
-abstract class _$$_SettingsCopyWith<$Res> implements $SettingsCopyWith<$Res> {
-  factory _$$_SettingsCopyWith(
-          _$_Settings value, $Res Function(_$_Settings) then) =
-      __$$_SettingsCopyWithImpl<$Res>;
+abstract class _$$SettingsImplCopyWith<$Res>
+    implements $SettingsCopyWith<$Res> {
+  factory _$$SettingsImplCopyWith(
+          _$SettingsImpl value, $Res Function(_$SettingsImpl) then) =
+      __$$SettingsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -97,11 +98,11 @@ abstract class _$$_SettingsCopyWith<$Res> implements $SettingsCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_SettingsCopyWithImpl<$Res>
-    extends _$SettingsCopyWithImpl<$Res, _$_Settings>
-    implements _$$_SettingsCopyWith<$Res> {
-  __$$_SettingsCopyWithImpl(
-      _$_Settings _value, $Res Function(_$_Settings) _then)
+class __$$SettingsImplCopyWithImpl<$Res>
+    extends _$SettingsCopyWithImpl<$Res, _$SettingsImpl>
+    implements _$$SettingsImplCopyWith<$Res> {
+  __$$SettingsImplCopyWithImpl(
+      _$SettingsImpl _value, $Res Function(_$SettingsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -111,7 +112,7 @@ class __$$_SettingsCopyWithImpl<$Res>
     Object? activeSource = freezed,
     Object? app = null,
   }) {
-    return _then(_$_Settings(
+    return _then(_$SettingsImpl(
       sources: null == sources
           ? _value.sources
           : sources // ignore: cast_nullable_to_non_nullable
@@ -130,8 +131,8 @@ class __$$_SettingsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_Settings implements _Settings {
-  const _$_Settings(
+class _$SettingsImpl implements _Settings {
+  const _$SettingsImpl(
       {this.sources = const IListConst([]),
       this.activeSource,
       this.app = const AppSettings()});
@@ -151,10 +152,10 @@ class _$_Settings implements _Settings {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Settings &&
+            other is _$SettingsImpl &&
             const DeepCollectionEquality().equals(other.sources, sources) &&
             (identical(other.activeSource, activeSource) ||
                 other.activeSource == activeSource) &&
@@ -168,15 +169,15 @@ class _$_Settings implements _Settings {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SettingsCopyWith<_$_Settings> get copyWith =>
-      __$$_SettingsCopyWithImpl<_$_Settings>(this, _$identity);
+  _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>
+      __$$SettingsImplCopyWithImpl<_$SettingsImpl>(this, _$identity);
 }
 
 abstract class _Settings implements Settings {
   const factory _Settings(
       {final IList<SourceSettings> sources,
       final SourceSettings? activeSource,
-      final AppSettings app}) = _$_Settings;
+      final AppSettings app}) = _$SettingsImpl;
 
   @override
   IList<SourceSettings> get sources;
@@ -186,7 +187,7 @@ abstract class _Settings implements Settings {
   AppSettings get app;
   @override
   @JsonKey(ignore: true)
-  _$$_SettingsCopyWith<_$_Settings> get copyWith =>
+  _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -195,6 +196,10 @@ mixin _$AppSettings {
   int get maxBitrateWifi => throw _privateConstructorUsedError;
   int get maxBitrateMobile => throw _privateConstructorUsedError;
   String? get streamFormat => throw _privateConstructorUsedError;
+  bool get youtubeDiscoveryEnabled => throw _privateConstructorUsedError;
+  double get youtubeDiscoveryRatio => throw _privateConstructorUsedError;
+  String get youtubeQualityFilter => throw _privateConstructorUsedError;
+  bool get youtubePreferOfficial => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $AppSettingsCopyWith<AppSettings> get copyWith =>
@@ -207,7 +212,14 @@ abstract class $AppSettingsCopyWith<$Res> {
           AppSettings value, $Res Function(AppSettings) then) =
       _$AppSettingsCopyWithImpl<$Res, AppSettings>;
   @useResult
-  $Res call({int maxBitrateWifi, int maxBitrateMobile, String? streamFormat});
+  $Res call(
+      {int maxBitrateWifi,
+      int maxBitrateMobile,
+      String? streamFormat,
+      bool youtubeDiscoveryEnabled,
+      double youtubeDiscoveryRatio,
+      String youtubeQualityFilter,
+      bool youtubePreferOfficial});
 }
 
 /// @nodoc
@@ -226,6 +238,10 @@ class _$AppSettingsCopyWithImpl<$Res, $Val extends AppSettings>
     Object? maxBitrateWifi = null,
     Object? maxBitrateMobile = null,
     Object? streamFormat = freezed,
+    Object? youtubeDiscoveryEnabled = null,
+    Object? youtubeDiscoveryRatio = null,
+    Object? youtubeQualityFilter = null,
+    Object? youtubePreferOfficial = null,
   }) {
     return _then(_value.copyWith(
       maxBitrateWifi: null == maxBitrateWifi
@@ -240,27 +256,50 @@ class _$AppSettingsCopyWithImpl<$Res, $Val extends AppSettings>
           ? _value.streamFormat
           : streamFormat // ignore: cast_nullable_to_non_nullable
               as String?,
+      youtubeDiscoveryEnabled: null == youtubeDiscoveryEnabled
+          ? _value.youtubeDiscoveryEnabled
+          : youtubeDiscoveryEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      youtubeDiscoveryRatio: null == youtubeDiscoveryRatio
+          ? _value.youtubeDiscoveryRatio
+          : youtubeDiscoveryRatio // ignore: cast_nullable_to_non_nullable
+              as double,
+      youtubeQualityFilter: null == youtubeQualityFilter
+          ? _value.youtubeQualityFilter
+          : youtubeQualityFilter // ignore: cast_nullable_to_non_nullable
+              as String,
+      youtubePreferOfficial: null == youtubePreferOfficial
+          ? _value.youtubePreferOfficial
+          : youtubePreferOfficial // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$_AppSettingsCopyWith<$Res>
+abstract class _$$AppSettingsImplCopyWith<$Res>
     implements $AppSettingsCopyWith<$Res> {
-  factory _$$_AppSettingsCopyWith(
-          _$_AppSettings value, $Res Function(_$_AppSettings) then) =
-      __$$_AppSettingsCopyWithImpl<$Res>;
+  factory _$$AppSettingsImplCopyWith(
+          _$AppSettingsImpl value, $Res Function(_$AppSettingsImpl) then) =
+      __$$AppSettingsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int maxBitrateWifi, int maxBitrateMobile, String? streamFormat});
+  $Res call(
+      {int maxBitrateWifi,
+      int maxBitrateMobile,
+      String? streamFormat,
+      bool youtubeDiscoveryEnabled,
+      double youtubeDiscoveryRatio,
+      String youtubeQualityFilter,
+      bool youtubePreferOfficial});
 }
 
 /// @nodoc
-class __$$_AppSettingsCopyWithImpl<$Res>
-    extends _$AppSettingsCopyWithImpl<$Res, _$_AppSettings>
-    implements _$$_AppSettingsCopyWith<$Res> {
-  __$$_AppSettingsCopyWithImpl(
-      _$_AppSettings _value, $Res Function(_$_AppSettings) _then)
+class __$$AppSettingsImplCopyWithImpl<$Res>
+    extends _$AppSettingsCopyWithImpl<$Res, _$AppSettingsImpl>
+    implements _$$AppSettingsImplCopyWith<$Res> {
+  __$$AppSettingsImplCopyWithImpl(
+      _$AppSettingsImpl _value, $Res Function(_$AppSettingsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -269,8 +308,12 @@ class __$$_AppSettingsCopyWithImpl<$Res>
     Object? maxBitrateWifi = null,
     Object? maxBitrateMobile = null,
     Object? streamFormat = freezed,
+    Object? youtubeDiscoveryEnabled = null,
+    Object? youtubeDiscoveryRatio = null,
+    Object? youtubeQualityFilter = null,
+    Object? youtubePreferOfficial = null,
   }) {
-    return _then(_$_AppSettings(
+    return _then(_$AppSettingsImpl(
       maxBitrateWifi: null == maxBitrateWifi
           ? _value.maxBitrateWifi
           : maxBitrateWifi // ignore: cast_nullable_to_non_nullable
@@ -283,17 +326,37 @@ class __$$_AppSettingsCopyWithImpl<$Res>
           ? _value.streamFormat
           : streamFormat // ignore: cast_nullable_to_non_nullable
               as String?,
+      youtubeDiscoveryEnabled: null == youtubeDiscoveryEnabled
+          ? _value.youtubeDiscoveryEnabled
+          : youtubeDiscoveryEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      youtubeDiscoveryRatio: null == youtubeDiscoveryRatio
+          ? _value.youtubeDiscoveryRatio
+          : youtubeDiscoveryRatio // ignore: cast_nullable_to_non_nullable
+              as double,
+      youtubeQualityFilter: null == youtubeQualityFilter
+          ? _value.youtubeQualityFilter
+          : youtubeQualityFilter // ignore: cast_nullable_to_non_nullable
+              as String,
+      youtubePreferOfficial: null == youtubePreferOfficial
+          ? _value.youtubePreferOfficial
+          : youtubePreferOfficial // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 
-class _$_AppSettings extends _AppSettings {
-  const _$_AppSettings(
+class _$AppSettingsImpl extends _AppSettings {
+  const _$AppSettingsImpl(
       {this.maxBitrateWifi = 0,
       this.maxBitrateMobile = 192,
-      this.streamFormat = 'mp3'})
+      this.streamFormat = 'mp3',
+      this.youtubeDiscoveryEnabled = false,
+      this.youtubeDiscoveryRatio = 0.3,
+      this.youtubeQualityFilter = 'moderate',
+      this.youtubePreferOfficial = true})
       : super._();
 
   @override
@@ -305,41 +368,73 @@ class _$_AppSettings extends _AppSettings {
   @override
   @JsonKey()
   final String? streamFormat;
+  @override
+  @JsonKey()
+  final bool youtubeDiscoveryEnabled;
+  @override
+  @JsonKey()
+  final double youtubeDiscoveryRatio;
+  @override
+  @JsonKey()
+  final String youtubeQualityFilter;
+  @override
+  @JsonKey()
+  final bool youtubePreferOfficial;
 
   @override
   String toString() {
-    return 'AppSettings(maxBitrateWifi: $maxBitrateWifi, maxBitrateMobile: $maxBitrateMobile, streamFormat: $streamFormat)';
+    return 'AppSettings(maxBitrateWifi: $maxBitrateWifi, maxBitrateMobile: $maxBitrateMobile, streamFormat: $streamFormat, youtubeDiscoveryEnabled: $youtubeDiscoveryEnabled, youtubeDiscoveryRatio: $youtubeDiscoveryRatio, youtubeQualityFilter: $youtubeQualityFilter, youtubePreferOfficial: $youtubePreferOfficial)';
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AppSettings &&
+            other is _$AppSettingsImpl &&
             (identical(other.maxBitrateWifi, maxBitrateWifi) ||
                 other.maxBitrateWifi == maxBitrateWifi) &&
             (identical(other.maxBitrateMobile, maxBitrateMobile) ||
                 other.maxBitrateMobile == maxBitrateMobile) &&
             (identical(other.streamFormat, streamFormat) ||
-                other.streamFormat == streamFormat));
+                other.streamFormat == streamFormat) &&
+            (identical(
+                    other.youtubeDiscoveryEnabled, youtubeDiscoveryEnabled) ||
+                other.youtubeDiscoveryEnabled == youtubeDiscoveryEnabled) &&
+            (identical(other.youtubeDiscoveryRatio, youtubeDiscoveryRatio) ||
+                other.youtubeDiscoveryRatio == youtubeDiscoveryRatio) &&
+            (identical(other.youtubeQualityFilter, youtubeQualityFilter) ||
+                other.youtubeQualityFilter == youtubeQualityFilter) &&
+            (identical(other.youtubePreferOfficial, youtubePreferOfficial) ||
+                other.youtubePreferOfficial == youtubePreferOfficial));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, maxBitrateWifi, maxBitrateMobile, streamFormat);
+  int get hashCode => Object.hash(
+      runtimeType,
+      maxBitrateWifi,
+      maxBitrateMobile,
+      streamFormat,
+      youtubeDiscoveryEnabled,
+      youtubeDiscoveryRatio,
+      youtubeQualityFilter,
+      youtubePreferOfficial);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AppSettingsCopyWith<_$_AppSettings> get copyWith =>
-      __$$_AppSettingsCopyWithImpl<_$_AppSettings>(this, _$identity);
+  _$$AppSettingsImplCopyWith<_$AppSettingsImpl> get copyWith =>
+      __$$AppSettingsImplCopyWithImpl<_$AppSettingsImpl>(this, _$identity);
 }
 
 abstract class _AppSettings extends AppSettings {
   const factory _AppSettings(
       {final int maxBitrateWifi,
       final int maxBitrateMobile,
-      final String? streamFormat}) = _$_AppSettings;
+      final String? streamFormat,
+      final bool youtubeDiscoveryEnabled,
+      final double youtubeDiscoveryRatio,
+      final String youtubeQualityFilter,
+      final bool youtubePreferOfficial}) = _$AppSettingsImpl;
   const _AppSettings._() : super._();
 
   @override
@@ -349,8 +444,16 @@ abstract class _AppSettings extends AppSettings {
   @override
   String? get streamFormat;
   @override
+  bool get youtubeDiscoveryEnabled;
+  @override
+  double get youtubeDiscoveryRatio;
+  @override
+  String get youtubeQualityFilter;
+  @override
+  bool get youtubePreferOfficial;
+  @override
   @JsonKey(ignore: true)
-  _$$_AppSettingsCopyWith<_$_AppSettings> get copyWith =>
+  _$$AppSettingsImplCopyWith<_$AppSettingsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -454,11 +557,11 @@ class _$SubsonicSettingsCopyWithImpl<$Res, $Val extends SubsonicSettings>
 }
 
 /// @nodoc
-abstract class _$$_SubsonicSettingsCopyWith<$Res>
+abstract class _$$SubsonicSettingsImplCopyWith<$Res>
     implements $SubsonicSettingsCopyWith<$Res> {
-  factory _$$_SubsonicSettingsCopyWith(
-          _$_SubsonicSettings value, $Res Function(_$_SubsonicSettings) then) =
-      __$$_SubsonicSettingsCopyWithImpl<$Res>;
+  factory _$$SubsonicSettingsImplCopyWith(_$SubsonicSettingsImpl value,
+          $Res Function(_$SubsonicSettingsImpl) then) =
+      __$$SubsonicSettingsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -474,11 +577,11 @@ abstract class _$$_SubsonicSettingsCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_SubsonicSettingsCopyWithImpl<$Res>
-    extends _$SubsonicSettingsCopyWithImpl<$Res, _$_SubsonicSettings>
-    implements _$$_SubsonicSettingsCopyWith<$Res> {
-  __$$_SubsonicSettingsCopyWithImpl(
-      _$_SubsonicSettings _value, $Res Function(_$_SubsonicSettings) _then)
+class __$$SubsonicSettingsImplCopyWithImpl<$Res>
+    extends _$SubsonicSettingsCopyWithImpl<$Res, _$SubsonicSettingsImpl>
+    implements _$$SubsonicSettingsImplCopyWith<$Res> {
+  __$$SubsonicSettingsImplCopyWithImpl(_$SubsonicSettingsImpl _value,
+      $Res Function(_$SubsonicSettingsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -494,7 +597,7 @@ class __$$_SubsonicSettingsCopyWithImpl<$Res>
     Object? password = null,
     Object? useTokenAuth = null,
   }) {
-    return _then(_$_SubsonicSettings(
+    return _then(_$SubsonicSettingsImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -537,8 +640,8 @@ class __$$_SubsonicSettingsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_SubsonicSettings extends _SubsonicSettings {
-  const _$_SubsonicSettings(
+class _$SubsonicSettingsImpl extends _SubsonicSettings {
+  const _$SubsonicSettingsImpl(
       {required this.id,
       this.features = const IListConst([]),
       required this.name,
@@ -577,10 +680,10 @@ class _$_SubsonicSettings extends _SubsonicSettings {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_SubsonicSettings &&
+            other is _$SubsonicSettingsImpl &&
             (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality().equals(other.features, features) &&
             (identical(other.name, name) || other.name == name) &&
@@ -613,8 +716,9 @@ class _$_SubsonicSettings extends _SubsonicSettings {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SubsonicSettingsCopyWith<_$_SubsonicSettings> get copyWith =>
-      __$$_SubsonicSettingsCopyWithImpl<_$_SubsonicSettings>(this, _$identity);
+  _$$SubsonicSettingsImplCopyWith<_$SubsonicSettingsImpl> get copyWith =>
+      __$$SubsonicSettingsImplCopyWithImpl<_$SubsonicSettingsImpl>(
+          this, _$identity);
 }
 
 abstract class _SubsonicSettings extends SubsonicSettings {
@@ -627,7 +731,7 @@ abstract class _SubsonicSettings extends SubsonicSettings {
       required final DateTime createdAt,
       required final String username,
       required final String password,
-      final bool useTokenAuth}) = _$_SubsonicSettings;
+      final bool useTokenAuth}) = _$SubsonicSettingsImpl;
   const _SubsonicSettings._() : super._();
 
   @override
@@ -650,7 +754,7 @@ abstract class _SubsonicSettings extends SubsonicSettings {
   bool get useTokenAuth;
   @override
   @JsonKey(ignore: true)
-  _$$_SubsonicSettingsCopyWith<_$_SubsonicSettings> get copyWith =>
+  _$$SubsonicSettingsImplCopyWith<_$SubsonicSettingsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -714,11 +818,12 @@ class _$SubsonicSourceSettingsCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_SubsonicSourceSettingsCopyWith<$Res>
+abstract class _$$SubsonicSourceSettingsImplCopyWith<$Res>
     implements $SubsonicSourceSettingsCopyWith<$Res> {
-  factory _$$_SubsonicSourceSettingsCopyWith(_$_SubsonicSourceSettings value,
-          $Res Function(_$_SubsonicSourceSettings) then) =
-      __$$_SubsonicSourceSettingsCopyWithImpl<$Res>;
+  factory _$$SubsonicSourceSettingsImplCopyWith(
+          _$SubsonicSourceSettingsImpl value,
+          $Res Function(_$SubsonicSourceSettingsImpl) then) =
+      __$$SubsonicSourceSettingsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({SourceSettings source, SubsonicSettings subsonic});
@@ -728,12 +833,13 @@ abstract class _$$_SubsonicSourceSettingsCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_SubsonicSourceSettingsCopyWithImpl<$Res>
+class __$$SubsonicSourceSettingsImplCopyWithImpl<$Res>
     extends _$SubsonicSourceSettingsCopyWithImpl<$Res,
-        _$_SubsonicSourceSettings>
-    implements _$$_SubsonicSourceSettingsCopyWith<$Res> {
-  __$$_SubsonicSourceSettingsCopyWithImpl(_$_SubsonicSourceSettings _value,
-      $Res Function(_$_SubsonicSourceSettings) _then)
+        _$SubsonicSourceSettingsImpl>
+    implements _$$SubsonicSourceSettingsImplCopyWith<$Res> {
+  __$$SubsonicSourceSettingsImplCopyWithImpl(
+      _$SubsonicSourceSettingsImpl _value,
+      $Res Function(_$SubsonicSourceSettingsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -742,7 +848,7 @@ class __$$_SubsonicSourceSettingsCopyWithImpl<$Res>
     Object? source = null,
     Object? subsonic = null,
   }) {
-    return _then(_$_SubsonicSourceSettings(
+    return _then(_$SubsonicSourceSettingsImpl(
       source: null == source
           ? _value.source
           : source // ignore: cast_nullable_to_non_nullable
@@ -757,8 +863,8 @@ class __$$_SubsonicSourceSettingsCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_SubsonicSourceSettings extends _SubsonicSourceSettings {
-  const _$_SubsonicSourceSettings(
+class _$SubsonicSourceSettingsImpl extends _SubsonicSourceSettings {
+  const _$SubsonicSourceSettingsImpl(
       {required this.source, required this.subsonic})
       : super._();
 
@@ -773,10 +879,10 @@ class _$_SubsonicSourceSettings extends _SubsonicSourceSettings {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_SubsonicSourceSettings &&
+            other is _$SubsonicSourceSettingsImpl &&
             (identical(other.source, source) || other.source == source) &&
             (identical(other.subsonic, subsonic) ||
                 other.subsonic == subsonic));
@@ -788,15 +894,15 @@ class _$_SubsonicSourceSettings extends _SubsonicSourceSettings {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SubsonicSourceSettingsCopyWith<_$_SubsonicSourceSettings> get copyWith =>
-      __$$_SubsonicSourceSettingsCopyWithImpl<_$_SubsonicSourceSettings>(
-          this, _$identity);
+  _$$SubsonicSourceSettingsImplCopyWith<_$SubsonicSourceSettingsImpl>
+      get copyWith => __$$SubsonicSourceSettingsImplCopyWithImpl<
+          _$SubsonicSourceSettingsImpl>(this, _$identity);
 }
 
 abstract class _SubsonicSourceSettings extends SubsonicSourceSettings {
   const factory _SubsonicSourceSettings(
       {required final SourceSettings source,
-      required final SubsonicSettings subsonic}) = _$_SubsonicSourceSettings;
+      required final SubsonicSettings subsonic}) = _$SubsonicSourceSettingsImpl;
   const _SubsonicSourceSettings._() : super._();
 
   @override
@@ -805,6 +911,6 @@ abstract class _SubsonicSourceSettings extends SubsonicSourceSettings {
   SubsonicSettings get subsonic;
   @override
   @JsonKey(ignore: true)
-  _$$_SubsonicSourceSettingsCopyWith<_$_SubsonicSourceSettings> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$SubsonicSourceSettingsImplCopyWith<_$SubsonicSourceSettingsImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

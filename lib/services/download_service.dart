@@ -92,10 +92,13 @@ class DownloadService extends _$DownloadService {
   }
 
   Future<void> init() async {
-    await FlutterDownloader.initialize(
-      // debug: true,
-      ignoreSsl: true,
-    );
+    // FlutterDownloader only supports Android and iOS
+    if (Platform.isAndroid || Platform.isIOS) {
+      await FlutterDownloader.initialize(
+        // debug: true,
+        ignoreSsl: true,
+      );
+    }
 
     state = state.copyWith(
       saveDir: path.join(
@@ -107,7 +110,9 @@ class DownloadService extends _$DownloadService {
     _bindBackgroundIsolate();
     await _syncDownloadTasks();
 
-    FlutterDownloader.registerCallback(downloadCallback, step: 1);
+    if (Platform.isAndroid || Platform.isIOS) {
+      FlutterDownloader.registerCallback(downloadCallback, step: 1);
+    }
   }
 
   Future<void> downloadAlbum(Album album) async {
@@ -291,6 +296,10 @@ class DownloadService extends _$DownloadService {
     }
 
     final source = ref.read(musicSourceProvider);
+    if (source == null) {
+      throw StateError('Cannot download song without a configured source');
+    }
+
     final db = ref.read(databaseProvider);
     final http = ref.read(httpClientProvider);
 
@@ -423,6 +432,10 @@ class DownloadService extends _$DownloadService {
   }
 
   Future<void> _syncDownloadTasks() async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return; // Download service not supported on this platform
+    }
+
     final tasks = await FlutterDownloader.loadTasks() ?? [];
     final downloads = tasks.map((e) => Download.fromTask(e)).toIList();
 
@@ -534,7 +547,7 @@ class DownloadService extends _$DownloadService {
 
     _port.asyncMap((dynamic data) async {
       final taskId = (data as List<dynamic>)[0] as String;
-      final status = DownloadTaskStatus(data[1] as int);
+      final status = DownloadTaskStatus.fromInt(data[1] as int);
       final progress = data[2] as int;
 
       var download = state.downloads.firstWhereOrNull(
@@ -579,11 +592,11 @@ class DownloadService extends _$DownloadService {
   @pragma('vm:entry-point')
   static void downloadCallback(
     String id,
-    DownloadTaskStatus status,
+    int status,
     int progress,
   ) {
     IsolateNameServer.lookupPortByName('downloader_send_port')?.send(
-      [id, status.value, progress],
+      [id, status, progress],
     );
   }
 }
