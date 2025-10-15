@@ -40,6 +40,8 @@ class SettingsPage extends HookConsumerWidget {
           const _Sources(),
           _SectionHeader(l.settingsNetworkName),
           const _Network(),
+          const _SectionHeader('Download Settings'),
+          const _DownloadSettings(),
           const _SectionHeader('Discovery'),
           const _Section(
             children: [
@@ -492,6 +494,168 @@ class _OfflineMode extends HookConsumerWidget {
           : Text(l.settingsNetworkOptionsOfflineModeOff),
       onChanged: (value) {
         ref.read(offlineModeProvider.notifier).setMode(value);
+      },
+    );
+  }
+}
+
+class _DownloadSettings extends StatelessWidget {
+  const _DownloadSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _Section(
+      children: [
+        _DownloadPreference(),
+        _ThumbsUpAutoDownload(),
+        _ThumbsDownAutoDelete(),
+      ],
+    );
+  }
+}
+
+class _DownloadPreference extends HookConsumerWidget {
+  const _DownloadPreference();
+
+  String _getDownloadPrefLabel(String pref) {
+    switch (pref) {
+      case 'wifi_only':
+        return 'WiFi Only';
+      case 'any_connection':
+        return 'Any Connection';
+      case 'manual_only':
+        return 'Manual Only';
+      default:
+        return 'Any Connection';
+    }
+  }
+
+  void _showDownloadPrefDialog(BuildContext context, WidgetRef ref) {
+    final currentPref = ref.read(settingsServiceProvider).app.downloadPreference;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Download Preference'),
+        contentPadding: const EdgeInsets.only(top: 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<String>(
+              title: const Text('WiFi Only'),
+              subtitle: const Text('Download only when connected to WiFi'),
+              value: 'wifi_only',
+              groupValue: currentPref,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsServiceProvider.notifier)
+                      .setDownloadPreference(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Any Connection'),
+              subtitle: const Text('Download on WiFi or mobile data'),
+              value: 'any_connection',
+              groupValue: currentPref,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsServiceProvider.notifier)
+                      .setDownloadPreference(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Manual Only'),
+              subtitle: const Text('Never download automatically'),
+              value: 'manual_only',
+              groupValue: currentPref,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsServiceProvider.notifier)
+                      .setDownloadPreference(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final downloadPref = ref.watch(
+      settingsServiceProvider.select((value) => value.app.downloadPreference),
+    );
+
+    return ListTile(
+      leading: const Icon(Icons.download),
+      title: const Text('Download Preference'),
+      subtitle: Text(_getDownloadPrefLabel(downloadPref)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => _showDownloadPrefDialog(context, ref),
+    );
+  }
+}
+
+class _ThumbsUpAutoDownload extends HookConsumerWidget {
+  const _ThumbsUpAutoDownload();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      settingsServiceProvider.select(
+        (value) => value.app.thumbsUpAutoDownload,
+      ),
+    );
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.thumb_up),
+      title: const Text('Auto-Download Thumbs Up'),
+      subtitle: const Text('Automatically download songs you like'),
+      value: enabled,
+      onChanged: (value) {
+        ref
+            .read(settingsServiceProvider.notifier)
+            .setThumbsUpAutoDownload(value);
+      },
+    );
+  }
+}
+
+class _ThumbsDownAutoDelete extends HookConsumerWidget {
+  const _ThumbsDownAutoDelete();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      settingsServiceProvider.select(
+        (value) => value.app.thumbsDownAutoDelete,
+      ),
+    );
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.thumb_down),
+      title: const Text('Auto-Delete Thumbs Down'),
+      subtitle: const Text('Automatically remove songs you dislike'),
+      value: enabled,
+      onChanged: (value) {
+        ref
+            .read(settingsServiceProvider.notifier)
+            .setThumbsDownAutoDelete(value);
       },
     );
   }

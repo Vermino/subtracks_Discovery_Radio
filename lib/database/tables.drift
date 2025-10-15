@@ -50,7 +50,10 @@ CREATE TABLE app_settings(
   youtube_prefer_official BOOLEAN NOT NULL DEFAULT 1,
   theme_preset TEXT NOT NULL DEFAULT 'subtracks',
   enable_dynamic_colors BOOLEAN NOT NULL DEFAULT 1,
-  custom_seed_color INT
+  custom_seed_color INT,
+  download_preference TEXT NOT NULL DEFAULT 'any_connection',
+  thumbs_up_auto_download BOOLEAN NOT NULL DEFAULT 0,
+  thumbs_down_auto_delete BOOLEAN NOT NULL DEFAULT 0
 ) WITH AppSettings;
 
 CREATE TABLE sources(

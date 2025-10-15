@@ -29,7 +29,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -203,6 +203,18 @@ class SubtracksDatabase extends _$SubtracksDatabase {
           // Add per-station YouTube ratio to discovery_sessions table
           await customStatement(
             'ALTER TABLE discovery_sessions ADD COLUMN youtube_ratio REAL NOT NULL DEFAULT 0.3',
+          );
+        }
+        if (from < 11) {
+          // Add offline mode settings to app_settings table
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN download_preference TEXT NOT NULL DEFAULT \'any_connection\'',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN thumbs_up_auto_download BOOLEAN NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN thumbs_down_auto_delete BOOLEAN NOT NULL DEFAULT 0',
           );
         }
       },

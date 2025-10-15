@@ -8,8 +8,10 @@ import '../../database/database.dart';
 import '../../log.dart';
 import '../../models/music.dart';
 import '../../models/query.dart';
+import '../../models/settings.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
+import '../../services/auto_download_service.dart';
 import '../../services/discovery_service.dart';
 import '../../services/settings_service.dart';
 import '../../state/music.dart';
@@ -328,6 +330,14 @@ class StationBuilderPage extends HookConsumerWidget {
 
       log.info('Station created and playback started - first track is local: ${seedSong.downloadFilePath != null}');
 
+      // Trigger automatic downloads for offline mode stations
+      // This happens in the background after playback starts
+      if (!isOnline) {
+        _triggerAutoDownloads(ref, sessionId, isOnline);
+        // Show download feedback before navigation
+        _showDownloadFeedback(context, ref);
+      }
+
       if (!context.mounted) return;
       // Navigate to now playing page
       context.navigateTo(const NowPlayingRoute());
@@ -336,6 +346,178 @@ class StationBuilderPage extends HookConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating station: $e')),
       );
+    }
+  }
+
+  /// Trigger automatic downloads for offline mode stations
+  ///
+  /// This runs in the background and downloads playlist songs based on user preferences
+  /// and network connectivity. If conditions aren't suitable (e.g., WiFi-only but on mobile),
+  /// downloads are queued for later.
+  void _triggerAutoDownloads(WidgetRef ref, int sessionId, bool isOnline) async {
+    try {
+      log.info('Triggering auto-downloads for station session: $sessionId');
+
+      // Get the auto-download service
+      final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+      final db = ref.read(databaseProvider);
+      final discoveryService = ref.read(discoveryServiceProvider.notifier);
+
+      // Get the station details to access the playlist
+      final station = await db.getDiscoverySessionById(sessionId);
+      if (station == null) {
+        log.warning('Station not found for auto-download: $sessionId');
+        return;
+      }
+
+      // Get the seed song
+      final seedSong = await db.songById(station.sourceId, station.seedSongId).getSingleOrNull();
+      if (seedSong == null) {
+        log.warning('Seed song not found for auto-download: ${station.seedSongId}');
+        return;
+      }
+
+      // Generate the playlist to get the songs that will be in the station
+      // This is a lightweight operation since discovery service caches results
+      final appSettings = await db.getAppSettings().getSingle();
+      final config = DiscoveryConfig(
+        youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
+        youtubeRatio: station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio,
+        youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+        youtubePreferOfficial: appSettings.youtubePreferOfficial,
+      );
+
+      // Build the hybrid playlist (this will use the already-generated playlist from cache)
+      final hybridTracks = await discoveryService.buildHybridDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: !isOnline,
+        playlistSize: station.playlistSize,
+        config: config,
+        sessionId: sessionId,
+      );
+
+      // Extract local songs that aren't downloaded yet
+      final songsToDownload = <Song>[];
+      for (final track in hybridTracks) {
+        track.when(
+          local: (song) {
+            // Only add songs that aren't already downloaded
+            if (song.downloadFilePath == null && song.downloadTaskId == null) {
+              songsToDownload.add(song);
+            }
+          },
+          youtube: (_, __, ___, ____, _____, ______) {
+            // Skip YouTube tracks - we don't download those
+          },
+        );
+      }
+
+      if (songsToDownload.isEmpty) {
+        log.info('No songs need downloading for station: $sessionId');
+        return;
+      }
+
+      log.info('Found ${songsToDownload.length} songs to download for offline station');
+
+      // Trigger the download (respects user settings and network conditions)
+      await autoDownloadService.downloadStationSongs(
+        songsToDownload,
+        sessionId: sessionId,
+        reason: 'station_offline',
+      );
+
+      log.info('Auto-download initiated for station: $sessionId');
+    } catch (e, stackTrace) {
+      log.severe('Error triggering auto-downloads', e, stackTrace);
+      // Don't rethrow - auto-downloads are non-critical, playback should continue
+    }
+  }
+
+  /// Show user feedback about download status
+  ///
+  /// Displays a SnackBar with information about whether downloads are starting
+  /// immediately, queued for WiFi, or disabled based on user preferences.
+  void _showDownloadFeedback(BuildContext context, WidgetRef ref) {
+    try {
+      // Get current settings and network status
+      final settings = ref.read(settingsServiceProvider);
+      final networkModeAsync = ref.read(networkModeProvider);
+
+      final downloadPref = settings.app.downloadPreference;
+
+      // Determine the appropriate message
+      String message;
+      IconData icon;
+
+      // Manual only - no auto-downloads
+      if (downloadPref == 'manual_only') {
+        // Don't show a message for manual mode - user chose not to auto-download
+        return;
+      }
+
+      // Check network conditions
+      networkModeAsync.when(
+        data: (networkMode) {
+          final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+          final shouldDownload = autoDownloadService.shouldDownloadNow(downloadPref, networkMode);
+
+          if (shouldDownload) {
+            // Downloads starting immediately
+            message = 'Downloading station songs in background';
+            icon = Icons.download_rounded;
+          } else if (downloadPref == 'wifi_only' && networkMode == NetworkMode.mobile) {
+            // Queued for WiFi
+            message = 'Downloads queued - will start when WiFi is available';
+            icon = Icons.wifi_rounded;
+          } else {
+            // Other cases (shouldn't normally happen)
+            message = 'Downloads queued for later';
+            icon = Icons.schedule_rounded;
+          }
+
+          // Show the SnackBar
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(message)),
+                  ],
+                ),
+                duration: const Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        loading: () {
+          // Network status loading - show generic message
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    const Expanded(child: Text('Preparing to download station songs...')),
+                  ],
+                ),
+                duration: const Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        error: (_, __) {
+          // Error getting network status - don't show anything
+          log.warning('Could not determine network status for download feedback');
+        },
+      );
+    } catch (e) {
+      // Don't let feedback errors interfere with the user experience
+      log.warning('Error showing download feedback: $e');
     }
   }
 

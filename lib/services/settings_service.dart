@@ -180,4 +180,25 @@ class SettingsService extends _$SettingsService {
     );
     await init();
   }
+
+  Future<void> setDownloadPreference(String value) async {
+    await _db.updateSettings(
+      state.app.copyWith(downloadPreference: value).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setThumbsUpAutoDownload(bool value) async {
+    await _db.updateSettings(
+      state.app.copyWith(thumbsUpAutoDownload: value).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setThumbsDownAutoDelete(bool value) async {
+    await _db.updateSettings(
+      state.app.copyWith(thumbsDownAutoDelete: value).toCompanion(),
+    );
+    await init();
+  }
 }

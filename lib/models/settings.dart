@@ -30,6 +30,9 @@ class AppSettings with _$AppSettings {
     @Default('subtracks') String themePreset,
     @Default(true) bool enableDynamicColors,
     int? customSeedColor,
+    @Default('any_connection') String downloadPreference,
+    @Default(false) bool thumbsUpAutoDownload,
+    @Default(false) bool thumbsDownAutoDelete,
   }) = _AppSettings;
 
   AppSettingsCompanion toCompanion() {
@@ -45,6 +48,9 @@ class AppSettings with _$AppSettings {
       themePreset: Value(themePreset),
       enableDynamicColors: Value(enableDynamicColors),
       customSeedColor: Value(customSeedColor),
+      downloadPreference: Value(downloadPreference),
+      thumbsUpAutoDownload: Value(thumbsUpAutoDownload),
+      thumbsDownAutoDelete: Value(thumbsDownAutoDelete),
     );
   }
 }

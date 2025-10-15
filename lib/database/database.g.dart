@@ -1228,6 +1228,30 @@ class AppSettingsTable extends Table
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _downloadPreferenceMeta =
+      const VerificationMeta('downloadPreference');
+  late final GeneratedColumn<String> downloadPreference =
+      GeneratedColumn<String>('download_preference', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NOT NULL DEFAULT \'any_connection\'',
+          defaultValue: const CustomExpression('\'any_connection\''));
+  static const VerificationMeta _thumbsUpAutoDownloadMeta =
+      const VerificationMeta('thumbsUpAutoDownload');
+  late final GeneratedColumn<bool> thumbsUpAutoDownload = GeneratedColumn<bool>(
+      'thumbs_up_auto_download', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _thumbsDownAutoDeleteMeta =
+      const VerificationMeta('thumbsDownAutoDelete');
+  late final GeneratedColumn<bool> thumbsDownAutoDelete = GeneratedColumn<bool>(
+      'thumbs_down_auto_delete', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1240,7 +1264,10 @@ class AppSettingsTable extends Table
         youtubePreferOfficial,
         themePreset,
         enableDynamicColors,
-        customSeedColor
+        customSeedColor,
+        downloadPreference,
+        thumbsUpAutoDownload,
+        thumbsDownAutoDelete
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1320,6 +1347,24 @@ class AppSettingsTable extends Table
           customSeedColor.isAcceptableOrUnknown(
               data['custom_seed_color']!, _customSeedColorMeta));
     }
+    if (data.containsKey('download_preference')) {
+      context.handle(
+          _downloadPreferenceMeta,
+          downloadPreference.isAcceptableOrUnknown(
+              data['download_preference']!, _downloadPreferenceMeta));
+    }
+    if (data.containsKey('thumbs_up_auto_download')) {
+      context.handle(
+          _thumbsUpAutoDownloadMeta,
+          thumbsUpAutoDownload.isAcceptableOrUnknown(
+              data['thumbs_up_auto_download']!, _thumbsUpAutoDownloadMeta));
+    }
+    if (data.containsKey('thumbs_down_auto_delete')) {
+      context.handle(
+          _thumbsDownAutoDeleteMeta,
+          thumbsDownAutoDelete.isAcceptableOrUnknown(
+              data['thumbs_down_auto_delete']!, _thumbsDownAutoDeleteMeta));
+    }
     return context;
   }
 
@@ -1353,6 +1398,12 @@ class AppSettingsTable extends Table
           DriftSqlType.bool, data['${effectivePrefix}enable_dynamic_colors'])!,
       customSeedColor: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}custom_seed_color']),
+      downloadPreference: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}download_preference'])!,
+      thumbsUpAutoDownload: attachedDatabase.typeMapping.read(DriftSqlType.bool,
+          data['${effectivePrefix}thumbs_up_auto_download'])!,
+      thumbsDownAutoDelete: attachedDatabase.typeMapping.read(DriftSqlType.bool,
+          data['${effectivePrefix}thumbs_down_auto_delete'])!,
     );
   }
 
@@ -1377,6 +1428,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
   final Value<String> themePreset;
   final Value<bool> enableDynamicColors;
   final Value<int?> customSeedColor;
+  final Value<String> downloadPreference;
+  final Value<bool> thumbsUpAutoDownload;
+  final Value<bool> thumbsDownAutoDelete;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.maxBitrateWifi = const Value.absent(),
@@ -1389,6 +1443,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     this.themePreset = const Value.absent(),
     this.enableDynamicColors = const Value.absent(),
     this.customSeedColor = const Value.absent(),
+    this.downloadPreference = const Value.absent(),
+    this.thumbsUpAutoDownload = const Value.absent(),
+    this.thumbsDownAutoDelete = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -1402,6 +1459,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     this.themePreset = const Value.absent(),
     this.enableDynamicColors = const Value.absent(),
     this.customSeedColor = const Value.absent(),
+    this.downloadPreference = const Value.absent(),
+    this.thumbsUpAutoDownload = const Value.absent(),
+    this.thumbsDownAutoDelete = const Value.absent(),
   })  : maxBitrateWifi = Value(maxBitrateWifi),
         maxBitrateMobile = Value(maxBitrateMobile);
   static Insertable<AppSettings> custom({
@@ -1416,6 +1476,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     Expression<String>? themePreset,
     Expression<bool>? enableDynamicColors,
     Expression<int>? customSeedColor,
+    Expression<String>? downloadPreference,
+    Expression<bool>? thumbsUpAutoDownload,
+    Expression<bool>? thumbsDownAutoDelete,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1434,6 +1497,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       if (enableDynamicColors != null)
         'enable_dynamic_colors': enableDynamicColors,
       if (customSeedColor != null) 'custom_seed_color': customSeedColor,
+      if (downloadPreference != null) 'download_preference': downloadPreference,
+      if (thumbsUpAutoDownload != null)
+        'thumbs_up_auto_download': thumbsUpAutoDownload,
+      if (thumbsDownAutoDelete != null)
+        'thumbs_down_auto_delete': thumbsDownAutoDelete,
     });
   }
 
@@ -1448,7 +1516,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       Value<bool>? youtubePreferOfficial,
       Value<String>? themePreset,
       Value<bool>? enableDynamicColors,
-      Value<int?>? customSeedColor}) {
+      Value<int?>? customSeedColor,
+      Value<String>? downloadPreference,
+      Value<bool>? thumbsUpAutoDownload,
+      Value<bool>? thumbsDownAutoDelete}) {
     return AppSettingsCompanion(
       id: id ?? this.id,
       maxBitrateWifi: maxBitrateWifi ?? this.maxBitrateWifi,
@@ -1464,6 +1535,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       themePreset: themePreset ?? this.themePreset,
       enableDynamicColors: enableDynamicColors ?? this.enableDynamicColors,
       customSeedColor: customSeedColor ?? this.customSeedColor,
+      downloadPreference: downloadPreference ?? this.downloadPreference,
+      thumbsUpAutoDownload: thumbsUpAutoDownload ?? this.thumbsUpAutoDownload,
+      thumbsDownAutoDelete: thumbsDownAutoDelete ?? this.thumbsDownAutoDelete,
     );
   }
 
@@ -1507,6 +1581,17 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     if (customSeedColor.present) {
       map['custom_seed_color'] = Variable<int>(customSeedColor.value);
     }
+    if (downloadPreference.present) {
+      map['download_preference'] = Variable<String>(downloadPreference.value);
+    }
+    if (thumbsUpAutoDownload.present) {
+      map['thumbs_up_auto_download'] =
+          Variable<bool>(thumbsUpAutoDownload.value);
+    }
+    if (thumbsDownAutoDelete.present) {
+      map['thumbs_down_auto_delete'] =
+          Variable<bool>(thumbsDownAutoDelete.value);
+    }
     return map;
   }
 
@@ -1523,7 +1608,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
           ..write('youtubePreferOfficial: $youtubePreferOfficial, ')
           ..write('themePreset: $themePreset, ')
           ..write('enableDynamicColors: $enableDynamicColors, ')
-          ..write('customSeedColor: $customSeedColor')
+          ..write('customSeedColor: $customSeedColor, ')
+          ..write('downloadPreference: $downloadPreference, ')
+          ..write('thumbsUpAutoDownload: $thumbsUpAutoDownload, ')
+          ..write('thumbsDownAutoDelete: $thumbsDownAutoDelete')
           ..write(')'))
         .toString();
   }
