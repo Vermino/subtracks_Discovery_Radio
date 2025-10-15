@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../database/database.dart';
+import '../../log.dart';
 import '../../models/music.dart';
 import '../../models/query.dart';
 import '../../models/support.dart';
@@ -194,9 +195,9 @@ class StationBuilderPage extends HookConsumerWidget {
         seeds: seeds,
         playlistSize: playlistSize,
         isOnlineMode: isOnlineMode,
-        onConfirm: (size, isOnline) {
+        onConfirm: (size, isOnline, youtubeRatio) {
           Navigator.of(context).pop();
-          _createStation(context, ref, seeds, size, isOnline);
+          _createStation(context, ref, seeds, size, isOnline, youtubeRatio);
         },
       ),
     );
@@ -208,12 +209,15 @@ class StationBuilderPage extends HookConsumerWidget {
     List<SeedItem> seeds,
     int playlistSize,
     bool isOnline,
+    double youtubeRatio,
   ) async {
     final audioControl = ref.read(audioControlProvider);
     final db = ref.read(databaseProvider);
     final sourceId = ref.read(sourceIdProvider);
 
     try {
+      // Get app settings for YouTube ratio
+      final appSettings = await db.getAppSettings().getSingle();
       // Get the first seed song to start discovery
       Song? seedSong;
       String? seedArtist;
@@ -294,6 +298,7 @@ class StationBuilderPage extends HookConsumerWidget {
         seedGenre: seedGenre,
         mode: isOnline ? 'online' : 'offline',
         playlistSize: playlistSize,
+        youtubeRatio: youtubeRatio,
       );
 
       // Update last_played_at immediately so the station shows up in the list
@@ -308,8 +313,16 @@ class StationBuilderPage extends HookConsumerWidget {
         seedSong: seedSong,
         mode: isOnline ? DiscoveryMode.online : DiscoveryMode.offline,
         playlistSize: playlistSize,
+        config: DiscoveryConfig(
+          youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
+          youtubeRatio: youtubeRatio,
+          youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+          youtubePreferOfficial: appSettings.youtubePreferOfficial,
+        ),
         sessionId: sessionId,
       );
+
+      log.info('Station created and playback started - first track is local: ${seedSong.downloadFilePath != null}');
 
       if (!context.mounted) return;
       // Navigate to now playing page
@@ -319,6 +332,20 @@ class StationBuilderPage extends HookConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating station: $e')),
       );
+    }
+  }
+
+  /// Parse YouTube quality filter from string
+  YouTubeQualityFilter _parseYoutubeQualityFilter(String filter) {
+    switch (filter.toLowerCase()) {
+      case 'strict':
+        return YouTubeQualityFilter.strict;
+      case 'moderate':
+        return YouTubeQualityFilter.moderate;
+      case 'permissive':
+        return YouTubeQualityFilter.permissive;
+      default:
+        return YouTubeQualityFilter.moderate;
     }
   }
 }
@@ -625,11 +652,11 @@ class _SeedListView extends StatelessWidget {
   }
 }
 
-class _CreateStationDialog extends HookWidget {
+class _CreateStationDialog extends HookConsumerWidget {
   final List<SeedItem> seeds;
   final ValueNotifier<int> playlistSize;
   final ValueNotifier<bool> isOnlineMode;
-  final Function(int size, bool isOnline) onConfirm;
+  final Function(int size, bool isOnline, double youtubeRatio) onConfirm;
 
   const _CreateStationDialog({
     required this.seeds,
@@ -639,10 +666,14 @@ class _CreateStationDialog extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final size = useState(playlistSize.value);
     final isOnline = useState(isOnlineMode.value);
+    final youtubeRatio = useState(0.3); // Default 30%
+
+    final settings = ref.watch(settingsServiceProvider);
+    final youtubeEnabled = settings.app.youtubeDiscoveryEnabled;
 
     return AlertDialog(
       title: const Text('Create Discovery Station'),
@@ -732,6 +763,72 @@ class _CreateStationDialog extends HookWidget {
                 ),
               ],
             ),
+
+            // YouTube Ratio (only shown if YouTube is enabled)
+            if (youtubeEnabled) ...[
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Icon(
+                    Icons.play_circle_outline,
+                    size: 20,
+                    color: Colors.red.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'YouTube Content',
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade700.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.red.shade700.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      '${(youtubeRatio.value * 100).round()}%',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Slider(
+                value: youtubeRatio.value,
+                min: 0.0,
+                max: 1.0,
+                divisions: 10,
+                label: '${(youtubeRatio.value * 100).round()}%',
+                activeColor: Colors.red.shade700,
+                onChanged: (value) {
+                  youtubeRatio.value = value;
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Local Only',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                  Text(
+                    'YouTube Only',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -741,7 +838,7 @@ class _CreateStationDialog extends HookWidget {
           child: const Text('Cancel'),
         ),
         FilledButton.icon(
-          onPressed: () => onConfirm(size.value, isOnline.value),
+          onPressed: () => onConfirm(size.value, isOnline.value, youtubeRatio.value),
           icon: const Icon(Icons.play_arrow_rounded),
           label: const Text('Create Station'),
         ),

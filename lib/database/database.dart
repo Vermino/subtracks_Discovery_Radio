@@ -29,7 +29,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -197,6 +197,12 @@ class SubtracksDatabase extends _$SubtracksDatabase {
           );
           await customStatement(
             'ALTER TABLE app_settings ADD COLUMN custom_seed_color INTEGER',
+          );
+        }
+        if (from < 10) {
+          // Add per-station YouTube ratio to discovery_sessions table
+          await customStatement(
+            'ALTER TABLE discovery_sessions ADD COLUMN youtube_ratio REAL NOT NULL DEFAULT 0.3',
           );
         }
       },
@@ -682,6 +688,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
     String? seedGenre,
     required String mode, // 'online' or 'offline'
     int playlistSize = 50,
+    double youtubeRatio = 0.3,
     String? stationName,
   }) async {
     final result = await into(discoverySessions).insert(
@@ -692,6 +699,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
         seedGenre: Value(seedGenre),
         mode: mode,
         playlistSize: Value(playlistSize),
+        youtubeRatio: Value(youtubeRatio),
         stationName: Value(stationName),
       ),
     );
@@ -764,6 +772,12 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   /// Update the name of a discovery station
   Future<void> updateStationName(int sessionId, String stationName) async {
     await discoveryUpdateStationName(stationName, sessionId);
+  }
+
+  /// Update the YouTube ratio for a discovery station
+  Future<void> updateStationYouTubeRatio(int sessionId, double ratio) async {
+    await (update(discoverySessions)..where((tbl) => tbl.id.equals(sessionId)))
+        .write(DiscoverySessionsCompanion(youtubeRatio: Value(ratio)));
   }
 
   /// Update the last played timestamp of a station

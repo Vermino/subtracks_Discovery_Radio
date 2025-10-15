@@ -256,8 +256,22 @@ class GenreSongsPage extends HookConsumerWidget {
       [],
     );
 
+    final audio = ref.watch(audioControlProvider);
+
     final play = useCallback(
-      ({int? index, bool? shuffle}) => ref.read(audioControlProvider).playDiscoveryRadioByGenre(
+      ({int? index, bool? shuffle}) => audio.playSongs(
+            query: query,
+            getSongs: getSongs,
+            startIndex: index,
+            context: QueueContextType.genre,
+            contextId: genre,
+            shuffle: shuffle,
+          ),
+      [genre, query, getSongs],
+    );
+
+    final playDiscoveryRadio = useCallback(
+      () => audio.playDiscoveryRadioByGenre(
             genre: genre,
             mode: DiscoveryMode.online,
           ),
@@ -266,15 +280,15 @@ class GenreSongsPage extends HookConsumerWidget {
 
     return QueueContext(
       id: genre,
-      type: QueueContextType.album,
+      type: QueueContextType.genre,
       child: _SongsPage(
         query: query,
         getSongs: getSongs,
-        // onSongTap: (song, index) => play(index: index),
+        onSongTap: (song, index) => play(index: index),
         songImage: true,
         background: const BackgroundGradient(),
         fab: DiscoveryRadioFab(
-          onPressed: () => play(),
+          onPressed: playDiscoveryRadio,
         ),
         header: _GenreHeader(genre: genre),
       ),

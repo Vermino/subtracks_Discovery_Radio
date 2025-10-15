@@ -4852,6 +4852,14 @@ class DiscoverySessions extends Table
       requiredDuringInsert: false,
       $customConstraints: 'NOT NULL DEFAULT 50',
       defaultValue: const CustomExpression('50'));
+  static const VerificationMeta _youtubeRatioMeta =
+      const VerificationMeta('youtubeRatio');
+  late final GeneratedColumn<double> youtubeRatio = GeneratedColumn<double>(
+      'youtube_ratio', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0.3',
+      defaultValue: const CustomExpression('0.3'));
   static const VerificationMeta _stationNameMeta =
       const VerificationMeta('stationName');
   late final GeneratedColumn<String> stationName = GeneratedColumn<String>(
@@ -4901,6 +4909,7 @@ class DiscoverySessions extends Table
         sourceId,
         mode,
         playlistSize,
+        youtubeRatio,
         stationName,
         lastPlayedAt,
         playCount,
@@ -4956,6 +4965,12 @@ class DiscoverySessions extends Table
           playlistSize.isAcceptableOrUnknown(
               data['playlist_size']!, _playlistSizeMeta));
     }
+    if (data.containsKey('youtube_ratio')) {
+      context.handle(
+          _youtubeRatioMeta,
+          youtubeRatio.isAcceptableOrUnknown(
+              data['youtube_ratio']!, _youtubeRatioMeta));
+    }
     if (data.containsKey('station_name')) {
       context.handle(
           _stationNameMeta,
@@ -5005,6 +5020,8 @@ class DiscoverySessions extends Table
           .read(DriftSqlType.string, data['${effectivePrefix}mode'])!,
       playlistSize: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}playlist_size'])!,
+      youtubeRatio: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}youtube_ratio'])!,
       stationName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}station_name']),
       lastPlayedAt: attachedDatabase.typeMapping
@@ -5041,6 +5058,7 @@ class DiscoverySession extends DataClass
 
   /// 'online' or 'offline'
   final int playlistSize;
+  final double youtubeRatio;
   final String? stationName;
   final int? lastPlayedAt;
   final int playCount;
@@ -5054,6 +5072,7 @@ class DiscoverySession extends DataClass
       required this.sourceId,
       required this.mode,
       required this.playlistSize,
+      required this.youtubeRatio,
       this.stationName,
       this.lastPlayedAt,
       required this.playCount,
@@ -5073,6 +5092,7 @@ class DiscoverySession extends DataClass
     map['source_id'] = Variable<int>(sourceId);
     map['mode'] = Variable<String>(mode);
     map['playlist_size'] = Variable<int>(playlistSize);
+    map['youtube_ratio'] = Variable<double>(youtubeRatio);
     if (!nullToAbsent || stationName != null) {
       map['station_name'] = Variable<String>(stationName);
     }
@@ -5098,6 +5118,7 @@ class DiscoverySession extends DataClass
       sourceId: Value(sourceId),
       mode: Value(mode),
       playlistSize: Value(playlistSize),
+      youtubeRatio: Value(youtubeRatio),
       stationName: stationName == null && nullToAbsent
           ? const Value.absent()
           : Value(stationName),
@@ -5121,6 +5142,7 @@ class DiscoverySession extends DataClass
       sourceId: serializer.fromJson<int>(json['source_id']),
       mode: serializer.fromJson<String>(json['mode']),
       playlistSize: serializer.fromJson<int>(json['playlist_size']),
+      youtubeRatio: serializer.fromJson<double>(json['youtube_ratio']),
       stationName: serializer.fromJson<String?>(json['station_name']),
       lastPlayedAt: serializer.fromJson<int?>(json['last_played_at']),
       playCount: serializer.fromJson<int>(json['play_count']),
@@ -5139,6 +5161,7 @@ class DiscoverySession extends DataClass
       'source_id': serializer.toJson<int>(sourceId),
       'mode': serializer.toJson<String>(mode),
       'playlist_size': serializer.toJson<int>(playlistSize),
+      'youtube_ratio': serializer.toJson<double>(youtubeRatio),
       'station_name': serializer.toJson<String?>(stationName),
       'last_played_at': serializer.toJson<int?>(lastPlayedAt),
       'play_count': serializer.toJson<int>(playCount),
@@ -5155,6 +5178,7 @@ class DiscoverySession extends DataClass
           int? sourceId,
           String? mode,
           int? playlistSize,
+          double? youtubeRatio,
           Value<String?> stationName = const Value.absent(),
           Value<int?> lastPlayedAt = const Value.absent(),
           int? playCount,
@@ -5168,6 +5192,7 @@ class DiscoverySession extends DataClass
         sourceId: sourceId ?? this.sourceId,
         mode: mode ?? this.mode,
         playlistSize: playlistSize ?? this.playlistSize,
+        youtubeRatio: youtubeRatio ?? this.youtubeRatio,
         stationName: stationName.present ? stationName.value : this.stationName,
         lastPlayedAt:
             lastPlayedAt.present ? lastPlayedAt.value : this.lastPlayedAt,
@@ -5185,6 +5210,7 @@ class DiscoverySession extends DataClass
           ..write('sourceId: $sourceId, ')
           ..write('mode: $mode, ')
           ..write('playlistSize: $playlistSize, ')
+          ..write('youtubeRatio: $youtubeRatio, ')
           ..write('stationName: $stationName, ')
           ..write('lastPlayedAt: $lastPlayedAt, ')
           ..write('playCount: $playCount, ')
@@ -5203,6 +5229,7 @@ class DiscoverySession extends DataClass
       sourceId,
       mode,
       playlistSize,
+      youtubeRatio,
       stationName,
       lastPlayedAt,
       playCount,
@@ -5219,6 +5246,7 @@ class DiscoverySession extends DataClass
           other.sourceId == this.sourceId &&
           other.mode == this.mode &&
           other.playlistSize == this.playlistSize &&
+          other.youtubeRatio == this.youtubeRatio &&
           other.stationName == this.stationName &&
           other.lastPlayedAt == this.lastPlayedAt &&
           other.playCount == this.playCount &&
@@ -5234,6 +5262,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
   final Value<int> sourceId;
   final Value<String> mode;
   final Value<int> playlistSize;
+  final Value<double> youtubeRatio;
   final Value<String?> stationName;
   final Value<int?> lastPlayedAt;
   final Value<int> playCount;
@@ -5247,6 +5276,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     this.sourceId = const Value.absent(),
     this.mode = const Value.absent(),
     this.playlistSize = const Value.absent(),
+    this.youtubeRatio = const Value.absent(),
     this.stationName = const Value.absent(),
     this.lastPlayedAt = const Value.absent(),
     this.playCount = const Value.absent(),
@@ -5261,6 +5291,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     required int sourceId,
     required String mode,
     this.playlistSize = const Value.absent(),
+    this.youtubeRatio = const Value.absent(),
     this.stationName = const Value.absent(),
     this.lastPlayedAt = const Value.absent(),
     this.playCount = const Value.absent(),
@@ -5277,6 +5308,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     Expression<int>? sourceId,
     Expression<String>? mode,
     Expression<int>? playlistSize,
+    Expression<double>? youtubeRatio,
     Expression<String>? stationName,
     Expression<int>? lastPlayedAt,
     Expression<int>? playCount,
@@ -5291,6 +5323,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
       if (sourceId != null) 'source_id': sourceId,
       if (mode != null) 'mode': mode,
       if (playlistSize != null) 'playlist_size': playlistSize,
+      if (youtubeRatio != null) 'youtube_ratio': youtubeRatio,
       if (stationName != null) 'station_name': stationName,
       if (lastPlayedAt != null) 'last_played_at': lastPlayedAt,
       if (playCount != null) 'play_count': playCount,
@@ -5307,6 +5340,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
       Value<int>? sourceId,
       Value<String>? mode,
       Value<int>? playlistSize,
+      Value<double>? youtubeRatio,
       Value<String?>? stationName,
       Value<int?>? lastPlayedAt,
       Value<int>? playCount,
@@ -5320,6 +5354,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
       sourceId: sourceId ?? this.sourceId,
       mode: mode ?? this.mode,
       playlistSize: playlistSize ?? this.playlistSize,
+      youtubeRatio: youtubeRatio ?? this.youtubeRatio,
       stationName: stationName ?? this.stationName,
       lastPlayedAt: lastPlayedAt ?? this.lastPlayedAt,
       playCount: playCount ?? this.playCount,
@@ -5352,6 +5387,9 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     if (playlistSize.present) {
       map['playlist_size'] = Variable<int>(playlistSize.value);
     }
+    if (youtubeRatio.present) {
+      map['youtube_ratio'] = Variable<double>(youtubeRatio.value);
+    }
     if (stationName.present) {
       map['station_name'] = Variable<String>(stationName.value);
     }
@@ -5380,6 +5418,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
           ..write('sourceId: $sourceId, ')
           ..write('mode: $mode, ')
           ..write('playlistSize: $playlistSize, ')
+          ..write('youtubeRatio: $youtubeRatio, ')
           ..write('stationName: $stationName, ')
           ..write('lastPlayedAt: $lastPlayedAt, ')
           ..write('playCount: $playCount, ')

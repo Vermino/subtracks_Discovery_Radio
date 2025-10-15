@@ -98,6 +98,9 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   // Track the current discovery session for interactions
   int? _currentDiscoverySessionId;
 
+  // Track whether auto-append is in progress to prevent duplicate appends
+  bool _isAutoAppending = false;
+
   /// Get the current discovery session ID if playing a discovery station
   int? get currentDiscoverySessionId => _currentDiscoverySessionId;
 
@@ -221,6 +224,11 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       final queueIndex = _audioSource.sequence[index].tag;
       if (queueIndex != null) {
         await _db.setCurrentTrack(queueIndex);
+
+        // Check if we're playing discovery radio and near end of queue
+        if (_currentDiscoverySessionId != null && queueMode.value == QueueMode.radio) {
+          _checkAndAppendMoreTracks(queueIndex);
+        }
       }
     });
 
@@ -1361,6 +1369,139 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     final expiryTime = DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
     final timeLeft = expiryTime.difference(DateTime.now());
     return timeLeft.inMinutes;
+  }
+
+  /// Check if we're near the end of queue and append more tracks if needed
+  ///
+  /// This enables infinite queue functionality for discovery radio stations.
+  /// When the user is 2 tracks away from the end, we generate more tracks in the background.
+  void _checkAndAppendMoreTracks(int currentQueueIndex) async {
+    // Don't append if already in progress
+    if (_isAutoAppending) {
+      log.fine('Auto-append already in progress, skipping');
+      return;
+    }
+
+    // Check if we're near the end (within 2 tracks)
+    if (_queueLength == null) return;
+
+    final tracksUntilEnd = _queueLength! - currentQueueIndex - 1;
+    log.fine('Queue position: $currentQueueIndex / $_queueLength (tracks until end: $tracksUntilEnd)');
+
+    if (tracksUntilEnd <= 2) {
+      log.info('Near end of queue, triggering auto-append');
+      _isAutoAppending = true;
+
+      try {
+        await _appendMoreDiscoveryTracks();
+      } catch (e, stackTrace) {
+        log.severe('Failed to auto-append tracks', e, stackTrace);
+      } finally {
+        _isAutoAppending = false;
+      }
+    }
+  }
+
+  /// Append more tracks to the current discovery radio queue
+  ///
+  /// Generates additional tracks based on the station's configuration and user preferences
+  Future<void> _appendMoreDiscoveryTracks() async {
+    if (_currentDiscoverySessionId == null) {
+      log.warning('Cannot append tracks: no active discovery session');
+      return;
+    }
+
+    try {
+      log.info('Appending more tracks to discovery radio queue...');
+
+      // Get the current station configuration
+      final station = await _db.getDiscoverySessionById(_currentDiscoverySessionId!);
+      if (station == null) {
+        log.warning('Discovery station not found: $_currentDiscoverySessionId');
+        return;
+      }
+
+      // Get the discovery service
+      final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+      // Get the seed song for the station
+      final seedSong = await _db.songById(_sourceId, station.seedSongId).getSingleOrNull();
+      if (seedSong == null) {
+        log.warning('Seed song not found for station: ${station.seedSongId}');
+        return;
+      }
+
+      // Determine mode from station settings
+      final mode = station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline;
+
+      // Get YouTube settings from app settings
+      final appSettings = await _db.getAppSettings().getSingle();
+      final youtubeRatio = station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio;
+
+      // Create discovery config based on station settings
+      final config = DiscoveryConfig(
+        maxRecommendations: station.playlistSize,
+        youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
+        youtubeRatio: youtubeRatio,
+        youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+        youtubePreferOfficial: appSettings.youtubePreferOfficial,
+      );
+
+      // Generate more tracks (use half of playlist size for incremental adds)
+      final numTracksToAdd = (station.playlistSize / 2).ceil();
+      log.fine('Generating $numTracksToAdd new tracks for station');
+
+      final newTracks = await discoveryService.buildHybridDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: !mode.isOnline,
+        playlistSize: numTracksToAdd,
+        config: config,
+        sessionId: _currentDiscoverySessionId,
+      );
+
+      if (newTracks.isEmpty) {
+        log.warning('No new tracks generated for append');
+        return;
+      }
+
+      log.info('Generated ${newTracks.length} new tracks, converting and appending to queue');
+
+      // Convert hybrid tracks to songs
+      final newSongs = await _convertHybridTracksToSongs(newTracks);
+
+      if (newSongs.isEmpty) {
+        log.warning('No playable songs after conversion');
+        return;
+      }
+
+      // Append to the queue database
+      await _loadQueueSongs(
+        newSongs,
+        _queueLength!,
+        QueueContextType.discovery,
+        seedSong.id,
+      );
+
+      log.info('Successfully appended ${newSongs.length} tracks to queue (new queue length: $_queueLength)');
+
+    } catch (e, stackTrace) {
+      log.severe('Error appending discovery tracks', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Parse YouTube quality filter from string
+  YouTubeQualityFilter _parseYoutubeQualityFilter(String filter) {
+    switch (filter.toLowerCase()) {
+      case 'strict':
+        return YouTubeQualityFilter.strict;
+      case 'moderate':
+        return YouTubeQualityFilter.moderate;
+      case 'permissive':
+        return YouTubeQualityFilter.permissive;
+      default:
+        return YouTubeQualityFilter.moderate;
+    }
   }
 
 }

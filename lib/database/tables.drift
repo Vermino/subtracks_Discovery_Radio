@@ -613,6 +613,7 @@ CREATE TABLE discovery_sessions(
   source_id INT NOT NULL,
   mode TEXT NOT NULL, -- 'online' or 'offline'
   playlist_size INT NOT NULL DEFAULT 50,
+  youtube_ratio REAL NOT NULL DEFAULT 0.3,
   station_name TEXT,
   last_played_at INTEGER,
   play_count INTEGER NOT NULL DEFAULT 0,
