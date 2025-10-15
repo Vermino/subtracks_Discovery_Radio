@@ -233,22 +233,10 @@ class _TrackInfo extends HookConsumerWidget {
             ),
             // Rating buttons for the currently playing song
             if (item?.id != null)
-              ref.watch(songProvider(item!.id)).when(
-                data: (song) {
-                  // Use station-specific ratings if playing discovery station
-                  final stationId = itemData?.contextType == QueueContextType.discovery
-                      ? audioControl.currentDiscoverySessionId
-                      : null;
-
-                  return SongRatingButtons(
-                    song: song,
-                    size: 32,
-                    showBoth: true, // Show both thumbs up and thumbs down
-                    stationId: stationId, // Pass station ID for station-specific ratings
-                  );
-                },
-                loading: () => const SizedBox(width: 80, height: 32),
-                error: (_, __) => const SizedBox(width: 80, height: 32),
+              _RatingButtonsForCurrentTrack(
+                mediaItem: item!,
+                itemData: itemData,
+                audioControl: audioControl,
               )
             else
               const SizedBox(width: 80, height: 32),
@@ -758,6 +746,68 @@ class _DiscoveryStationTitle extends HookConsumerWidget {
         );
       },
     );
+  }
+}
+
+/// Widget that handles rating buttons for both local and YouTube tracks
+class _RatingButtonsForCurrentTrack extends HookConsumerWidget {
+  final MediaItem mediaItem;
+  final MediaItemData? itemData;
+  final AudioControl audioControl;
+
+  const _RatingButtonsForCurrentTrack({
+    required this.mediaItem,
+    required this.itemData,
+    required this.audioControl,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isYouTube = mediaItem.extras?['isYouTube'] == true;
+
+    if (isYouTube) {
+      // YouTube track - create a synthetic Song object from MediaItem
+      final youtubeSong = Song(
+        sourceId: ref.watch(sourceIdProvider),
+        id: mediaItem.id,
+        title: mediaItem.title,
+        artist: mediaItem.artist,
+        album: mediaItem.album,
+        duration: mediaItem.duration,
+        userRating: UserRating.unrated, // YouTube tracks don't have persisted ratings
+      );
+
+      // Use station-specific ratings if playing discovery station
+      final stationId = itemData?.contextType == QueueContextType.discovery
+          ? audioControl.currentDiscoverySessionId
+          : null;
+
+      return SongRatingButtons(
+        song: youtubeSong,
+        size: 32,
+        showBoth: true, // Show both thumbs up and thumbs down
+        stationId: stationId, // Pass station ID for station-specific ratings
+      );
+    } else {
+      // Local track - use the song provider
+      return ref.watch(songProvider(mediaItem.id)).when(
+        data: (song) {
+          // Use station-specific ratings if playing discovery station
+          final stationId = itemData?.contextType == QueueContextType.discovery
+              ? audioControl.currentDiscoverySessionId
+              : null;
+
+          return SongRatingButtons(
+            song: song,
+            size: 32,
+            showBoth: true, // Show both thumbs up and thumbs down
+            stationId: stationId, // Pass station ID for station-specific ratings
+          );
+        },
+        loading: () => const SizedBox(width: 80, height: 32),
+        error: (_, __) => const SizedBox(width: 80, height: 32),
+      );
+    }
   }
 }
 

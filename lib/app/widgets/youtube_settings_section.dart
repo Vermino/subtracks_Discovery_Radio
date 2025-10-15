@@ -202,45 +202,6 @@ class YouTubeSettingsSection extends HookConsumerWidget {
                   .setYouTubePreferOfficial(value);
             },
           ),
-
-          const SizedBox(height: 8),
-
-          // Info card explaining YouTube integration
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.blue.shade200,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 20,
-                    color: Colors.blue.shade700,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'YouTube tracks are streamed in high quality and blend '
-                      'seamlessly with your local library. Tracks are cached '
-                      'for faster playback.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.blue.shade900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ],
     );

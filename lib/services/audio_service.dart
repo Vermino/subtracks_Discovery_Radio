@@ -1059,6 +1059,21 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       for (var album in albums) album.id: _mapArtCache(album)
     };
 
+    // Get YouTube thumbnail URLs for YouTube tracks
+    final youtubeArtCache = <String, MediaItemArtCache>{};
+    for (final youtubeId in youtubeIds) {
+      try {
+        final videoId = youtubeId.replaceFirst('youtube:', '');
+        final cachedTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: false);
+        if (cachedTrack != null && cachedTrack.thumbnailUrl != null) {
+          // Create art cache entry for YouTube thumbnail
+          youtubeArtCache[youtubeId] = _mapYouTubeThumbnailArtCache(cachedTrack.thumbnailUrl!);
+        }
+      } catch (e) {
+        log.warning('Error getting thumbnail for YouTube track: $youtubeId', e);
+      }
+    }
+
     final queueItems = slice.map(
       (item) {
         final song = songMap[item.id];
@@ -1067,13 +1082,23 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
           return null;
         }
 
+        // Determine art cache based on song type
+        MediaItemArtCache? artCache;
+        if (song.id.startsWith('youtube:')) {
+          // Use YouTube thumbnail for YouTube tracks
+          artCache = youtubeArtCache[song.id];
+        } else {
+          // Use album art for local tracks
+          artCache = albumArtMap[song.albumId];
+        }
+
         return _mapSong(
           song,
           MediaItemData(
             sourceId: item.sourceId,
             contextType: item.context,
             contextId: item.contextId,
-            artCache: albumArtMap[song.albumId],
+            artCache: artCache,
           ),
           item,
         );
@@ -1154,6 +1179,22 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       fullArtCacheKey: full.cacheKey,
       thumbnailArtUri: thumbnail.uri,
       thumbnailArtCacheKey: thumbnail.cacheKey,
+    );
+  }
+
+  /// Map YouTube thumbnail URL to MediaItemArtCache
+  ///
+  /// YouTube thumbnails are used as both thumbnail and full art
+  MediaItemArtCache _mapYouTubeThumbnailArtCache(String thumbnailUrl) {
+    final uri = Uri.parse(thumbnailUrl);
+    // Use the URL as the cache key (hash it for consistency)
+    final cacheKey = 'youtube_thumb_${thumbnailUrl.hashCode}';
+
+    return MediaItemArtCache(
+      fullArtUri: uri,
+      fullArtCacheKey: cacheKey,
+      thumbnailArtUri: uri,
+      thumbnailArtCacheKey: cacheKey,
     );
   }
 

@@ -158,6 +158,135 @@ class _AlbumsCategoryListProviderElement
   ListQuery get opt => (origin as AlbumsCategoryListProvider).opt;
 }
 
+String _$albumsForStationHash() => r'fc8de9c9cdae7338fa153f8d4cb8c1b2db9ba965';
+
+/// See also [albumsForStation].
+@ProviderFor(albumsForStation)
+const albumsForStationProvider = AlbumsForStationFamily();
+
+/// See also [albumsForStation].
+class AlbumsForStationFamily extends Family<AsyncValue<List<Album>>> {
+  /// See also [albumsForStation].
+  const AlbumsForStationFamily();
+
+  /// See also [albumsForStation].
+  AlbumsForStationProvider call(
+    int stationId,
+  ) {
+    return AlbumsForStationProvider(
+      stationId,
+    );
+  }
+
+  @override
+  AlbumsForStationProvider getProviderOverride(
+    covariant AlbumsForStationProvider provider,
+  ) {
+    return call(
+      provider.stationId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'albumsForStationProvider';
+}
+
+/// See also [albumsForStation].
+class AlbumsForStationProvider extends AutoDisposeFutureProvider<List<Album>> {
+  /// See also [albumsForStation].
+  AlbumsForStationProvider(
+    int stationId,
+  ) : this._internal(
+          (ref) => albumsForStation(
+            ref as AlbumsForStationRef,
+            stationId,
+          ),
+          from: albumsForStationProvider,
+          name: r'albumsForStationProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$albumsForStationHash,
+          dependencies: AlbumsForStationFamily._dependencies,
+          allTransitiveDependencies:
+              AlbumsForStationFamily._allTransitiveDependencies,
+          stationId: stationId,
+        );
+
+  AlbumsForStationProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.stationId,
+  }) : super.internal();
+
+  final int stationId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Album>> Function(AlbumsForStationRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AlbumsForStationProvider._internal(
+        (ref) => create(ref as AlbumsForStationRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        stationId: stationId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Album>> createElement() {
+    return _AlbumsForStationProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AlbumsForStationProvider && other.stationId == stationId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, stationId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+mixin AlbumsForStationRef on AutoDisposeFutureProviderRef<List<Album>> {
+  /// The parameter `stationId` of this provider.
+  int get stationId;
+}
+
+class _AlbumsForStationProviderElement
+    extends AutoDisposeFutureProviderElement<List<Album>>
+    with AlbumsForStationRef {
+  _AlbumsForStationProviderElement(super.provider);
+
+  @override
+  int get stationId => (origin as AlbumsForStationProvider).stationId;
+}
+
 String _$savedStationsHash() => r'd841edf1318b3d5e25f55ceadd0eb19cee40001b';
 
 /// See also [SavedStations].
