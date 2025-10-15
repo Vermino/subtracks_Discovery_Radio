@@ -487,17 +487,32 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     ),
     int? sessionId,
   }) async {
-    log.info('Starting Hybrid Discovery Radio with YouTube integration');
+    log.info('Starting Hybrid Discovery Radio with INSTANT playback');
     log.fine('Seed: "${seedSong.title}" by ${seedSong.artist}');
     log.fine('YouTube enabled: ${config.youtubeEnabled}, ratio: ${config.youtubeRatio}');
 
-    final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+    // Store session ID for tracking interactions
+    _currentDiscoverySessionId = sessionId;
 
     try {
-      // Store session ID for tracking interactions
-      _currentDiscoverySessionId = sessionId;
+      // INSTANT PLAYBACK: Start playing the seed song immediately
+      // This ensures the user hears music right away without waiting
+      log.info('Starting INSTANT playback with seed song');
+      await playSongs(
+        mode: QueueMode.radio,
+        context: QueueContextType.discovery,
+        contextId: seedSong.id,
+        query: const ListQuery(),
+        getSongs: (query) => [seedSong],
+        startIndex: 0,
+      );
 
-      // Build hybrid playlist (local + YouTube)
+      log.info('Seed song playing! Now generating full playlist in background...');
+
+      // Generate full playlist in background
+      final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+      // Build hybrid playlist (local + YouTube) asynchronously
       final playlist = await discoveryService.buildHybridDiscoveryPlaylist(
         seedSong,
         includeOfflineOnly: !mode.isOnline,
@@ -507,36 +522,49 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
 
       if (playlist.isEmpty) {
-        log.warning('Hybrid Discovery: No tracks found');
+        log.warning('Hybrid Discovery: No additional tracks found, continuing with seed only');
         return;
       }
 
-      final localCount = playlist.where((t) => t.isLocal).length;
-      final youtubeCount = playlist.where((t) => t.isYouTube).length;
-      log.info('Hybrid Discovery: Generated ${playlist.length} tracks '
+      // Remove seed song from playlist if it's in there to avoid duplicates
+      final playlistWithoutSeed = playlist.where((track) {
+        return track.when(
+          local: (song) => song.id != seedSong.id,
+          youtube: (_, __, ___, ____, _____, ______) => true,
+        );
+      }).toList();
+
+      final localCount = playlistWithoutSeed.where((t) => t.isLocal).length;
+      final youtubeCount = playlistWithoutSeed.where((t) => t.isYouTube).length;
+      log.info('Hybrid Discovery: Generated ${playlistWithoutSeed.length} additional tracks '
           '($localCount local, $youtubeCount YouTube)');
 
-      // Convert HybridTracks to playable format
-      await _playHybridTracks(
-        tracks: playlist,
-        mode: QueueMode.radio,
-        context: QueueContextType.discovery,
-        contextId: seedSong.id,
+      if (playlistWithoutSeed.isEmpty) {
+        log.warning('No additional tracks after removing seed, continuing with seed only');
+        return;
+      }
+
+      // Convert tracks to songs
+      final additionalSongs = await _convertHybridTracksToSongs(playlistWithoutSeed);
+
+      if (additionalSongs.isEmpty) {
+        log.warning('No playable songs after conversion');
+        return;
+      }
+
+      // Append to existing queue (seed song is already playing)
+      log.info('Appending ${additionalSongs.length} tracks to queue');
+      await _loadQueueSongs(
+        additionalSongs,
+        _queueLength!,
+        QueueContextType.discovery,
+        seedSong.id,
       );
 
-      log.info('Hybrid Discovery: Started playback successfully');
+      log.info('Hybrid Discovery: Full playlist ready! Queue now has $_queueLength tracks');
     } catch (e, stackTrace) {
-      log.severe('Hybrid Discovery: Failed to start playback', e, stackTrace);
-
-      // Fallback: play the seed song only
-      await playSongs(
-        mode: QueueMode.radio,
-        context: QueueContextType.discovery,
-        contextId: seedSong.id,
-        query: const ListQuery(),
-        getSongs: (query) => [seedSong],
-        startIndex: 0,
-      );
+      log.severe('Hybrid Discovery: Error during background generation', e, stackTrace);
+      // If background generation fails, seed song is still playing - acceptable fallback
     }
   }
 
