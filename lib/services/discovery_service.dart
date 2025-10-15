@@ -359,15 +359,23 @@ class DiscoveryService extends _$DiscoveryService {
   /// Build a complete discovery playlist based on a seed song
   /// If sessionId is provided, uses existing session for personalization.
   /// If sessionId is null, creates a new session (used when creating new stations).
+  ///
+  /// **IMPORTANT**: For offline mode stations, this uses the FULL song pool for recommendations,
+  /// not just downloaded songs. The auto-download service will download the recommended songs
+  /// after playlist creation. This ensures offline stations have proper variety and aren't
+  /// limited to just the seed song.
   Future<List<Song>> buildDiscoveryPlaylist(
     Song seedSong, {
     bool includeOfflineOnly = false,
     int playlistSize = 50,
     int? sessionId,
   }) async {
-    final mode = includeOfflineOnly ? DiscoveryMode.offline : DiscoveryMode.online;
+    // CRITICAL: Always use online mode for recommendation generation
+    // Offline mode only affects which songs get auto-downloaded, not playlist generation
+    // This prevents the "0 candidates" issue when creating offline stations
+    final mode = DiscoveryMode.online;
 
-    log.info('Building discovery playlist: ${includeOfflineOnly ? "offline" : "online"} mode, sessionId: $sessionId');
+    log.info('Building discovery playlist: ${includeOfflineOnly ? "offline station (full library recommendations)" : "online"} mode, sessionId: $sessionId');
 
     try {
       // Use provided sessionId or create a new one
@@ -380,7 +388,7 @@ class DiscoveryService extends _$DiscoveryService {
           seedSongId: seedSong.id,
           seedArtist: seedSong.artist,
           seedGenre: seedSong.genre,
-          mode: mode.isOnline ? 'online' : 'offline',
+          mode: includeOfflineOnly ? 'offline' : 'online',
           playlistSize: playlistSize,
         );
         log.fine('Created new discovery session: $_currentSessionId');
@@ -398,6 +406,14 @@ class DiscoveryService extends _$DiscoveryService {
       final playlist = [seedSong, ...recommendations];
 
       log.info('Built discovery playlist with ${playlist.length} songs (including seed)');
+
+      // Log download status for offline stations
+      if (includeOfflineOnly) {
+        final downloadedCount = playlist.where((s) => s.downloadFilePath != null).length;
+        final needDownloadCount = playlist.length - downloadedCount;
+        log.info('Offline station: $downloadedCount already downloaded, $needDownloadCount need downloading');
+      }
+
       return playlist;
     } catch (e, stackTrace) {
       log.severe('Error building discovery playlist', e, stackTrace);
@@ -1078,12 +1094,16 @@ class DiscoveryService extends _$DiscoveryService {
   ///
   /// Parameters:
   /// - [seedSong]: The seed song for discovery
-  /// - [includeOfflineOnly]: If true, use only downloaded songs
+  /// - [includeOfflineOnly]: If true, marks this as an offline station (downloads will be triggered)
   /// - [playlistSize]: Target size of the playlist
   /// - [config]: Discovery configuration with YouTube settings
   /// - [sessionId]: Discovery session ID for tracking
   ///
   /// Returns hybrid playlist of local and YouTube tracks
+  ///
+  /// **IMPORTANT**: For offline mode stations, this uses the FULL song pool for recommendations,
+  /// not just downloaded songs. The auto-download service will download the recommended songs
+  /// after playlist creation. This ensures offline stations have proper variety.
   Future<List<HybridTrack>> buildHybridDiscoveryPlaylist(
     Song seedSong, {
     bool includeOfflineOnly = false,
@@ -1092,7 +1112,7 @@ class DiscoveryService extends _$DiscoveryService {
     int? sessionId,
   }) async {
     try {
-      log.info('Building hybrid discovery playlist (size: $playlistSize, YouTube: ${config.youtubeEnabled})');
+      log.info('Building hybrid discovery playlist (size: $playlistSize, YouTube: ${config.youtubeEnabled}, offline: $includeOfflineOnly)');
 
       // Check if YouTube is enabled
       if (!config.youtubeEnabled) {
@@ -1111,7 +1131,10 @@ class DiscoveryService extends _$DiscoveryService {
       final youtubeService = ref.read(youTubeDiscoveryServiceProvider.notifier);
       log.info('YouTube discovery enabled - will attempt search (may fail gracefully if service unavailable)');
 
-      final mode = includeOfflineOnly ? DiscoveryMode.offline : DiscoveryMode.online;
+      // CRITICAL: Always use online mode for recommendation generation
+      // Offline mode only affects which songs get auto-downloaded, not playlist generation
+      // This prevents the "0 candidates" issue when creating offline stations
+      final mode = DiscoveryMode.online;
 
       // Calculate how many local vs YouTube tracks we need
       final youtubeCount = (playlistSize * config.youtubeRatio).round();
@@ -1129,6 +1152,13 @@ class DiscoveryService extends _$DiscoveryService {
       );
 
       log.fine('Generated ${localRecommendations.length} local recommendations');
+
+      // Log download status for offline stations
+      if (includeOfflineOnly) {
+        final downloadedCount = localRecommendations.where((s) => s.downloadFilePath != null).length;
+        final needDownloadCount = localRecommendations.length - downloadedCount;
+        log.info('Offline station local tracks: $downloadedCount already downloaded, $needDownloadCount need downloading');
+      }
 
       // Generate YouTube recommendations based on local tracks
       final youtubeRecommendations = await generateYouTubeRecommendations(

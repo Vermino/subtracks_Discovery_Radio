@@ -82,6 +82,7 @@ enum SongDownloadState {
   completed,
 }
 
+@pragma('vm:entry-point')
 @Riverpod(keepAlive: true)
 class DownloadService extends _$DownloadService {
   static final ReceivePort _port = ReceivePort();
