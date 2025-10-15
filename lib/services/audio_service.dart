@@ -609,18 +609,29 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   /// Convert HybridTracks to Songs for playback
   ///
-  /// For local tracks: returns the Song as-is
+  /// For local tracks: returns the Song as-is (or filters if offline mode + not downloaded)
   /// For YouTube tracks: creates a temporary Song with the cached stream URL
   Future<List<Song>> _convertHybridTracksToSongs(List<HybridTrack> tracks) async {
     final songs = <Song>[];
-    final youtubeCache = _ref.read(youTubeCacheServiceProvider.notifier);
+    final offlineMode = _ref.read(offlineModeProvider);
 
     for (final track in tracks) {
       await track.when(
         local: (song) async {
+          // In offline mode, only include downloaded songs
+          if (offlineMode && song.downloadFilePath == null) {
+            log.fine('Offline mode: Skipping non-downloaded song: "${song.title}"');
+            return; // Skip this song
+          }
           songs.add(song);
         },
         youtube: (videoId, title, artist, durationSeconds, thumbnailUrl, userRating) async {
+          // In offline mode, skip all YouTube tracks (they can't be offline)
+          if (offlineMode) {
+            log.fine('Offline mode: Skipping YouTube track: "$title"');
+            return; // Skip YouTube tracks in offline mode
+          }
+
           try {
             // IMPORTANT: Fetch and cache the YouTube track first before attempting playback
             // This ensures we have a fresh stream URL available
@@ -1166,12 +1177,27 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
     item.data = data;
 
+    // Check offline mode setting
+    final offlineMode = _ref.read(offlineModeProvider);
+
     // Determine audio source based on song type
     UriAudioSource audioSource;
 
     if (song.downloadFilePath != null) {
-      // Local downloaded file
+      // Local downloaded file - always use this if available
       audioSource = AudioSource.file(song.downloadFilePath!, tag: queueData.index);
+    } else if (offlineMode) {
+      // Offline mode is enabled but song is not downloaded
+      // This shouldn't happen if filtering is working correctly, but we handle it defensively
+      log.warning('Offline mode: Cannot create AudioSource for non-downloaded song: "${song.title}"');
+
+      // Create a silent audio source with extremely short duration
+      // This will effectively skip the song when it tries to play
+      // Using a data URI with minimal audio ensures no network access
+      audioSource = AudioSource.uri(
+        Uri.parse('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
+        tag: queueData.index,
+      );
     } else if (song.id.startsWith('youtube:')) {
       // YouTube track - extract URL from album field (temporary storage)
       // The album field is repurposed to store the YouTube stream URL
