@@ -11,6 +11,7 @@ import '../../models/query.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../services/discovery_service.dart';
+import '../../services/settings_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../app_router.dart';
