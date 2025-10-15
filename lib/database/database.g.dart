@@ -1205,6 +1205,29 @@ class AppSettingsTable extends Table
           requiredDuringInsert: false,
           $customConstraints: 'NOT NULL DEFAULT 1',
           defaultValue: const CustomExpression('1'));
+  static const VerificationMeta _themePresetMeta =
+      const VerificationMeta('themePreset');
+  late final GeneratedColumn<String> themePreset = GeneratedColumn<String>(
+      'theme_preset', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT \'subtracks\'',
+      defaultValue: const CustomExpression('\'subtracks\''));
+  static const VerificationMeta _enableDynamicColorsMeta =
+      const VerificationMeta('enableDynamicColors');
+  late final GeneratedColumn<bool> enableDynamicColors = GeneratedColumn<bool>(
+      'enable_dynamic_colors', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 1',
+      defaultValue: const CustomExpression('1'));
+  static const VerificationMeta _customSeedColorMeta =
+      const VerificationMeta('customSeedColor');
+  late final GeneratedColumn<int> customSeedColor = GeneratedColumn<int>(
+      'custom_seed_color', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1214,7 +1237,10 @@ class AppSettingsTable extends Table
         youtubeDiscoveryEnabled,
         youtubeDiscoveryRatio,
         youtubeQualityFilter,
-        youtubePreferOfficial
+        youtubePreferOfficial,
+        themePreset,
+        enableDynamicColors,
+        customSeedColor
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1276,6 +1302,24 @@ class AppSettingsTable extends Table
           youtubePreferOfficial.isAcceptableOrUnknown(
               data['youtube_prefer_official']!, _youtubePreferOfficialMeta));
     }
+    if (data.containsKey('theme_preset')) {
+      context.handle(
+          _themePresetMeta,
+          themePreset.isAcceptableOrUnknown(
+              data['theme_preset']!, _themePresetMeta));
+    }
+    if (data.containsKey('enable_dynamic_colors')) {
+      context.handle(
+          _enableDynamicColorsMeta,
+          enableDynamicColors.isAcceptableOrUnknown(
+              data['enable_dynamic_colors']!, _enableDynamicColorsMeta));
+    }
+    if (data.containsKey('custom_seed_color')) {
+      context.handle(
+          _customSeedColorMeta,
+          customSeedColor.isAcceptableOrUnknown(
+              data['custom_seed_color']!, _customSeedColorMeta));
+    }
     return context;
   }
 
@@ -1303,6 +1347,12 @@ class AppSettingsTable extends Table
       youtubePreferOfficial: attachedDatabase.typeMapping.read(
           DriftSqlType.bool,
           data['${effectivePrefix}youtube_prefer_official'])!,
+      themePreset: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}theme_preset'])!,
+      enableDynamicColors: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}enable_dynamic_colors'])!,
+      customSeedColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}custom_seed_color']),
     );
   }
 
@@ -1324,6 +1374,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
   final Value<double> youtubeDiscoveryRatio;
   final Value<String> youtubeQualityFilter;
   final Value<bool> youtubePreferOfficial;
+  final Value<String> themePreset;
+  final Value<bool> enableDynamicColors;
+  final Value<int?> customSeedColor;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.maxBitrateWifi = const Value.absent(),
@@ -1333,6 +1386,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     this.youtubeDiscoveryRatio = const Value.absent(),
     this.youtubeQualityFilter = const Value.absent(),
     this.youtubePreferOfficial = const Value.absent(),
+    this.themePreset = const Value.absent(),
+    this.enableDynamicColors = const Value.absent(),
+    this.customSeedColor = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -1343,6 +1399,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     this.youtubeDiscoveryRatio = const Value.absent(),
     this.youtubeQualityFilter = const Value.absent(),
     this.youtubePreferOfficial = const Value.absent(),
+    this.themePreset = const Value.absent(),
+    this.enableDynamicColors = const Value.absent(),
+    this.customSeedColor = const Value.absent(),
   })  : maxBitrateWifi = Value(maxBitrateWifi),
         maxBitrateMobile = Value(maxBitrateMobile);
   static Insertable<AppSettings> custom({
@@ -1354,6 +1413,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     Expression<double>? youtubeDiscoveryRatio,
     Expression<String>? youtubeQualityFilter,
     Expression<bool>? youtubePreferOfficial,
+    Expression<String>? themePreset,
+    Expression<bool>? enableDynamicColors,
+    Expression<int>? customSeedColor,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1368,6 +1430,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
         'youtube_quality_filter': youtubeQualityFilter,
       if (youtubePreferOfficial != null)
         'youtube_prefer_official': youtubePreferOfficial,
+      if (themePreset != null) 'theme_preset': themePreset,
+      if (enableDynamicColors != null)
+        'enable_dynamic_colors': enableDynamicColors,
+      if (customSeedColor != null) 'custom_seed_color': customSeedColor,
     });
   }
 
@@ -1379,7 +1445,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       Value<bool>? youtubeDiscoveryEnabled,
       Value<double>? youtubeDiscoveryRatio,
       Value<String>? youtubeQualityFilter,
-      Value<bool>? youtubePreferOfficial}) {
+      Value<bool>? youtubePreferOfficial,
+      Value<String>? themePreset,
+      Value<bool>? enableDynamicColors,
+      Value<int?>? customSeedColor}) {
     return AppSettingsCompanion(
       id: id ?? this.id,
       maxBitrateWifi: maxBitrateWifi ?? this.maxBitrateWifi,
@@ -1392,6 +1461,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       youtubeQualityFilter: youtubeQualityFilter ?? this.youtubeQualityFilter,
       youtubePreferOfficial:
           youtubePreferOfficial ?? this.youtubePreferOfficial,
+      themePreset: themePreset ?? this.themePreset,
+      enableDynamicColors: enableDynamicColors ?? this.enableDynamicColors,
+      customSeedColor: customSeedColor ?? this.customSeedColor,
     );
   }
 
@@ -1426,6 +1498,15 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       map['youtube_prefer_official'] =
           Variable<bool>(youtubePreferOfficial.value);
     }
+    if (themePreset.present) {
+      map['theme_preset'] = Variable<String>(themePreset.value);
+    }
+    if (enableDynamicColors.present) {
+      map['enable_dynamic_colors'] = Variable<bool>(enableDynamicColors.value);
+    }
+    if (customSeedColor.present) {
+      map['custom_seed_color'] = Variable<int>(customSeedColor.value);
+    }
     return map;
   }
 
@@ -1439,7 +1520,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
           ..write('youtubeDiscoveryEnabled: $youtubeDiscoveryEnabled, ')
           ..write('youtubeDiscoveryRatio: $youtubeDiscoveryRatio, ')
           ..write('youtubeQualityFilter: $youtubeQualityFilter, ')
-          ..write('youtubePreferOfficial: $youtubePreferOfficial')
+          ..write('youtubePreferOfficial: $youtubePreferOfficial, ')
+          ..write('themePreset: $themePreset, ')
+          ..write('enableDynamicColors: $enableDynamicColors, ')
+          ..write('customSeedColor: $customSeedColor')
           ..write(')'))
         .toString();
   }

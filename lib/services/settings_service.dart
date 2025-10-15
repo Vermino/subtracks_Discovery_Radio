@@ -156,4 +156,28 @@ class SettingsService extends _$SettingsService {
     );
     await init();
   }
+
+  Future<void> setThemePreset(String preset) async {
+    await _db.updateSettings(
+      state.app.copyWith(themePreset: preset).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setEnableDynamicColors(bool enabled) async {
+    await _db.updateSettings(
+      state.app.copyWith(enableDynamicColors: enabled).toCompanion(),
+    );
+    await init();
+  }
+
+  Future<void> setCustomSeedColor(int? color) async {
+    await _db.updateSettings(
+      state.app.copyWith(
+        themePreset: 'custom',
+        customSeedColor: color,
+      ).toCompanion(),
+    );
+    await init();
+  }
 }

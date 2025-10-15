@@ -7,7 +7,7 @@ part of 'youtube_cache_service.dart';
 // **************************************************************************
 
 String _$youTubeCacheServiceHash() =>
-    r'7c8fd26857c59032b5cbee0ac607a5b4fc6aa14f';
+    r'3ff3a0be802cf6ce7bdb99b0a8154b8b080cf1ce';
 
 /// Two-tier caching service for YouTube tracks
 ///

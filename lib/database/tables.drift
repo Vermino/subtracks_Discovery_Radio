@@ -47,7 +47,10 @@ CREATE TABLE app_settings(
   youtube_discovery_enabled BOOLEAN NOT NULL DEFAULT 0,
   youtube_discovery_ratio REAL NOT NULL DEFAULT 0.3,
   youtube_quality_filter TEXT NOT NULL DEFAULT 'moderate',
-  youtube_prefer_official BOOLEAN NOT NULL DEFAULT 1
+  youtube_prefer_official BOOLEAN NOT NULL DEFAULT 1,
+  theme_preset TEXT NOT NULL DEFAULT 'subtracks',
+  enable_dynamic_colors BOOLEAN NOT NULL DEFAULT 1,
+  custom_seed_color INT
 ) WITH AppSettings;
 
 CREATE TABLE sources(

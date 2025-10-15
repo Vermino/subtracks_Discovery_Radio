@@ -29,7 +29,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -185,6 +185,18 @@ class SubtracksDatabase extends _$SubtracksDatabase {
           );
           await customStatement(
             'CREATE INDEX idx_lidarr_requests_requested_at ON lidarr_requests(requested_at)',
+          );
+        }
+        if (from < 9) {
+          // Add theme preset settings to app_settings table
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN theme_preset TEXT NOT NULL DEFAULT \'subtracks\'',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN enable_dynamic_colors BOOLEAN NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN custom_seed_color INTEGER',
           );
         }
       },

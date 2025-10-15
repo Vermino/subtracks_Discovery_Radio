@@ -203,7 +203,7 @@ final lastLibraryStateServiceProvider =
 );
 
 typedef _$LastLibraryStateService = AsyncNotifier<void>;
-String _$libraryListsHash() => r'a66b654b3516201000fefbef35c981c02eae9b24';
+String _$libraryListsHash() => r'c5ae064d59d56afc05704bda656d7446c8482fa9';
 
 /// See also [LibraryLists].
 @ProviderFor(LibraryLists)

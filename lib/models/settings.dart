@@ -27,6 +27,9 @@ class AppSettings with _$AppSettings {
     @Default(0.3) double youtubeDiscoveryRatio,
     @Default('moderate') String youtubeQualityFilter,
     @Default(true) bool youtubePreferOfficial,
+    @Default('subtracks') String themePreset,
+    @Default(true) bool enableDynamicColors,
+    int? customSeedColor,
   }) = _AppSettings;
 
   AppSettingsCompanion toCompanion() {
@@ -39,6 +42,9 @@ class AppSettings with _$AppSettings {
       youtubeDiscoveryRatio: Value(youtubeDiscoveryRatio),
       youtubeQualityFilter: Value(youtubeQualityFilter),
       youtubePreferOfficial: Value(youtubePreferOfficial),
+      themePreset: Value(themePreset),
+      enableDynamicColors: Value(enableDynamicColors),
+      customSeedColor: Value(customSeedColor),
     );
   }
 }

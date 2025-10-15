@@ -200,6 +200,9 @@ mixin _$AppSettings {
   double get youtubeDiscoveryRatio => throw _privateConstructorUsedError;
   String get youtubeQualityFilter => throw _privateConstructorUsedError;
   bool get youtubePreferOfficial => throw _privateConstructorUsedError;
+  String get themePreset => throw _privateConstructorUsedError;
+  bool get enableDynamicColors => throw _privateConstructorUsedError;
+  int? get customSeedColor => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $AppSettingsCopyWith<AppSettings> get copyWith =>
@@ -219,7 +222,10 @@ abstract class $AppSettingsCopyWith<$Res> {
       bool youtubeDiscoveryEnabled,
       double youtubeDiscoveryRatio,
       String youtubeQualityFilter,
-      bool youtubePreferOfficial});
+      bool youtubePreferOfficial,
+      String themePreset,
+      bool enableDynamicColors,
+      int? customSeedColor});
 }
 
 /// @nodoc
@@ -242,6 +248,9 @@ class _$AppSettingsCopyWithImpl<$Res, $Val extends AppSettings>
     Object? youtubeDiscoveryRatio = null,
     Object? youtubeQualityFilter = null,
     Object? youtubePreferOfficial = null,
+    Object? themePreset = null,
+    Object? enableDynamicColors = null,
+    Object? customSeedColor = freezed,
   }) {
     return _then(_value.copyWith(
       maxBitrateWifi: null == maxBitrateWifi
@@ -272,6 +281,18 @@ class _$AppSettingsCopyWithImpl<$Res, $Val extends AppSettings>
           ? _value.youtubePreferOfficial
           : youtubePreferOfficial // ignore: cast_nullable_to_non_nullable
               as bool,
+      themePreset: null == themePreset
+          ? _value.themePreset
+          : themePreset // ignore: cast_nullable_to_non_nullable
+              as String,
+      enableDynamicColors: null == enableDynamicColors
+          ? _value.enableDynamicColors
+          : enableDynamicColors // ignore: cast_nullable_to_non_nullable
+              as bool,
+      customSeedColor: freezed == customSeedColor
+          ? _value.customSeedColor
+          : customSeedColor // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -291,7 +312,10 @@ abstract class _$$AppSettingsImplCopyWith<$Res>
       bool youtubeDiscoveryEnabled,
       double youtubeDiscoveryRatio,
       String youtubeQualityFilter,
-      bool youtubePreferOfficial});
+      bool youtubePreferOfficial,
+      String themePreset,
+      bool enableDynamicColors,
+      int? customSeedColor});
 }
 
 /// @nodoc
@@ -312,6 +336,9 @@ class __$$AppSettingsImplCopyWithImpl<$Res>
     Object? youtubeDiscoveryRatio = null,
     Object? youtubeQualityFilter = null,
     Object? youtubePreferOfficial = null,
+    Object? themePreset = null,
+    Object? enableDynamicColors = null,
+    Object? customSeedColor = freezed,
   }) {
     return _then(_$AppSettingsImpl(
       maxBitrateWifi: null == maxBitrateWifi
@@ -342,6 +369,18 @@ class __$$AppSettingsImplCopyWithImpl<$Res>
           ? _value.youtubePreferOfficial
           : youtubePreferOfficial // ignore: cast_nullable_to_non_nullable
               as bool,
+      themePreset: null == themePreset
+          ? _value.themePreset
+          : themePreset // ignore: cast_nullable_to_non_nullable
+              as String,
+      enableDynamicColors: null == enableDynamicColors
+          ? _value.enableDynamicColors
+          : enableDynamicColors // ignore: cast_nullable_to_non_nullable
+              as bool,
+      customSeedColor: freezed == customSeedColor
+          ? _value.customSeedColor
+          : customSeedColor // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -353,10 +392,13 @@ class _$AppSettingsImpl extends _AppSettings {
       {this.maxBitrateWifi = 0,
       this.maxBitrateMobile = 192,
       this.streamFormat = 'mp3',
-      this.youtubeDiscoveryEnabled = false,
+      this.youtubeDiscoveryEnabled = true,
       this.youtubeDiscoveryRatio = 0.3,
       this.youtubeQualityFilter = 'moderate',
-      this.youtubePreferOfficial = true})
+      this.youtubePreferOfficial = true,
+      this.themePreset = 'subtracks',
+      this.enableDynamicColors = true,
+      this.customSeedColor})
       : super._();
 
   @override
@@ -380,10 +422,18 @@ class _$AppSettingsImpl extends _AppSettings {
   @override
   @JsonKey()
   final bool youtubePreferOfficial;
+  @override
+  @JsonKey()
+  final String themePreset;
+  @override
+  @JsonKey()
+  final bool enableDynamicColors;
+  @override
+  final int? customSeedColor;
 
   @override
   String toString() {
-    return 'AppSettings(maxBitrateWifi: $maxBitrateWifi, maxBitrateMobile: $maxBitrateMobile, streamFormat: $streamFormat, youtubeDiscoveryEnabled: $youtubeDiscoveryEnabled, youtubeDiscoveryRatio: $youtubeDiscoveryRatio, youtubeQualityFilter: $youtubeQualityFilter, youtubePreferOfficial: $youtubePreferOfficial)';
+    return 'AppSettings(maxBitrateWifi: $maxBitrateWifi, maxBitrateMobile: $maxBitrateMobile, streamFormat: $streamFormat, youtubeDiscoveryEnabled: $youtubeDiscoveryEnabled, youtubeDiscoveryRatio: $youtubeDiscoveryRatio, youtubeQualityFilter: $youtubeQualityFilter, youtubePreferOfficial: $youtubePreferOfficial, themePreset: $themePreset, enableDynamicColors: $enableDynamicColors, customSeedColor: $customSeedColor)';
   }
 
   @override
@@ -405,7 +455,13 @@ class _$AppSettingsImpl extends _AppSettings {
             (identical(other.youtubeQualityFilter, youtubeQualityFilter) ||
                 other.youtubeQualityFilter == youtubeQualityFilter) &&
             (identical(other.youtubePreferOfficial, youtubePreferOfficial) ||
-                other.youtubePreferOfficial == youtubePreferOfficial));
+                other.youtubePreferOfficial == youtubePreferOfficial) &&
+            (identical(other.themePreset, themePreset) ||
+                other.themePreset == themePreset) &&
+            (identical(other.enableDynamicColors, enableDynamicColors) ||
+                other.enableDynamicColors == enableDynamicColors) &&
+            (identical(other.customSeedColor, customSeedColor) ||
+                other.customSeedColor == customSeedColor));
   }
 
   @override
@@ -417,7 +473,10 @@ class _$AppSettingsImpl extends _AppSettings {
       youtubeDiscoveryEnabled,
       youtubeDiscoveryRatio,
       youtubeQualityFilter,
-      youtubePreferOfficial);
+      youtubePreferOfficial,
+      themePreset,
+      enableDynamicColors,
+      customSeedColor);
 
   @JsonKey(ignore: true)
   @override
@@ -434,7 +493,10 @@ abstract class _AppSettings extends AppSettings {
       final bool youtubeDiscoveryEnabled,
       final double youtubeDiscoveryRatio,
       final String youtubeQualityFilter,
-      final bool youtubePreferOfficial}) = _$AppSettingsImpl;
+      final bool youtubePreferOfficial,
+      final String themePreset,
+      final bool enableDynamicColors,
+      final int? customSeedColor}) = _$AppSettingsImpl;
   const _AppSettings._() : super._();
 
   @override
@@ -451,6 +513,12 @@ abstract class _AppSettings extends AppSettings {
   String get youtubeQualityFilter;
   @override
   bool get youtubePreferOfficial;
+  @override
+  String get themePreset;
+  @override
+  bool get enableDynamicColors;
+  @override
+  int? get customSeedColor;
   @override
   @JsonKey(ignore: true)
   _$$AppSettingsImplCopyWith<_$AppSettingsImpl> get copyWith =>

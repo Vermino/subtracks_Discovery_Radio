@@ -15,6 +15,7 @@ import '../../models/support.dart';
 import '../../services/settings_service.dart';
 import '../../state/init.dart';
 import '../../state/settings.dart';
+import '../../state/theme_presets.dart';
 import '../app_router.dart';
 import '../dialogs.dart';
 import '../widgets/youtube_settings_section.dart';
@@ -45,6 +46,13 @@ class SettingsPage extends HookConsumerWidget {
               YouTubeSettingsSection(),
             ],
           ),
+          const _SectionHeader('Appearance'),
+          const _Section(
+            children: [
+              _ThemePresetSelector(),
+              _DynamicColorsToggle(),
+            ],
+          ),
           _SectionHeader(l.settingsAboutName),
           _About(),
           // const _SectionHeader('Downloads'),
@@ -70,6 +78,114 @@ class SettingsPage extends HookConsumerWidget {
           // ),
         ],
       ),
+    );
+  }
+}
+
+class _ThemePresetSelector extends HookConsumerWidget {
+  const _ThemePresetSelector();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPreset = ref.watch(
+      settingsServiceProvider.select((value) => value.app.themePreset),
+    );
+    final presetConfig = getThemePreset(currentPreset);
+
+    return ListTile(
+      leading: Icon(
+        Icons.palette,
+        color: presetConfig.seedColor,
+      ),
+      title: const Text('Theme'),
+      subtitle: Text(presetConfig.name),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final value = await showDialog<String>(
+          context: context,
+          builder: (context) => _ThemePresetDialog(current: currentPreset),
+        );
+
+        if (value != null && value != currentPreset) {
+          await ref
+              .read(settingsServiceProvider.notifier)
+              .setThemePreset(value);
+        }
+      },
+    );
+  }
+}
+
+class _ThemePresetDialog extends StatelessWidget {
+  final String current;
+
+  const _ThemePresetDialog({required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Choose Theme'),
+      contentPadding: const EdgeInsets.only(top: 20),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView(
+          shrinkWrap: true,
+          children: themePresets.entries.map((entry) {
+            final key = entry.key;
+            final config = entry.value;
+            final isSelected = key == current;
+
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: config.seedColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              title: Text(config.name),
+              subtitle: Text(config.description),
+              trailing: isSelected
+                  ? Icon(Icons.check, color: config.seedColor)
+                  : null,
+              selected: isSelected,
+              onTap: () => Navigator.of(context).pop(key),
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DynamicColorsToggle extends HookConsumerWidget {
+  const _DynamicColorsToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      settingsServiceProvider.select(
+        (value) => value.app.enableDynamicColors,
+      ),
+    );
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.auto_awesome),
+      title: const Text('Dynamic Colors'),
+      subtitle: const Text('Generate colors from album artwork'),
+      value: enabled,
+      onChanged: (value) {
+        ref
+            .read(settingsServiceProvider.notifier)
+            .setEnableDynamicColors(value);
+      },
     );
   }
 }

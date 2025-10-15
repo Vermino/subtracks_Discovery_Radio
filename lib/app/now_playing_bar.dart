@@ -20,6 +20,7 @@ class NowPlayingBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final noItem = ref.watch(mediaItemProvider).valueOrNull == null;
 
     final widget = GestureDetector(
@@ -28,7 +29,7 @@ class NowPlayingBar extends HookConsumerWidget {
       },
       child: Material(
         elevation: 3,
-        color: colors?.darkBackground,
+        color: colors?.darkBackground ?? base.darkBackground,
         // surfaceTintColor: theme?.colorScheme.background,
         child: const Column(
           children: [
@@ -64,7 +65,9 @@ class NowPlayingBar extends HookConsumerWidget {
       return Container();
     }
 
-    if (colors != null) {
+    // Only wrap with dynamic theme if it's different from base
+    // The mediaItemThemeProvider already checks enableDynamicColors setting
+    if (colors != null && colors != base) {
       return Theme(data: colors.theme, child: widget);
     } else {
       return widget;
@@ -161,6 +164,9 @@ class PlayPauseButton extends HookConsumerWidget {
     final playing = ref.watch(playingProvider);
     final state = ref.watch(processingStateProvider);
 
+    // Use onSurface for better visibility on dark backgrounds
+    final iconColor = Theme.of(context).colorScheme.onSurface;
+
     Widget icon;
     if (state == AudioProcessingState.loading ||
         state == AudioProcessingState.buffering) {
@@ -173,7 +179,7 @@ class PlayPauseButton extends HookConsumerWidget {
             width: size / 3,
             child: CircularProgressIndicator(
               strokeWidth: size / 16,
-              color: Theme.of(context).colorScheme.surface,
+              color: iconColor,
             ),
           ),
         ],
@@ -195,7 +201,7 @@ class PlayPauseButton extends HookConsumerWidget {
         }
       },
       icon: icon,
-      color: Theme.of(context).colorScheme.surface,
+      color: iconColor,
     );
   }
 }
@@ -206,17 +212,18 @@ class _ProgressBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final position = ref.watch(positionProvider);
     final duration = ref.watch(durationProvider);
 
     return Container(
       height: 4,
-      color: colors?.darkerBackground,
+      color: colors?.darkerBackground ?? base.darkerBackground,
       child: Row(
         children: [
           Flexible(
             flex: position,
-            child: Container(color: colors?.onDarkerBackground),
+            child: Container(color: colors?.onDarkerBackground ?? base.onDarkerBackground),
           ),
           Flexible(flex: duration - position, child: Container()),
         ],

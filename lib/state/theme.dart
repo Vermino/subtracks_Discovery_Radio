@@ -10,8 +10,10 @@ import 'package:worker_manager/worker_manager.dart';
 import '../cache/image_cache.dart';
 import '../models/support.dart';
 import '../services/cache_service.dart';
+import '../services/settings_service.dart';
 import 'audio.dart';
 import 'music.dart';
+import 'theme_presets.dart';
 
 part 'theme.g.dart';
 
@@ -56,6 +58,12 @@ PaletteColor? _rankedWithValue(double value, List<PaletteColor?> colors) {
 @riverpod
 ColorTheme _colorTheme(_ColorThemeRef ref, Palette palette) {
   final base = ref.watch(baseThemeProvider);
+  final settings = ref.watch(settingsServiceProvider);
+
+  // If dynamic colors disabled, return static base theme
+  if (!settings.app.enableDynamicColors) {
+    return base;
+  }
 
   final primary = _rankedByLuminance([
     palette.dominantColor,
@@ -118,9 +126,15 @@ ColorTheme _colorTheme(_ColorThemeRef ref, Palette palette) {
 
 @riverpod
 ColorTheme baseTheme(BaseThemeRef ref) {
+  final settings = ref.watch(settingsServiceProvider);
+  final presetKey = settings.app.themePreset;
+  final customColor = settings.app.customSeedColor;
+
+  final seedColor = getPresetSeedColor(presetKey, customColor);
+
   final theme = ThemeData(
     useMaterial3: true,
-    colorSchemeSeed: Colors.purple[800],
+    colorSchemeSeed: seedColor,
     brightness: Brightness.dark,
     cardTheme: CardThemeData(
       clipBehavior: Clip.antiAlias,

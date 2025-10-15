@@ -31,6 +31,7 @@ class NowPlayingPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final itemData = ref.watch(mediaItemDataProvider);
     final audioControl = ref.watch(audioControlProvider);
 
@@ -38,7 +39,7 @@ class NowPlayingPage extends HookConsumerWidget {
 
     final scaffold = AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
-        systemNavigationBarColor: colors?.gradientLow,
+        systemNavigationBarColor: colors?.gradientLow ?? base.gradientLow,
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
@@ -97,7 +98,9 @@ class NowPlayingPage extends HookConsumerWidget {
       ),
     );
 
-    if (colors != null) {
+    // Only wrap with dynamic theme if colors are available
+    // The mediaItemThemeProvider already checks enableDynamicColors setting
+    if (colors != null && colors != base) {
       return Theme(data: colors.theme, child: scaffold);
     } else {
       return scaffold;
@@ -307,6 +310,7 @@ class _Progress extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final position = ref.watch(positionProvider);
     final duration = ref.watch(durationProvider);
     final audio = ref.watch(audioControlProvider);
@@ -314,15 +318,18 @@ class _Progress extends HookConsumerWidget {
     final changeValue = useState(position.toDouble());
     final changing = useState(false);
 
+    // Use onSurface for better visibility on dark backgrounds
+    final sliderColor = colors?.theme.colorScheme.onSurface ?? base.theme.colorScheme.onSurface;
+
     return Column(
       children: [
         Slider(
           value: changing.value ? changeValue.value : position.toDouble(),
           min: 0,
           max: max(duration.toDouble(), position.toDouble()),
-          thumbColor: colors?.theme.colorScheme.surface,
-          activeColor: colors?.theme.colorScheme.surface,
-          inactiveColor: colors?.theme.colorScheme.surface,
+          thumbColor: sliderColor,
+          activeColor: sliderColor,
+          inactiveColor: sliderColor,
           onChanged: (value) {
             changeValue.value = value;
           },
@@ -441,11 +448,16 @@ class _Controls extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
     final base = ref.watch(baseThemeProvider);
     final audio = ref.watch(audioControlProvider);
 
+    // Use a bright color that contrasts well with dark backgrounds
+    final iconColor = colors?.theme.colorScheme.onSurface ??
+                     base.theme.colorScheme.onSurface;
+
     return IconTheme(
-      data: IconThemeData(color: base.theme.colorScheme.surface),
+      data: IconThemeData(color: iconColor),
       child: Column(
         children: [
           SizedBox(

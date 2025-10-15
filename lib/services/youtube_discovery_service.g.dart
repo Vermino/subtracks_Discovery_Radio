@@ -7,7 +7,7 @@ part of 'youtube_discovery_service.dart';
 // **************************************************************************
 
 String _$youTubeDiscoveryServiceHash() =>
-    r'59960b6fba2caf8c2aeea00aa32b677326810a8a';
+    r'd5e2ee6bbd330357e0b2b7b543e4c437fc06a4e4';
 
 /// Service for discovering music on YouTube using self-hosted Invidious API
 ///
