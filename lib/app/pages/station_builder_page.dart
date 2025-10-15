@@ -330,17 +330,29 @@ class StationBuilderPage extends HookConsumerWidget {
 
       log.info('Station created and playback started - first track is local: ${seedSong.downloadFilePath != null}');
 
-      // Trigger automatic downloads for offline mode stations
-      // This happens in the background after playback starts
-      if (!isOnline) {
-        _triggerAutoDownloads(ref, sessionId, isOnline);
-        // Show download feedback before navigation
-        _showDownloadFeedback(context, ref);
-      }
-
       if (!context.mounted) return;
+
+      // Capture context for async use after navigation
+      final navigatorContext = context;
+
       // Navigate to now playing page
       context.navigateTo(const NowPlayingRoute());
+
+      // Trigger automatic downloads for offline mode stations AFTER navigation
+      // This happens in the background and uses Future.microtask to avoid disposed widget issues
+      if (!isOnline) {
+        Future.microtask(() {
+          try {
+            _triggerAutoDownloads(ref, sessionId, isOnline);
+            if (navigatorContext.mounted) {
+              _showDownloadFeedback(navigatorContext, ref);
+            }
+          } catch (e) {
+            // Silently handle disposed state - downloads aren't critical to playback
+            log.warning('Could not trigger auto-downloads or show feedback: $e');
+          }
+        });
+      }
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -178,8 +178,16 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (event == ProcessingState.completed) {
         if (_audioSource.length > 0) {
           log.fine('completed');
-          await stop();
-          await seek(Duration.zero);
+
+          // For radio mode, automatically advance to the next track
+          if (queueMode.value == QueueMode.radio && repeatMode.value != AudioServiceRepeatMode.one) {
+            log.info('Radio mode: auto-advancing to next track');
+            await skipToNext();
+          } else {
+            // For non-radio modes, stop and reset to start
+            await stop();
+            await seek(Duration.zero);
+          }
         }
       }
     });
@@ -1266,16 +1274,17 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    if (_player.effectiveIndices == null || _player.effectiveIndices!.isEmpty) {
+    // Validate the index against the full database queue length, not the UI queue
+    if (_queueLength == null || index < 0 || index >= _queueLength!) {
+      log.warning('skipToQueueItem: Invalid index $index (queue length: $_queueLength)');
       return;
     }
 
-    index = _player.effectiveIndices![index];
-    if (index < 0 || index >= queue.value.length) {
-      return;
-    }
+    // Update the current track in the database
+    await _db.setCurrentTrack(index);
 
-    await _player.seek(Duration.zero, index: index);
+    // The currentTrackIndex stream listener will handle syncing the player
+    // No need to manually manipulate the player here
   }
 
   @override
