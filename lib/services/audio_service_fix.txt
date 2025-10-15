@@ -1,0 +1,50 @@
+FIX FOR ISSUE 1: Add MIME type to AudioSource.uri() for YouTube tracks
+
+LOCATION: lib/services/audio_service.dart, lines 1088-1094
+
+CURRENT CODE (lines 1083-1099):
+    } else if (song.id.startsWith('youtube:')) {
+      // YouTube track - extract URL from album field (temporary storage)
+      // The album field is repurposed to store the YouTube stream URL
+      final youtubeUrl = song.album; // URL stored temporarily in album field
+      if (youtubeUrl != null && youtubeUrl.startsWith('http')) {
+        audioSource = AudioSource.uri(
+          Uri.parse(youtubeUrl),
+          tag: queueData.index,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        );
+      } else {
+        // Fallback to Navidrome stream (shouldn't happen)
+        log.warning('YouTube track has no valid stream URL: ${song.id}');
+        audioSource = AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
+      }
+
+FIXED CODE (add mimeType parameter):
+    } else if (song.id.startsWith('youtube:')) {
+      // YouTube track - extract URL from album field (temporary storage)
+      // The album field is repurposed to store the YouTube stream URL
+      final youtubeUrl = song.album; // URL stored temporarily in album field
+      if (youtubeUrl != null && youtubeUrl.startsWith('http')) {
+        audioSource = AudioSource.uri(
+          Uri.parse(youtubeUrl),
+          tag: queueData.index,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+          // CRITICAL: Specify MIME type for YouTube Opus/WebM streams
+          // Without this, Android MediaCodec incorrectly allocates MP3 decoder
+          mimeType: 'audio/webm; codecs=opus',
+        );
+      } else {
+        // Fallback to Navidrome stream (shouldn't happen)
+        log.warning('YouTube track has no valid stream URL: ${song.id}');
+        audioSource = AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
+      }
+
+EXPLANATION:
+- YouTube streams from Invidious are Opus codec in WebM container
+- AudioSource.uri() without mimeType lets Android guess, incorrectly allocating MP3 decoder
+- Explicitly setting mimeType='audio/webm; codecs=opus' forces correct Opus decoder
+- This resolves the codec mismatch causing playback failures and skipping

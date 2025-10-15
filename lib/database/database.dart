@@ -29,7 +29,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -76,6 +76,145 @@ class SubtracksDatabase extends _$SubtracksDatabase {
           );
           await customStatement(
             'ALTER TABLE songs ADD COLUMN thumbs_down_count INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 6) {
+          // Add YouTube tracks table
+          await customStatement('''
+            CREATE TABLE youtube_tracks (
+              id TEXT PRIMARY KEY NOT NULL,
+              title TEXT NOT NULL,
+              artist TEXT,
+              channel_name TEXT NOT NULL,
+              duration_seconds INTEGER NOT NULL,
+              thumbnail_url TEXT,
+              audio_url TEXT NOT NULL,
+              audio_bitrate INTEGER NOT NULL,
+              audio_codec TEXT NOT NULL,
+              audio_quality TEXT NOT NULL,
+              cached_at INTEGER NOT NULL,
+              expires_at INTEGER NOT NULL,
+              access_count INTEGER NOT NULL DEFAULT 0,
+              last_accessed INTEGER
+            )
+          ''');
+
+          // Create indexes for youtube_tracks
+          await customStatement(
+            'CREATE INDEX idx_youtube_tracks_expires ON youtube_tracks(expires_at)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_youtube_tracks_cached ON youtube_tracks(cached_at)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_youtube_tracks_last_accessed ON youtube_tracks(last_accessed)',
+          );
+
+          // Add youtube_discovery_items table
+          await customStatement('''
+            CREATE TABLE youtube_discovery_items (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              session_id INTEGER NOT NULL,
+              youtube_track_id TEXT NOT NULL,
+              position_in_playlist INTEGER NOT NULL,
+              discovered_at INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
+              FOREIGN KEY (session_id) REFERENCES discovery_sessions (id) ON DELETE CASCADE,
+              FOREIGN KEY (youtube_track_id) REFERENCES youtube_tracks (id) ON DELETE CASCADE
+            )
+          ''');
+
+          // Create indexes for youtube_discovery_items
+          await customStatement(
+            'CREATE INDEX idx_youtube_discovery_session ON youtube_discovery_items(session_id)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_youtube_discovery_track ON youtube_discovery_items(youtube_track_id)',
+          );
+        }
+        if (from < 7) {
+          // Add YouTube track source tracking to discovery_interactions
+          await customStatement(
+            'ALTER TABLE discovery_interactions ADD COLUMN track_source TEXT NOT NULL DEFAULT \'local\'',
+          );
+          await customStatement(
+            'ALTER TABLE discovery_interactions ADD COLUMN youtube_video_id TEXT',
+          );
+          // Create indexes for the new columns
+          await customStatement(
+            'CREATE INDEX discovery_interactions_track_source ON discovery_interactions (track_source)',
+          );
+          await customStatement(
+            'CREATE INDEX discovery_interactions_youtube_video_id ON discovery_interactions (youtube_video_id)',
+          );
+        }
+        if (from < 8) {
+          // Add YouTube discovery settings to app_settings table
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_discovery_enabled BOOLEAN NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_discovery_ratio REAL NOT NULL DEFAULT 0.3',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_quality_filter TEXT NOT NULL DEFAULT \'moderate\'',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN youtube_prefer_official BOOLEAN NOT NULL DEFAULT 1',
+          );
+
+          // Add Lidarr download requests tracking table
+          await customStatement('''
+            CREATE TABLE lidarr_requests (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              youtube_video_id TEXT NOT NULL,
+              artist_name TEXT NOT NULL,
+              foreign_artist_id TEXT,
+              status TEXT NOT NULL,
+              requested_at INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
+              completed_at INTEGER,
+              error_message TEXT,
+              UNIQUE(youtube_video_id)
+            )
+          ''');
+          // Create indexes for lidarr_requests
+          await customStatement(
+            'CREATE INDEX idx_lidarr_requests_status ON lidarr_requests(status)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_lidarr_requests_video ON lidarr_requests(youtube_video_id)',
+          );
+          await customStatement(
+            'CREATE INDEX idx_lidarr_requests_requested_at ON lidarr_requests(requested_at)',
+          );
+        }
+        if (from < 9) {
+          // Add theme preset settings to app_settings table
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN theme_preset TEXT NOT NULL DEFAULT \'subtracks\'',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN enable_dynamic_colors BOOLEAN NOT NULL DEFAULT 1',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN custom_seed_color INTEGER',
+          );
+        }
+        if (from < 10) {
+          // Add per-station YouTube ratio to discovery_sessions table
+          await customStatement(
+            'ALTER TABLE discovery_sessions ADD COLUMN youtube_ratio REAL NOT NULL DEFAULT 0.3',
+          );
+        }
+        if (from < 11) {
+          // Add offline mode settings to app_settings table
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN download_preference TEXT NOT NULL DEFAULT \'any_connection\'',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN thumbs_up_auto_download BOOLEAN NOT NULL DEFAULT 0',
+          );
+          await customStatement(
+            'ALTER TABLE app_settings ADD COLUMN thumbs_down_auto_delete BOOLEAN NOT NULL DEFAULT 0',
           );
         }
       },
@@ -561,6 +700,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
     String? seedGenre,
     required String mode, // 'online' or 'offline'
     int playlistSize = 50,
+    double youtubeRatio = 0.3,
     String? stationName,
   }) async {
     final result = await into(discoverySessions).insert(
@@ -571,6 +711,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
         seedGenre: Value(seedGenre),
         mode: mode,
         playlistSize: Value(playlistSize),
+        youtubeRatio: Value(youtubeRatio),
         stationName: Value(stationName),
       ),
     );
@@ -585,6 +726,8 @@ class SubtracksDatabase extends _$SubtracksDatabase {
     required int positionInPlaylist,
     int? songDurationMs,
     int? playDurationMs,
+    String trackSource = 'local', // 'local' or 'youtube'
+    String? youtubeVideoId, // NULL for local tracks, video ID for YouTube tracks
   }) async {
     await into(discoveryInteractions).insert(
       DiscoveryInteractionsCompanion.insert(
@@ -594,6 +737,8 @@ class SubtracksDatabase extends _$SubtracksDatabase {
         positionInPlaylist: positionInPlaylist,
         songDurationMs: Value(songDurationMs),
         playDurationMs: Value(playDurationMs),
+        trackSource: Value(trackSource),
+        youtubeVideoId: Value(youtubeVideoId),
       ),
     );
   }
@@ -639,6 +784,12 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   /// Update the name of a discovery station
   Future<void> updateStationName(int sessionId, String stationName) async {
     await discoveryUpdateStationName(stationName, sessionId);
+  }
+
+  /// Update the YouTube ratio for a discovery station
+  Future<void> updateStationYouTubeRatio(int sessionId, double ratio) async {
+    await (update(discoverySessions)..where((tbl) => tbl.id.equals(sessionId)))
+        .write(DiscoverySessionsCompanion(youtubeRatio: Value(ratio)));
   }
 
   /// Update the last played timestamp of a station
@@ -728,6 +879,242 @@ class SubtracksDatabase extends _$SubtracksDatabase {
               tbl.songId.equals(songId))
           ..orderBy([(tbl) => OrderingTerm.desc(tbl.timestamp)]))
         .get();
+  }
+
+  // YouTube tracks management methods
+
+  /// Get a YouTube track by video ID
+  Future<YoutubeTrack?> getYouTubeTrack(String videoId) async {
+    return await youTubeTrackById(videoId).getSingleOrNull();
+  }
+
+  /// Cache a YouTube track
+  Future<void> cacheYouTubeTrack(YoutubeTracksCompanion track) async {
+    await into(youtubeTracks).insertOnConflictUpdate(track);
+  }
+
+  /// Update access tracking for a YouTube track
+  Future<void> updateYouTubeTrackAccess(String videoId) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await customStatement(
+      'UPDATE youtube_tracks SET access_count = access_count + 1, last_accessed = ? WHERE id = ?',
+      [now, videoId],
+    );
+  }
+
+  /// Refresh the audio URL and expiry time for a YouTube track
+  Future<void> refreshYouTubeTrackUrl(
+    String videoId,
+    String newUrl,
+    DateTime expiresAt,
+  ) async {
+    await (update(youtubeTracks)..where((tbl) => tbl.id.equals(videoId))).write(
+      YoutubeTracksCompanion(
+        audioUrl: Value(newUrl),
+        expiresAt: Value(expiresAt.millisecondsSinceEpoch ~/ 1000),
+      ),
+    );
+  }
+
+  /// Get YouTube tracks that are expiring soon
+  Future<List<YoutubeTrack>> getExpiringYouTubeTracks(Duration beforeExpiry) async {
+    final expiresBefore = DateTime.now().add(beforeExpiry).millisecondsSinceEpoch ~/ 1000;
+    return await youTubeTracksExpiringSoon(expiresBefore).get();
+  }
+
+  /// Get expired YouTube tracks
+  Future<List<YoutubeTrack>> getExpiredYouTubeTracks() async {
+    final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return await youTubeTracksExpired(currentTime).get();
+  }
+
+  /// Delete all expired YouTube tracks from cache
+  Future<void> deleteExpiredYouTubeTracks() async {
+    final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await (delete(youtubeTracks)..where((tbl) => tbl.expiresAt.isSmallerThanValue(currentTime))).go();
+  }
+
+  /// Add a YouTube track to a discovery session
+  Future<void> addYouTubeToDiscoverySession(
+    int sessionId,
+    String youtubeTrackId,
+    int position,
+  ) async {
+    await into(youtubeDiscoveryItems).insert(
+      YoutubeDiscoveryItemsCompanion.insert(
+        sessionId: sessionId,
+        youtubeTrackId: youtubeTrackId,
+        positionInPlaylist: position,
+      ),
+    );
+  }
+
+  /// Get all YouTube tracks for a discovery session
+  Future<List<YoutubeTrack>> getYouTubeTracksForSession(int sessionId) async {
+    // This uses a custom query that joins youtube_tracks with youtube_discovery_items
+    final results = await youTubeTracksForSession(sessionId).get();
+    // Extract just the youtube track from the joined result
+    return results.map((r) => YoutubeTrack(
+      id: r.id,
+      title: r.title,
+      artist: r.artist,
+      channelName: r.channelName,
+      durationSeconds: r.durationSeconds,
+      thumbnailUrl: r.thumbnailUrl,
+      audioUrl: r.audioUrl,
+      audioBitrate: r.audioBitrate,
+      audioCodec: r.audioCodec,
+      audioQuality: r.audioQuality,
+      cachedAt: r.cachedAt,
+      expiresAt: r.expiresAt,
+      accessCount: r.accessCount,
+      lastAccessed: r.lastAccessed,
+    )).toList();
+  }
+
+  /// Get the count of cached YouTube tracks
+  Future<int> getYouTubeCacheCount() async {
+    return await youTubeCacheCount().getSingle();
+  }
+
+  /// Get cache size information
+  Future<Map<String, int>> getYouTubeCacheSize() async {
+    final result = await youTubeCacheSize().getSingle();
+    return {
+      'track_count': result.trackCount ?? 0,
+      'approx_bytes': result.approxBytes ?? 0,
+    };
+  }
+
+  /// Prune old/unused YouTube tracks from cache
+  ///
+  /// Keeps tracks that are:
+  /// - Recently accessed (within maxAgeDays)
+  /// - Frequently accessed (top maxEntries by access count)
+  Future<void> pruneYouTubeCache({
+    int maxEntries = 500,
+    int maxAgeDays = 7,
+  }) async {
+    await transaction(() async {
+      final cutoffTime = DateTime.now()
+          .subtract(Duration(days: maxAgeDays))
+          .millisecondsSinceEpoch ~/
+          1000;
+
+      // Get IDs of tracks to keep (recently accessed or frequently accessed)
+      final recentTracks = await (select(youtubeTracks)
+            ..where((tbl) => tbl.lastAccessed.isBiggerOrEqualValue(cutoffTime))
+            ..orderBy([(tbl) => OrderingTerm.desc(tbl.lastAccessed)])
+            ..limit(maxEntries))
+          .map((row) => row.id)
+          .get();
+
+      final frequentTracks = await (select(youtubeTracks)
+            ..where((tbl) => tbl.accessCount.isBiggerThanValue(0))
+            ..orderBy([
+              (tbl) => OrderingTerm.desc(tbl.accessCount),
+              (tbl) => OrderingTerm.desc(tbl.lastAccessed),
+            ])
+            ..limit(maxEntries))
+          .map((row) => row.id)
+          .get();
+
+      final idsToKeep = {...recentTracks, ...frequentTracks};
+
+      if (idsToKeep.isNotEmpty) {
+        // Delete tracks not in the keep list
+        await (delete(youtubeTracks)
+              ..where((tbl) => tbl.id.isNotIn(idsToKeep)))
+            .go();
+      }
+    });
+  }
+
+  /// Get most recently accessed YouTube tracks
+  Future<List<YoutubeTrack>> getRecentYouTubeTracks({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    return await youTubeTracksByLastAccessed(limit, offset).get();
+  }
+
+  /// Get most frequently accessed YouTube tracks
+  Future<List<YoutubeTrack>> getFrequentYouTubeTracks({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    return await youTubeTracksByAccessCount(limit, offset).get();
+  }
+
+  /// Delete a specific YouTube track from cache
+  Future<void> deleteYouTubeTrack(String videoId) async {
+    await (delete(youtubeTracks)..where((tbl) => tbl.id.equals(videoId))).go();
+  }
+
+  /// Get discovery sessions that used a specific YouTube track
+  Future<List<DiscoverySession>> getDiscoverySessionsForYouTubeTrack(
+    String youtubeTrackId,
+  ) async {
+    return await discoverySessionsForYouTubeTrack(youtubeTrackId).get();
+  }
+
+  // Lidarr download requests tracking methods
+
+  /// Record a Lidarr download request
+  Future<void> recordLidarrRequest({
+    required String youtubeVideoId,
+    required String artistName,
+    required String? foreignArtistId,
+    required String status,
+    String? errorMessage,
+  }) async {
+    await into(lidarrRequests).insertOnConflictUpdate(
+      LidarrRequestsCompanion.insert(
+        youtubeVideoId: youtubeVideoId,
+        artistName: artistName,
+        foreignArtistId: Value(foreignArtistId),
+        status: status,
+        completedAt: Value(status == 'added' || status == 'already_exists'
+            ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+            : null),
+        errorMessage: Value(errorMessage),
+      ),
+    );
+  }
+
+  /// Get Lidarr request for a specific YouTube video
+  Future<LidarrRequest?> getLidarrRequestForVideo(String videoId) async {
+    return await lidarrRequestByVideoId(videoId).getSingleOrNull();
+  }
+
+  /// Get Lidarr requests by status
+  Future<List<LidarrRequest>> getLidarrRequestsByStatus(
+    String status, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    return await lidarrRequestsByStatus(status, limit, offset).get();
+  }
+
+  /// Get recent Lidarr requests
+  Future<List<LidarrRequest>> getRecentLidarrRequests({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    return await lidarrRequestsRecent(limit, offset).get();
+  }
+
+  /// Get count of all Lidarr requests
+  Future<int> getLidarrRequestsCount() async {
+    return await lidarrRequestsCount().getSingle();
+  }
+
+  /// Get count of Lidarr requests by status
+  Future<Map<String, int>> getLidarrRequestsCountByStatus() async {
+    final results = await lidarrRequestsCountByStatus().get();
+    return Map.fromEntries(
+      results.map((row) => MapEntry(row.status, row.count)),
+    );
   }
 }
 

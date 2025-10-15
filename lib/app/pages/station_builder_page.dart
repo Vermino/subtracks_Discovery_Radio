@@ -5,11 +5,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../database/database.dart';
+import '../../log.dart';
 import '../../models/music.dart';
 import '../../models/query.dart';
+import '../../models/settings.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
+import '../../services/auto_download_service.dart';
 import '../../services/discovery_service.dart';
+import '../../services/settings_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../app_router.dart';
@@ -188,15 +192,18 @@ class StationBuilderPage extends HookConsumerWidget {
     ValueNotifier<int> playlistSize,
     ValueNotifier<bool> isOnlineMode,
   ) {
+    // Capture the page context before showing the dialog
+    final pageContext = context;
+
     showDialog(
       context: context,
-      builder: (context) => _CreateStationDialog(
+      builder: (dialogContext) => _CreateStationDialog(
         seeds: seeds,
         playlistSize: playlistSize,
         isOnlineMode: isOnlineMode,
-        onConfirm: (size, isOnline) {
-          Navigator.of(context).pop();
-          _createStation(context, ref, seeds, size, isOnline);
+        onConfirm: (size, isOnline, youtubeRatio) {
+          Navigator.of(dialogContext).pop();
+          _createStation(pageContext, ref, seeds, size, isOnline, youtubeRatio);
         },
       ),
     );
@@ -208,12 +215,15 @@ class StationBuilderPage extends HookConsumerWidget {
     List<SeedItem> seeds,
     int playlistSize,
     bool isOnline,
+    double youtubeRatio,
   ) async {
     final audioControl = ref.read(audioControlProvider);
     final db = ref.read(databaseProvider);
     final sourceId = ref.read(sourceIdProvider);
 
     try {
+      // Get app settings for YouTube ratio
+      final appSettings = await db.getAppSettings().getSingle();
       // Get the first seed song to start discovery
       Song? seedSong;
       String? seedArtist;
@@ -294,6 +304,7 @@ class StationBuilderPage extends HookConsumerWidget {
         seedGenre: seedGenre,
         mode: isOnline ? 'online' : 'offline',
         playlistSize: playlistSize,
+        youtubeRatio: youtubeRatio,
       );
 
       // Update last_played_at immediately so the station shows up in the list
@@ -302,23 +313,237 @@ class StationBuilderPage extends HookConsumerWidget {
       // Refresh the stations list immediately so the new station appears
       ref.read(savedStationsProvider.notifier).refresh();
 
-      // Start discovery radio with the seed song
+      // Start hybrid discovery radio with the seed song
       // The discovery service will generate recommendations in the background
-      await audioControl.playDiscoveryRadio(
+      await audioControl.playHybridDiscoveryRadio(
         seedSong: seedSong,
         mode: isOnline ? DiscoveryMode.online : DiscoveryMode.offline,
         playlistSize: playlistSize,
+        config: DiscoveryConfig(
+          youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
+          youtubeRatio: youtubeRatio,
+          youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+          youtubePreferOfficial: appSettings.youtubePreferOfficial,
+        ),
         sessionId: sessionId,
       );
 
+      log.info('Station created and playback started - first track is local: ${seedSong.downloadFilePath != null}');
+
       if (!context.mounted) return;
+
+      // Capture context for async use after navigation
+      final navigatorContext = context;
+
       // Navigate to now playing page
       context.navigateTo(const NowPlayingRoute());
+
+      // Trigger automatic downloads for offline mode stations AFTER navigation
+      // This happens in the background and uses Future.microtask to avoid disposed widget issues
+      if (!isOnline) {
+        Future.microtask(() {
+          try {
+            _triggerAutoDownloads(ref, sessionId, isOnline);
+            if (navigatorContext.mounted) {
+              _showDownloadFeedback(navigatorContext, ref);
+            }
+          } catch (e) {
+            // Silently handle disposed state - downloads aren't critical to playback
+            log.warning('Could not trigger auto-downloads or show feedback: $e');
+          }
+        });
+      }
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating station: $e')),
       );
+    }
+  }
+
+  /// Trigger automatic downloads for offline mode stations
+  ///
+  /// This runs in the background and downloads playlist songs based on user preferences
+  /// and network connectivity. If conditions aren't suitable (e.g., WiFi-only but on mobile),
+  /// downloads are queued for later.
+  void _triggerAutoDownloads(WidgetRef ref, int sessionId, bool isOnline) async {
+    try {
+      log.info('Triggering auto-downloads for station session: $sessionId');
+
+      // Get the auto-download service
+      final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+      final db = ref.read(databaseProvider);
+      final discoveryService = ref.read(discoveryServiceProvider.notifier);
+
+      // Get the station details to access the playlist
+      final station = await db.getDiscoverySessionById(sessionId);
+      if (station == null) {
+        log.warning('Station not found for auto-download: $sessionId');
+        return;
+      }
+
+      // Get the seed song
+      final seedSong = await db.songById(station.sourceId, station.seedSongId).getSingleOrNull();
+      if (seedSong == null) {
+        log.warning('Seed song not found for auto-download: ${station.seedSongId}');
+        return;
+      }
+
+      // Generate the playlist to get the songs that will be in the station
+      // This is a lightweight operation since discovery service caches results
+      final appSettings = await db.getAppSettings().getSingle();
+      final config = DiscoveryConfig(
+        youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
+        youtubeRatio: station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio,
+        youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+        youtubePreferOfficial: appSettings.youtubePreferOfficial,
+      );
+
+      // Build the hybrid playlist (this will use the already-generated playlist from cache)
+      final hybridTracks = await discoveryService.buildHybridDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: !isOnline,
+        playlistSize: station.playlistSize,
+        config: config,
+        sessionId: sessionId,
+      );
+
+      // Extract local songs that aren't downloaded yet
+      final songsToDownload = <Song>[];
+      for (final track in hybridTracks) {
+        track.when(
+          local: (song) {
+            // Only add songs that aren't already downloaded
+            if (song.downloadFilePath == null && song.downloadTaskId == null) {
+              songsToDownload.add(song);
+            }
+          },
+          youtube: (_, __, ___, ____, _____, ______) {
+            // Skip YouTube tracks - we don't download those
+          },
+        );
+      }
+
+      if (songsToDownload.isEmpty) {
+        log.info('No songs need downloading for station: $sessionId');
+        return;
+      }
+
+      log.info('Found ${songsToDownload.length} songs to download for offline station');
+
+      // Trigger the download (respects user settings and network conditions)
+      await autoDownloadService.downloadStationSongs(
+        songsToDownload,
+        sessionId: sessionId,
+        reason: 'station_offline',
+      );
+
+      log.info('Auto-download initiated for station: $sessionId');
+    } catch (e, stackTrace) {
+      log.severe('Error triggering auto-downloads', e, stackTrace);
+      // Don't rethrow - auto-downloads are non-critical, playback should continue
+    }
+  }
+
+  /// Show user feedback about download status
+  ///
+  /// Displays a SnackBar with information about whether downloads are starting
+  /// immediately, queued for WiFi, or disabled based on user preferences.
+  void _showDownloadFeedback(BuildContext context, WidgetRef ref) {
+    try {
+      // Get current settings and network status
+      final settings = ref.read(settingsServiceProvider);
+      final networkModeAsync = ref.read(networkModeProvider);
+
+      final downloadPref = settings.app.downloadPreference;
+
+      // Determine the appropriate message
+      String message;
+      IconData icon;
+
+      // Manual only - no auto-downloads
+      if (downloadPref == 'manual_only') {
+        // Don't show a message for manual mode - user chose not to auto-download
+        return;
+      }
+
+      // Check network conditions
+      networkModeAsync.when(
+        data: (networkMode) {
+          final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+          final shouldDownload = autoDownloadService.shouldDownloadNow(downloadPref, networkMode);
+
+          if (shouldDownload) {
+            // Downloads starting immediately
+            message = 'Downloading station songs in background';
+            icon = Icons.download_rounded;
+          } else if (downloadPref == 'wifi_only' && networkMode == NetworkMode.mobile) {
+            // Queued for WiFi
+            message = 'Downloads queued - will start when WiFi is available';
+            icon = Icons.wifi_rounded;
+          } else {
+            // Other cases (shouldn't normally happen)
+            message = 'Downloads queued for later';
+            icon = Icons.schedule_rounded;
+          }
+
+          // Show the SnackBar
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(message)),
+                  ],
+                ),
+                duration: const Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        loading: () {
+          // Network status loading - show generic message
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    const Expanded(child: Text('Preparing to download station songs...')),
+                  ],
+                ),
+                duration: const Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        error: (_, __) {
+          // Error getting network status - don't show anything
+          log.warning('Could not determine network status for download feedback');
+        },
+      );
+    } catch (e) {
+      // Don't let feedback errors interfere with the user experience
+      log.warning('Error showing download feedback: $e');
+    }
+  }
+
+  /// Parse YouTube quality filter from string
+  YouTubeQualityFilter _parseYoutubeQualityFilter(String filter) {
+    switch (filter.toLowerCase()) {
+      case 'strict':
+        return YouTubeQualityFilter.strict;
+      case 'moderate':
+        return YouTubeQualityFilter.moderate;
+      case 'permissive':
+        return YouTubeQualityFilter.permissive;
+      default:
+        return YouTubeQualityFilter.moderate;
     }
   }
 }
@@ -625,11 +850,11 @@ class _SeedListView extends StatelessWidget {
   }
 }
 
-class _CreateStationDialog extends HookWidget {
+class _CreateStationDialog extends HookConsumerWidget {
   final List<SeedItem> seeds;
   final ValueNotifier<int> playlistSize;
   final ValueNotifier<bool> isOnlineMode;
-  final Function(int size, bool isOnline) onConfirm;
+  final Function(int size, bool isOnline, double youtubeRatio) onConfirm;
 
   const _CreateStationDialog({
     required this.seeds,
@@ -639,10 +864,14 @@ class _CreateStationDialog extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final size = useState(playlistSize.value);
     final isOnline = useState(isOnlineMode.value);
+    final youtubeRatio = useState(0.3); // Default 30%
+
+    final settings = ref.watch(settingsServiceProvider);
+    final youtubeEnabled = settings.app.youtubeDiscoveryEnabled;
 
     return AlertDialog(
       title: const Text('Create Discovery Station'),
@@ -732,6 +961,72 @@ class _CreateStationDialog extends HookWidget {
                 ),
               ],
             ),
+
+            // YouTube Ratio (only shown if YouTube is enabled)
+            if (youtubeEnabled) ...[
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Icon(
+                    Icons.play_circle_outline,
+                    size: 20,
+                    color: Colors.red.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'YouTube Content',
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade700.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.red.shade700.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      '${(youtubeRatio.value * 100).round()}%',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Slider(
+                value: youtubeRatio.value,
+                min: 0.0,
+                max: 1.0,
+                divisions: 10,
+                label: '${(youtubeRatio.value * 100).round()}%',
+                activeColor: Colors.red.shade700,
+                onChanged: (value) {
+                  youtubeRatio.value = value;
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Local Only',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                  Text(
+                    'YouTube Only',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -741,7 +1036,7 @@ class _CreateStationDialog extends HookWidget {
           child: const Text('Cancel'),
         ),
         FilledButton.icon(
-          onPressed: () => onConfirm(size.value, isOnline.value),
+          onPressed: () => onConfirm(size.value, isOnline.value, youtubeRatio.value),
           icon: const Icon(Icons.play_arrow_rounded),
           label: const Text('Create Station'),
         ),

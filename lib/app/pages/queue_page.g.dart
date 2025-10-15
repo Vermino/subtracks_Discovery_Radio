@@ -6,7 +6,7 @@ part of 'queue_page.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fullQueueHash() => r'd6889072ec80461c7480aa6952515b7134754e6c';
+String _$fullQueueHash() => r'bd60d9184ab289c59135f1f1addfcb28159ee046';
 
 /// See also [fullQueue].
 @ProviderFor(fullQueue)

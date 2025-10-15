@@ -5,6 +5,7 @@ import '../log.dart';
 import '../models/music.dart';
 import '../state/audio.dart';
 import 'audio_service.dart';
+import 'auto_download_service.dart';
 
 part 'rating_service.g.dart';
 
@@ -20,6 +21,10 @@ class RatingService extends _$RatingService {
   /// Rate a song with thumbs up
   Future<void> rateSongThumbsUp(Song song) async {
     await _updateSongRating(song, UserRating.thumbsUp);
+
+    // Trigger auto-download if enabled
+    final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+    await autoDownloadService.downloadThumbsUpSong(song);
   }
 
   /// Rate a song with thumbs down
@@ -33,6 +38,10 @@ class RatingService extends _$RatingService {
       final audioControl = ref.read(audioControlProvider);
       await audioControl.skipToNext();
     }
+
+    // Trigger auto-delete if enabled
+    final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+    await autoDownloadService.deleteThumbsDownSong(song);
   }
 
   /// Remove rating from a song (set to unrated)
@@ -59,13 +68,22 @@ class RatingService extends _$RatingService {
 
     await _updateSongRating(song, newRating);
 
-    // If we just rated thumbs down and it's currently playing, skip to next
-    if (newRating == UserRating.thumbsDown) {
+    // Handle auto-download/delete based on new rating
+    final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+
+    if (newRating == UserRating.thumbsUp) {
+      // Trigger auto-download if enabled
+      await autoDownloadService.downloadThumbsUpSong(song);
+    } else if (newRating == UserRating.thumbsDown) {
+      // If we just rated thumbs down and it's currently playing, skip to next
       final currentMediaItem = ref.read(mediaItemProvider).valueOrNull;
       if (currentMediaItem?.id == song.id) {
         final audioControl = ref.read(audioControlProvider);
         await audioControl.skipToNext();
       }
+
+      // Trigger auto-delete if enabled
+      await autoDownloadService.deleteThumbsDownSong(song);
     }
   }
 

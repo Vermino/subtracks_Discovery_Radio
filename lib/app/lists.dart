@@ -11,6 +11,7 @@ class PagedListQueryView<T> extends HookConsumerWidget {
   final bool refreshSyncAll;
   final bool fabPadding;
   final bool useSliver;
+  final List<Widget>? sliverHeader;
   final Widget Function(BuildContext context, T item, int index) itemBuilder;
 
   const PagedListQueryView({
@@ -19,6 +20,7 @@ class PagedListQueryView<T> extends HookConsumerWidget {
     this.refreshSyncAll = false,
     this.fabPadding = true,
     this.useSliver = false,
+    this.sliverHeader,
     required this.itemBuilder,
   });
 
@@ -30,6 +32,26 @@ class PagedListQueryView<T> extends HookConsumerWidget {
           fabPadding ? (context) => const FabPadding() : null,
     );
 
+    // Use CustomScrollView if sliverHeader is provided
+    if (sliverHeader != null) {
+      final scrollView = CustomScrollView(
+        slivers: [
+          ...sliverHeader!,
+          PagedSliverList<int, T>(
+            pagingController: pagingController,
+            builderDelegate: builderDelegate,
+          ),
+        ],
+      );
+
+      if (refreshSyncAll) {
+        return SyncAllRefresh(child: scrollView);
+      } else {
+        return scrollView;
+      }
+    }
+
+    // Original implementation
     final listView = useSliver
         ? PagedSliverList<int, T>(
             pagingController: pagingController,
@@ -58,6 +80,7 @@ class PagedGridQueryView<T> extends HookConsumerWidget {
   final bool refreshSyncAll;
   final bool fabPadding;
   final GridSize size;
+  final List<Widget>? sliverHeader;
   final Widget Function(BuildContext context, T item, int index, GridSize size)
       itemBuilder;
 
@@ -67,6 +90,7 @@ class PagedGridQueryView<T> extends HookConsumerWidget {
     this.refreshSyncAll = false,
     this.fabPadding = true,
     this.size = GridSize.small,
+    this.sliverHeader,
     required this.itemBuilder,
   });
 
@@ -91,6 +115,36 @@ class PagedGridQueryView<T> extends HookConsumerWidget {
       );
     }
 
+    // Use CustomScrollView if sliverHeader is provided
+    if (sliverHeader != null) {
+      final gridView = CustomScrollView(
+        slivers: [
+          ...sliverHeader!,
+          SliverPadding(
+            padding: MediaQuery.of(context).padding + EdgeInsets.all(spacing),
+            sliver: PagedSliverGrid<int, T>(
+              pagingController: pagingController,
+              builderDelegate: PagedChildBuilderDelegate(
+                itemBuilder: (context, item, index) =>
+                    itemBuilder(context, item, index, size),
+                noMoreItemsIndicatorBuilder:
+                    fabPadding ? (context) => const FabPadding() : null,
+              ),
+              gridDelegate: gridDelegate,
+              showNoMoreItemsIndicatorAsGridChild: false,
+            ),
+          ),
+        ],
+      );
+
+      if (refreshSyncAll) {
+        return SyncAllRefresh(child: gridView);
+      } else {
+        return gridView;
+      }
+    }
+
+    // Original implementation without CustomScrollView
     final listView = PagedGridView<int, T>(
       padding: MediaQuery.of(context).padding + EdgeInsets.all(spacing),
       pagingController: pagingController,
@@ -127,6 +181,7 @@ class SyncAllRefresh extends HookConsumerWidget {
         try {
           await ref.read(syncServiceProvider.notifier).syncAll();
         } catch (e) {
+          if (!context.mounted) return;
           showErrorSnackbar(context, e.toString());
         }
       },

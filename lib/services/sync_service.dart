@@ -13,6 +13,12 @@ class SyncService extends _$SyncService {
   }
 
   Future<void> syncAll() async {
+    final source = ref.read(musicSourceProvider);
+    if (source == null) {
+      // Cannot sync without a configured source
+      return;
+    }
+
     final db = ref.read(databaseProvider);
 
     await db.transaction(() async {
@@ -29,6 +35,8 @@ class SyncService extends _$SyncService {
 
   Future<void> _syncAllArtists() async {
     final source = ref.read(musicSourceProvider);
+    if (source == null) return;
+
     final db = ref.read(databaseProvider);
 
     final ids = <String>{};
@@ -42,6 +50,8 @@ class SyncService extends _$SyncService {
 
   Future<void> _syncAllAlbums() async {
     final source = ref.read(musicSourceProvider);
+    if (source == null) return;
+
     final db = ref.read(databaseProvider);
 
     final ids = <String>{};
@@ -55,6 +65,8 @@ class SyncService extends _$SyncService {
 
   Future<void> _syncAllPlaylists() async {
     final source = ref.read(musicSourceProvider);
+    if (source == null) return;
+
     final db = ref.read(databaseProvider);
 
     final ids = <String>{};
@@ -68,6 +80,8 @@ class SyncService extends _$SyncService {
 
   Future<void> _syncAllSongs() async {
     final source = ref.read(musicSourceProvider);
+    if (source == null) return;
+
     final db = ref.read(databaseProvider);
 
     final ids = <String>{};

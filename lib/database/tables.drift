@@ -43,7 +43,17 @@ CREATE TABLE app_settings(
   id INT NOT NULL PRIMARY KEY,
   max_bitrate_wifi INT NOT NULL,
   max_bitrate_mobile INT NOT NULL,
-  stream_format TEXT
+  stream_format TEXT,
+  youtube_discovery_enabled BOOLEAN NOT NULL DEFAULT 0,
+  youtube_discovery_ratio REAL NOT NULL DEFAULT 0.3,
+  youtube_quality_filter TEXT NOT NULL DEFAULT 'moderate',
+  youtube_prefer_official BOOLEAN NOT NULL DEFAULT 1,
+  theme_preset TEXT NOT NULL DEFAULT 'subtracks',
+  enable_dynamic_colors BOOLEAN NOT NULL DEFAULT 1,
+  custom_seed_color INT,
+  download_preference TEXT NOT NULL DEFAULT 'any_connection',
+  thumbs_up_auto_download BOOLEAN NOT NULL DEFAULT 0,
+  thumbs_down_auto_delete BOOLEAN NOT NULL DEFAULT 0
 ) WITH AppSettings;
 
 CREATE TABLE sources(
@@ -606,6 +616,7 @@ CREATE TABLE discovery_sessions(
   source_id INT NOT NULL,
   mode TEXT NOT NULL, -- 'online' or 'offline'
   playlist_size INT NOT NULL DEFAULT 50,
+  youtube_ratio REAL NOT NULL DEFAULT 0.3,
   station_name TEXT,
   last_played_at INTEGER,
   play_count INTEGER NOT NULL DEFAULT 0,
@@ -626,12 +637,16 @@ CREATE TABLE discovery_interactions(
   position_in_playlist INTEGER NOT NULL,
   song_duration_ms INTEGER,
   play_duration_ms INTEGER, -- How long the song was actually played
+  track_source TEXT NOT NULL DEFAULT 'local', -- 'local' or 'youtube'
+  youtube_video_id TEXT, -- NULL for local tracks, video ID for YouTube tracks
   timestamp INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
   FOREIGN KEY (session_id) REFERENCES discovery_sessions (id) ON DELETE CASCADE
 );
 CREATE INDEX discovery_interactions_session_id ON discovery_interactions (session_id);
 CREATE INDEX discovery_interactions_song_id ON discovery_interactions (song_id);
 CREATE INDEX discovery_interactions_interaction_type ON discovery_interactions (interaction_type);
+CREATE INDEX discovery_interactions_track_source ON discovery_interactions (track_source);
+CREATE INDEX discovery_interactions_youtube_video_id ON discovery_interactions (youtube_video_id);
 
 -- Discovery performance tracking queries
 discoverySessionsBySource:
@@ -750,3 +765,142 @@ mostDislikedSongs:
   WHERE source_id = :source_id AND thumbs_down_count > 0
   ORDER BY thumbs_down_count DESC, title ASC
   LIMIT :limit OFFSET :offset;
+
+-- YouTube tracks cache
+CREATE TABLE youtube_tracks (
+  id TEXT PRIMARY KEY NOT NULL,  -- YouTube video ID
+  title TEXT NOT NULL,
+  artist TEXT,
+  channel_name TEXT NOT NULL,
+  duration_seconds INTEGER NOT NULL,
+  thumbnail_url TEXT,
+  audio_url TEXT NOT NULL,
+  audio_bitrate INTEGER NOT NULL,
+  audio_codec TEXT NOT NULL,
+  audio_quality TEXT NOT NULL,
+  cached_at INTEGER NOT NULL,  -- Unix timestamp
+  expires_at INTEGER NOT NULL, -- Unix timestamp for audio URL
+  access_count INTEGER NOT NULL DEFAULT 0,
+  last_accessed INTEGER
+);
+CREATE INDEX idx_youtube_tracks_expires ON youtube_tracks(expires_at);
+CREATE INDEX idx_youtube_tracks_cached ON youtube_tracks(cached_at);
+CREATE INDEX idx_youtube_tracks_last_accessed ON youtube_tracks(last_accessed);
+
+-- Track which YouTube videos have been discovered in which sessions
+CREATE TABLE youtube_discovery_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL,
+  youtube_track_id TEXT NOT NULL,
+  position_in_playlist INTEGER NOT NULL,
+  discovered_at INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
+  FOREIGN KEY (session_id) REFERENCES discovery_sessions (id) ON DELETE CASCADE,
+  FOREIGN KEY (youtube_track_id) REFERENCES youtube_tracks (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_youtube_discovery_session ON youtube_discovery_items(session_id);
+CREATE INDEX idx_youtube_discovery_track ON youtube_discovery_items(youtube_track_id);
+
+-- YouTube-related queries
+
+-- Get YouTube track by ID
+youTubeTrackById:
+  SELECT * FROM youtube_tracks
+  WHERE id = :id;
+
+-- Get YouTube tracks expiring soon (within given seconds)
+youTubeTracksExpiringSoon:
+  SELECT * FROM youtube_tracks
+  WHERE expires_at < :expires_before
+  ORDER BY expires_at ASC;
+
+-- Get expired YouTube tracks
+youTubeTracksExpired:
+  SELECT * FROM youtube_tracks
+  WHERE expires_at < :current_time
+  ORDER BY expires_at ASC;
+
+-- Get YouTube tracks by last accessed (most recent first)
+youTubeTracksByLastAccessed:
+  SELECT * FROM youtube_tracks
+  WHERE last_accessed IS NOT NULL
+  ORDER BY last_accessed DESC
+  LIMIT :limit OFFSET :offset;
+
+-- Get YouTube tracks by access count (most accessed first)
+youTubeTracksByAccessCount:
+  SELECT * FROM youtube_tracks
+  WHERE access_count > 0
+  ORDER BY access_count DESC, last_accessed DESC
+  LIMIT :limit OFFSET :offset;
+
+-- Get count of cached YouTube tracks
+youTubeCacheCount:
+  SELECT COUNT(*) FROM youtube_tracks;
+
+-- Get size of YouTube cache in bytes (approximate)
+youTubeCacheSize:
+  SELECT
+    COUNT(*) as track_count,
+    SUM(LENGTH(audio_url) + LENGTH(title) + LENGTH(artist) + LENGTH(channel_name)) as approx_bytes
+  FROM youtube_tracks;
+
+-- Get YouTube tracks for a discovery session
+youTubeTracksForSession:
+  SELECT
+    yt.*,
+    ydi.position_in_playlist,
+    ydi.discovered_at
+  FROM youtube_tracks yt
+  JOIN youtube_discovery_items ydi ON yt.id = ydi.youtube_track_id
+  WHERE ydi.session_id = :session_id
+  ORDER BY ydi.position_in_playlist ASC;
+
+-- Get discovery sessions using a specific YouTube track
+discoverySessionsForYouTubeTrack:
+  SELECT DISTINCT ds.*
+  FROM discovery_sessions ds
+  JOIN youtube_discovery_items ydi ON ds.id = ydi.session_id
+  WHERE ydi.youtube_track_id = :youtube_track_id
+  ORDER BY ds.created_at DESC;
+
+-- Lidarr download requests tracking
+CREATE TABLE lidarr_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  youtube_video_id TEXT NOT NULL,
+  artist_name TEXT NOT NULL,
+  foreign_artist_id TEXT,  -- MusicBrainz ID
+  status TEXT NOT NULL,  -- 'added', 'already_exists', 'not_found', 'failed'
+  requested_at INTEGER NOT NULL DEFAULT (strftime('%s', CURRENT_TIMESTAMP)),
+  completed_at INTEGER,
+  error_message TEXT,
+  UNIQUE(youtube_video_id)
+);
+CREATE INDEX idx_lidarr_requests_status ON lidarr_requests(status);
+CREATE INDEX idx_lidarr_requests_video ON lidarr_requests(youtube_video_id);
+CREATE INDEX idx_lidarr_requests_requested_at ON lidarr_requests(requested_at);
+
+-- Lidarr requests queries
+lidarrRequestByVideoId:
+  SELECT * FROM lidarr_requests
+  WHERE youtube_video_id = :video_id;
+
+lidarrRequestsByStatus:
+  SELECT * FROM lidarr_requests
+  WHERE status = :status
+  ORDER BY requested_at DESC
+  LIMIT :limit OFFSET :offset;
+
+lidarrRequestsRecent:
+  SELECT * FROM lidarr_requests
+  ORDER BY requested_at DESC
+  LIMIT :limit OFFSET :offset;
+
+lidarrRequestsCount:
+  SELECT COUNT(*) FROM lidarr_requests;
+
+lidarrRequestsCountByStatus:
+  SELECT
+    status,
+    COUNT(*) as count
+  FROM lidarr_requests
+  GROUP BY status;

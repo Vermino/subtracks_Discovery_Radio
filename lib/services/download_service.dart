@@ -82,6 +82,7 @@ enum SongDownloadState {
   completed,
 }
 
+@pragma('vm:entry-point')
 @Riverpod(keepAlive: true)
 class DownloadService extends _$DownloadService {
   static final ReceivePort _port = ReceivePort();
@@ -296,6 +297,10 @@ class DownloadService extends _$DownloadService {
     }
 
     final source = ref.read(musicSourceProvider);
+    if (source == null) {
+      throw StateError('Cannot download song without a configured source');
+    }
+
     final db = ref.read(databaseProvider);
     final http = ref.read(httpClientProvider);
 
@@ -543,7 +548,7 @@ class DownloadService extends _$DownloadService {
 
     _port.asyncMap((dynamic data) async {
       final taskId = (data as List<dynamic>)[0] as String;
-      final status = DownloadTaskStatus(data[1] as int);
+      final status = DownloadTaskStatus.fromInt(data[1] as int);
       final progress = data[2] as int;
 
       var download = state.downloads.firstWhereOrNull(
@@ -588,11 +593,11 @@ class DownloadService extends _$DownloadService {
   @pragma('vm:entry-point')
   static void downloadCallback(
     String id,
-    DownloadTaskStatus status,
+    int status,
     int progress,
   ) {
     IsolateNameServer.lookupPortByName('downloader_send_port')?.send(
-      [id, status.value, progress],
+      [id, status, progress],
     );
   }
 }

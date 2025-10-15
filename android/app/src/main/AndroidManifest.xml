@@ -1,7 +1,6 @@
 <manifest
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        package="com.subtracks2">
+        xmlns:tools="http://schemas.android.com/tools">
     <application
             android:label="subtracks"
             android:name="${applicationName}"
@@ -69,4 +68,5 @@
     <!-- audio_service -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 </manifest>

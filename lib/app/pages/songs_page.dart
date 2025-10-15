@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -256,8 +256,22 @@ class GenreSongsPage extends HookConsumerWidget {
       [],
     );
 
+    final audio = ref.watch(audioControlProvider);
+
     final play = useCallback(
-      ({int? index, bool? shuffle}) => ref.read(audioControlProvider).playDiscoveryRadioByGenre(
+      ({int? index, bool? shuffle}) => audio.playSongs(
+            query: query,
+            getSongs: getSongs,
+            startIndex: index,
+            context: QueueContextType.genre,
+            contextId: genre,
+            shuffle: shuffle,
+          ),
+      [genre, query, getSongs],
+    );
+
+    final playDiscoveryRadio = useCallback(
+      () => audio.playDiscoveryRadioByGenre(
             genre: genre,
             mode: DiscoveryMode.online,
           ),
@@ -266,15 +280,15 @@ class GenreSongsPage extends HookConsumerWidget {
 
     return QueueContext(
       id: genre,
-      type: QueueContextType.album,
+      type: QueueContextType.genre,
       child: _SongsPage(
         query: query,
         getSongs: getSongs,
-        // onSongTap: (song, index) => play(index: index),
+        onSongTap: (song, index) => play(index: index),
         songImage: true,
         background: const BackgroundGradient(),
         fab: DiscoveryRadioFab(
-          onPressed: () => play(),
+          onPressed: playDiscoveryRadio,
         ),
         header: _GenreHeader(genre: genre),
       ),
@@ -354,7 +368,7 @@ class _SongsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final base = ref.watch(baseThemeProvider);
     ref.listen(musicSourceProvider, (previous, next) {
-      if (next.id != previous?.id) {
+      if (next?.id != previous?.id) {
         context.router.popUntilRoot();
       }
     });

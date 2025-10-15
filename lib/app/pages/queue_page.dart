@@ -1,9 +1,11 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../database/database.dart';
+import '../../models/music.dart';
 import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../state/audio.dart';
@@ -26,23 +28,76 @@ Stream<List<MediaItem>> fullQueue(FullQueueRef ref) async* {
       continue;
     }
 
-    // Fetch all songs from database
-    final songs = await db.songsInIds(sourceId, songIds).get();
-    final songMap = {for (var song in songs) song.id: song};
+    // Separate local and YouTube track IDs
+    final localIds = <String>[];
+    final youtubeIds = <String>[];
+
+    for (final id in songIds) {
+      if (id.startsWith('youtube:')) {
+        youtubeIds.add(id.replaceFirst('youtube:', ''));
+      } else {
+        localIds.add(id);
+      }
+    }
+
+    // Fetch local songs from database
+    final localSongs = localIds.isNotEmpty
+        ? await db.songsInIds(sourceId, localIds).get()
+        : <Song>[];
+
+    // Fetch YouTube tracks from cache
+    final youtubeTracks = <String, YoutubeTrack>{};
+    for (final videoId in youtubeIds) {
+      final track = await db.getYouTubeTrack(videoId);
+      if (track != null) {
+        youtubeTracks['youtube:$videoId'] = track;
+      } else {
+        // YouTube track not found in database - log for debugging
+        print('Queue: YouTube track not found in DB: $videoId');
+      }
+    }
 
     // Create MediaItems in queue order
     final mediaItems = queueItems.map((queueItem) {
-      final song = songMap[queueItem.id];
-      if (song == null) return null;
+      final id = queueItem.id;
 
-      return MediaItem(
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-        album: song.album,
-        duration: song.duration,
-      );
-    }).whereType<MediaItem>().toList();
+      // Check if it's a YouTube track
+      if (id.startsWith('youtube:')) {
+        final youtubeTrack = youtubeTracks[id];
+        if (youtubeTrack == null) return null;
+
+        return MediaItem(
+          id: id,
+          title: youtubeTrack.title,
+          artist: youtubeTrack.artist ?? youtubeTrack.channelName,
+          album: 'YouTube',
+          duration: Duration(seconds: youtubeTrack.durationSeconds),
+          extras: {
+            'isYouTube': true,
+          },
+        );
+      } else {
+        // Local song
+        Song? song;
+        try {
+          song = localSongs.firstWhere((s) => s.id == id);
+        } catch (e) {
+          // Song not found in database
+          return null;
+        }
+
+        return MediaItem(
+          id: song.id,
+          title: song.title,
+          artist: song.artist,
+          album: song.album,
+          duration: song.duration,
+          extras: {
+            'isYouTube': false,
+          },
+        );
+      }
+    }).whereNotNull().toList();
 
     yield mediaItems;
   }
@@ -133,6 +188,7 @@ class _QueueListTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isYouTube = item.extras?['isYouTube'] == true;
 
     return Container(
       decoration: isCurrentlyPlaying
@@ -148,9 +204,10 @@ class _QueueListTile extends HookConsumerWidget {
           : null,
       child: ListTile(
         leading: SizedBox(
-          width: 56,
+          width: 72,
           child: Row(
             children: [
+              // Track position number
               SizedBox(
                 width: 24,
                 child: Text(
@@ -167,8 +224,9 @@ class _QueueListTile extends HookConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              // Playing indicator or YouTube badge
               SizedBox(
-                width: 24,
+                width: 32,
                 height: 24,
                 child: isCurrentlyPlaying
                     ? Icon(
@@ -176,7 +234,29 @@ class _QueueListTile extends HookConsumerWidget {
                         color: theme.colorScheme.primary,
                         size: 24,
                       )
-                    : null,
+                    : isYouTube
+                        ? Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.4),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                'YT',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: Colors.red.shade700,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        : null,
               ),
             ],
           ),

@@ -4,7 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
@@ -15,8 +15,10 @@ import '../../models/support.dart';
 import '../../services/settings_service.dart';
 import '../../state/init.dart';
 import '../../state/settings.dart';
+import '../../state/theme_presets.dart';
 import '../app_router.dart';
 import '../dialogs.dart';
+import '../widgets/youtube_settings_section.dart';
 
 const kHorizontalPadding = 16.0;
 
@@ -38,6 +40,21 @@ class SettingsPage extends HookConsumerWidget {
           const _Sources(),
           _SectionHeader(l.settingsNetworkName),
           const _Network(),
+          const _SectionHeader('Download Settings'),
+          const _DownloadSettings(),
+          const _SectionHeader('Discovery'),
+          const _Section(
+            children: [
+              YouTubeSettingsSection(),
+            ],
+          ),
+          const _SectionHeader('Appearance'),
+          const _Section(
+            children: [
+              _ThemePresetSelector(),
+              _DynamicColorsToggle(),
+            ],
+          ),
           _SectionHeader(l.settingsAboutName),
           _About(),
           // const _SectionHeader('Downloads'),
@@ -63,6 +80,114 @@ class SettingsPage extends HookConsumerWidget {
           // ),
         ],
       ),
+    );
+  }
+}
+
+class _ThemePresetSelector extends HookConsumerWidget {
+  const _ThemePresetSelector();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPreset = ref.watch(
+      settingsServiceProvider.select((value) => value.app.themePreset),
+    );
+    final presetConfig = getThemePreset(currentPreset);
+
+    return ListTile(
+      leading: Icon(
+        Icons.palette,
+        color: presetConfig.seedColor,
+      ),
+      title: const Text('Theme'),
+      subtitle: Text(presetConfig.name),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final value = await showDialog<String>(
+          context: context,
+          builder: (context) => _ThemePresetDialog(current: currentPreset),
+        );
+
+        if (value != null && value != currentPreset) {
+          await ref
+              .read(settingsServiceProvider.notifier)
+              .setThemePreset(value);
+        }
+      },
+    );
+  }
+}
+
+class _ThemePresetDialog extends StatelessWidget {
+  final String current;
+
+  const _ThemePresetDialog({required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Choose Theme'),
+      contentPadding: const EdgeInsets.only(top: 20),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView(
+          shrinkWrap: true,
+          children: themePresets.entries.map((entry) {
+            final key = entry.key;
+            final config = entry.value;
+            final isSelected = key == current;
+
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: config.seedColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              title: Text(config.name),
+              subtitle: Text(config.description),
+              trailing: isSelected
+                  ? Icon(Icons.check, color: config.seedColor)
+                  : null,
+              selected: isSelected,
+              onTap: () => Navigator.of(context).pop(key),
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DynamicColorsToggle extends HookConsumerWidget {
+  const _DynamicColorsToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      settingsServiceProvider.select(
+        (value) => value.app.enableDynamicColors,
+      ),
+    );
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.auto_awesome),
+      title: const Text('Dynamic Colors'),
+      subtitle: const Text('Generate colors from album artwork'),
+      value: enabled,
+      onChanged: (value) {
+        ref
+            .read(settingsServiceProvider.notifier)
+            .setEnableDynamicColors(value);
+      },
     );
   }
 }
@@ -191,7 +316,7 @@ class _ShareLogsButton extends StatelessWidget {
             final files = await logFiles();
             if (files.isEmpty) return;
 
-            // ignore: use_build_context_synchronously
+            if (!context.mounted) return;
             final value = await showDialog<String>(
               context: context,
               builder: (context) => MultipleChoiceDialog<String>(
@@ -369,6 +494,168 @@ class _OfflineMode extends HookConsumerWidget {
           : Text(l.settingsNetworkOptionsOfflineModeOff),
       onChanged: (value) {
         ref.read(offlineModeProvider.notifier).setMode(value);
+      },
+    );
+  }
+}
+
+class _DownloadSettings extends StatelessWidget {
+  const _DownloadSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _Section(
+      children: [
+        _DownloadPreference(),
+        _ThumbsUpAutoDownload(),
+        _ThumbsDownAutoDelete(),
+      ],
+    );
+  }
+}
+
+class _DownloadPreference extends HookConsumerWidget {
+  const _DownloadPreference();
+
+  String _getDownloadPrefLabel(String pref) {
+    switch (pref) {
+      case 'wifi_only':
+        return 'WiFi Only';
+      case 'any_connection':
+        return 'Any Connection';
+      case 'manual_only':
+        return 'Manual Only';
+      default:
+        return 'Any Connection';
+    }
+  }
+
+  void _showDownloadPrefDialog(BuildContext context, WidgetRef ref) {
+    final currentPref = ref.read(settingsServiceProvider).app.downloadPreference;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Download Preference'),
+        contentPadding: const EdgeInsets.only(top: 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<String>(
+              title: const Text('WiFi Only'),
+              subtitle: const Text('Download only when connected to WiFi'),
+              value: 'wifi_only',
+              groupValue: currentPref,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsServiceProvider.notifier)
+                      .setDownloadPreference(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Any Connection'),
+              subtitle: const Text('Download on WiFi or mobile data'),
+              value: 'any_connection',
+              groupValue: currentPref,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsServiceProvider.notifier)
+                      .setDownloadPreference(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Manual Only'),
+              subtitle: const Text('Never download automatically'),
+              value: 'manual_only',
+              groupValue: currentPref,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsServiceProvider.notifier)
+                      .setDownloadPreference(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final downloadPref = ref.watch(
+      settingsServiceProvider.select((value) => value.app.downloadPreference),
+    );
+
+    return ListTile(
+      leading: const Icon(Icons.download),
+      title: const Text('Download Preference'),
+      subtitle: Text(_getDownloadPrefLabel(downloadPref)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => _showDownloadPrefDialog(context, ref),
+    );
+  }
+}
+
+class _ThumbsUpAutoDownload extends HookConsumerWidget {
+  const _ThumbsUpAutoDownload();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      settingsServiceProvider.select(
+        (value) => value.app.thumbsUpAutoDownload,
+      ),
+    );
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.thumb_up),
+      title: const Text('Auto-Download Thumbs Up'),
+      subtitle: const Text('Automatically download songs you like'),
+      value: enabled,
+      onChanged: (value) {
+        ref
+            .read(settingsServiceProvider.notifier)
+            .setThumbsUpAutoDownload(value);
+      },
+    );
+  }
+}
+
+class _ThumbsDownAutoDelete extends HookConsumerWidget {
+  const _ThumbsDownAutoDelete();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      settingsServiceProvider.select(
+        (value) => value.app.thumbsDownAutoDelete,
+      ),
+    );
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.thumb_down),
+      title: const Text('Auto-Delete Thumbs Down'),
+      subtitle: const Text('Automatically remove songs you dislike'),
+      value: enabled,
+      onChanged: (value) {
+        ref
+            .read(settingsServiceProvider.notifier)
+            .setThumbsDownAutoDelete(value);
       },
     );
   }

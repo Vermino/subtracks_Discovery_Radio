@@ -6,7 +6,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../database/database.dart';
 import '../log.dart';
+import '../models/hybrid_track.dart';
 import '../models/music.dart';
+import 'youtube_cache_service.dart';
+import 'youtube_discovery_service.dart';
 
 part 'discovery_service.g.dart';
 
@@ -21,6 +24,16 @@ enum DiscoveryMode {
   final bool isOnline;
 }
 
+/// Quality filter level for YouTube content
+enum YouTubeQualityFilter {
+  /// Very strict: only official channels, VEVO, topic channels
+  strict,
+  /// Moderate: allow some high-quality user uploads
+  moderate,
+  /// Permissive: allow most music content
+  permissive,
+}
+
 /// Configuration for discovery algorithms
 class DiscoveryConfig {
   final int maxRecommendations;
@@ -31,6 +44,12 @@ class DiscoveryConfig {
   final bool avoidRecentlyPlayed;
   final Duration recentPlayedWindow;
 
+  // YouTube discovery settings
+  final bool youtubeEnabled;
+  final double youtubeRatio;
+  final YouTubeQualityFilter youtubeQualityFilter;
+  final bool youtubePreferOfficial;
+
   const DiscoveryConfig({
     this.maxRecommendations = 50,
     this.artistSimilarityWeight = 0.35,
@@ -39,6 +58,11 @@ class DiscoveryConfig {
     this.metadataCorrelationWeight = 0.10,
     this.avoidRecentlyPlayed = true,
     this.recentPlayedWindow = const Duration(hours: 2),
+    // YouTube settings - disabled by default due to unreliable Invidious instances
+    this.youtubeEnabled = false, // Set to true in user settings if Invidious works
+    this.youtubeRatio = 0.3, // 30% YouTube content
+    this.youtubeQualityFilter = YouTubeQualityFilter.strict,
+    this.youtubePreferOfficial = true,
   });
 
   /// Ensure all weights sum to 1.0
@@ -58,6 +82,39 @@ class DiscoveryConfig {
       metadataCorrelationWeight: metadataCorrelationWeight / totalWeight,
       avoidRecentlyPlayed: avoidRecentlyPlayed,
       recentPlayedWindow: recentPlayedWindow,
+      youtubeEnabled: youtubeEnabled,
+      youtubeRatio: youtubeRatio,
+      youtubeQualityFilter: youtubeQualityFilter,
+      youtubePreferOfficial: youtubePreferOfficial,
+    );
+  }
+
+  /// Copy with method for updating config
+  DiscoveryConfig copyWith({
+    int? maxRecommendations,
+    double? artistSimilarityWeight,
+    double? genreSimilarityWeight,
+    double? userPreferenceWeight,
+    double? metadataCorrelationWeight,
+    bool? avoidRecentlyPlayed,
+    Duration? recentPlayedWindow,
+    bool? youtubeEnabled,
+    double? youtubeRatio,
+    YouTubeQualityFilter? youtubeQualityFilter,
+    bool? youtubePreferOfficial,
+  }) {
+    return DiscoveryConfig(
+      maxRecommendations: maxRecommendations ?? this.maxRecommendations,
+      artistSimilarityWeight: artistSimilarityWeight ?? this.artistSimilarityWeight,
+      genreSimilarityWeight: genreSimilarityWeight ?? this.genreSimilarityWeight,
+      userPreferenceWeight: userPreferenceWeight ?? this.userPreferenceWeight,
+      metadataCorrelationWeight: metadataCorrelationWeight ?? this.metadataCorrelationWeight,
+      avoidRecentlyPlayed: avoidRecentlyPlayed ?? this.avoidRecentlyPlayed,
+      recentPlayedWindow: recentPlayedWindow ?? this.recentPlayedWindow,
+      youtubeEnabled: youtubeEnabled ?? this.youtubeEnabled,
+      youtubeRatio: youtubeRatio ?? this.youtubeRatio,
+      youtubeQualityFilter: youtubeQualityFilter ?? this.youtubeQualityFilter,
+      youtubePreferOfficial: youtubePreferOfficial ?? this.youtubePreferOfficial,
     );
   }
 }
@@ -302,15 +359,23 @@ class DiscoveryService extends _$DiscoveryService {
   /// Build a complete discovery playlist based on a seed song
   /// If sessionId is provided, uses existing session for personalization.
   /// If sessionId is null, creates a new session (used when creating new stations).
+  ///
+  /// **IMPORTANT**: For offline mode stations, this uses the FULL song pool for recommendations,
+  /// not just downloaded songs. The auto-download service will download the recommended songs
+  /// after playlist creation. This ensures offline stations have proper variety and aren't
+  /// limited to just the seed song.
   Future<List<Song>> buildDiscoveryPlaylist(
     Song seedSong, {
     bool includeOfflineOnly = false,
     int playlistSize = 50,
     int? sessionId,
   }) async {
-    final mode = includeOfflineOnly ? DiscoveryMode.offline : DiscoveryMode.online;
+    // CRITICAL: Always use online mode for recommendation generation
+    // Offline mode only affects which songs get auto-downloaded, not playlist generation
+    // This prevents the "0 candidates" issue when creating offline stations
+    final mode = DiscoveryMode.online;
 
-    log.info('Building discovery playlist: ${includeOfflineOnly ? "offline" : "online"} mode, sessionId: $sessionId');
+    log.info('Building discovery playlist: ${includeOfflineOnly ? "offline station (full library recommendations)" : "online"} mode, sessionId: $sessionId');
 
     try {
       // Use provided sessionId or create a new one
@@ -323,7 +388,7 @@ class DiscoveryService extends _$DiscoveryService {
           seedSongId: seedSong.id,
           seedArtist: seedSong.artist,
           seedGenre: seedSong.genre,
-          mode: mode.isOnline ? 'online' : 'offline',
+          mode: includeOfflineOnly ? 'offline' : 'online',
           playlistSize: playlistSize,
         );
         log.fine('Created new discovery session: $_currentSessionId');
@@ -341,6 +406,14 @@ class DiscoveryService extends _$DiscoveryService {
       final playlist = [seedSong, ...recommendations];
 
       log.info('Built discovery playlist with ${playlist.length} songs (including seed)');
+
+      // Log download status for offline stations
+      if (includeOfflineOnly) {
+        final downloadedCount = playlist.where((s) => s.downloadFilePath != null).length;
+        final needDownloadCount = playlist.length - downloadedCount;
+        log.info('Offline station: $downloadedCount already downloaded, $needDownloadCount need downloading');
+      }
+
       return playlist;
     } catch (e, stackTrace) {
       log.severe('Error building discovery playlist', e, stackTrace);
@@ -499,7 +572,6 @@ class DiscoveryService extends _$DiscoveryService {
     if (seedSong.artistId == null || candidateSong.artistId == null) return 0.0;
 
     // Check cache first
-    final cacheKey = '${seedSong.artistId}-${candidateSong.artistId}';
     if (_artistSimilarityCache.containsKey(seedSong.artistId!) &&
         _artistSimilarityCache[seedSong.artistId!]!.containsKey(candidateSong.artistId!)) {
       return _artistSimilarityCache[seedSong.artistId!]![candidateSong.artistId!]!;
@@ -653,6 +725,66 @@ class DiscoveryService extends _$DiscoveryService {
     return factors > 0 ? similarity : 0.0;
   }
 
+  /// Normalize a track signature for duplicate detection
+  ///
+  /// Creates a normalized string from artist + title that can be used
+  /// to match tracks across different sources (local vs YouTube).
+  ///
+  /// Normalization includes:
+  /// - Convert to lowercase
+  /// - Remove common suffixes (official audio, official video, etc.)
+  /// - Remove special characters and extra whitespace
+  /// - Trim whitespace
+  ///
+  /// This helps match tracks like:
+  /// - "Radiohead - Creep" (local) vs "Radiohead - Creep (Official Video)" (YouTube)
+  /// - "Pink Floyd - Wish You Were Here" vs "Pink Floyd - Wish You Were Here Official Audio"
+  String _normalizeTrackSignature(String artist, String title) {
+    // Normalize artist
+    var normalizedArtist = artist.toLowerCase().trim();
+
+    // Normalize title - remove common YouTube suffixes
+    var normalizedTitle = title.toLowerCase().trim();
+
+    // Remove common suffixes
+    final suffixesToRemove = [
+      'official video',
+      'official music video',
+      'official audio',
+      'official lyric video',
+      '(official video)',
+      '(official music video)',
+      '(official audio)',
+      '(official lyric video)',
+      '[official video]',
+      '[official music video]',
+      '[official audio]',
+      'music video',
+      'lyric video',
+      '(music video)',
+      '(lyric video)',
+      '- official',
+      'official',
+    ];
+
+    for (final suffix in suffixesToRemove) {
+      if (normalizedTitle.endsWith(suffix)) {
+        normalizedTitle = normalizedTitle.substring(0, normalizedTitle.length - suffix.length).trim();
+      }
+    }
+
+    // Remove special characters except spaces and hyphens
+    normalizedArtist = normalizedArtist.replaceAll(RegExp(r'[^\w\s\-]'), '');
+    normalizedTitle = normalizedTitle.replaceAll(RegExp(r'[^\w\s\-]'), '');
+
+    // Collapse multiple spaces
+    normalizedArtist = normalizedArtist.replaceAll(RegExp(r'\s+'), ' ').trim();
+    normalizedTitle = normalizedTitle.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    // Combine into signature
+    return '$normalizedArtist|$normalizedTitle';
+  }
+
   /// Apply smart sampling to balance quality recommendations with diversity
   List<WeightedSong> _applySmartSampling(List<WeightedSong> candidates, int limit) {
     if (candidates.length <= limit) return candidates;
@@ -700,5 +832,374 @@ class DiscoveryService extends _$DiscoveryService {
     }
 
     return result;
+  }
+
+  // ==========================================================================
+  // HYBRID DISCOVERY (YouTube + Local)
+  // ==========================================================================
+
+  /// Generate YouTube recommendations based on local song recommendations
+  ///
+  /// This searches YouTube for similar music based on artists and genres
+  /// from the local recommendations, then filters for quality.
+  ///
+  /// Parameters:
+  /// - [seedSong]: The seed song for discovery
+  /// - [localRecommendations]: Local songs to base YouTube searches on
+  /// - [limit]: Maximum number of YouTube tracks to return
+  /// - [config]: Discovery configuration with YouTube settings
+  ///
+  /// Returns list of YouTube tracks as HybridTracks
+  Future<List<HybridTrack>> generateYouTubeRecommendations(
+    Song seedSong,
+    List<Song> localRecommendations, {
+    int limit = 15,
+    DiscoveryConfig config = const DiscoveryConfig(),
+  }) async {
+    try {
+      log.info('Generating YouTube recommendations (limit: $limit)');
+
+      final youtubeService = ref.read(youTubeDiscoveryServiceProvider.notifier);
+
+      final youtubeTracks = <HybridTrack>[];
+      final seenVideoIds = <String>{};
+
+      // Build a set of locally-owned tracks for duplicate detection
+      // We'll check artist + title (normalized) to find matches
+      final localTrackSignatures = <String>{};
+      try {
+        final allLocalSongs = await _getSongPool(seedSong.sourceId, DiscoveryMode.online);
+        for (final song in allLocalSongs) {
+          if (song.artist != null && song.title != null) {
+            // Normalize artist + title for matching
+            final signature = _normalizeTrackSignature(song.artist!, song.title!);
+            localTrackSignatures.add(signature);
+          }
+        }
+        log.fine('Loaded ${localTrackSignatures.length} local track signatures for duplicate detection');
+      } catch (e) {
+        log.warning('Failed to load local tracks for duplicate detection: $e');
+        // Continue without duplicate detection
+      }
+
+      // Extract top artists from local recommendations
+      final artistCounts = <String, int>{};
+      for (final song in localRecommendations.take(10)) {
+        if (song.artist != null) {
+          artistCounts[song.artist!] = (artistCounts[song.artist!] ?? 0) + 1;
+        }
+      }
+
+      // Sort artists by frequency
+      final topArtists = artistCounts.entries
+          .sorted((a, b) => b.value.compareTo(a.value))
+          .take(5)
+          .map((e) => e.key)
+          .toList();
+
+      log.fine('Top artists for YouTube search: $topArtists');
+
+      // Extract prevalent genres
+      final genreCounts = <String, int>{};
+      for (final song in localRecommendations.take(10)) {
+        if (song.genre != null) {
+          genreCounts[song.genre!] = (genreCounts[song.genre!] ?? 0) + 1;
+        }
+      }
+
+      final topGenres = genreCounts.entries
+          .where((e) => e.value >= 2) // At least 2 occurrences
+          .sorted((a, b) => b.value.compareTo(a.value))
+          .take(3)
+          .map((e) => e.key)
+          .toList();
+
+      log.fine('Top genres for YouTube search: $topGenres');
+
+      // Search YouTube for each top artist
+      for (final artist in topArtists) {
+        if (youtubeTracks.length >= limit) break;
+
+        try {
+          // Build search query
+          final query = topGenres.isNotEmpty
+              ? '$artist ${topGenres.first} official audio'
+              : '$artist official audio';
+
+          final results = await youtubeService.searchMusic(query, limit: 5);
+
+          // Apply quality filtering
+          final strictFilter = config.youtubeQualityFilter == YouTubeQualityFilter.strict;
+          final filteredResults = youtubeService.filterByQuality(
+            results,
+            strictFilter: strictFilter,
+            preferOfficial: config.youtubePreferOfficial,
+          );
+
+          log.fine('YouTube search "$query": ${filteredResults.length} quality results');
+
+          // Convert to HybridTracks and deduplicate
+          // NOTE: We don't cache tracks here - they will be cached lazily when about to play
+          for (final result in filteredResults) {
+            if (youtubeTracks.length >= limit) break;
+            if (seenVideoIds.contains(result.videoId)) continue;
+
+            // DUPLICATE DETECTION: Skip if user already owns this track locally
+            final youtubeSignature = _normalizeTrackSignature(result.author, result.title);
+            if (localTrackSignatures.contains(youtubeSignature)) {
+              log.fine('Skipping duplicate track: ${result.author} - ${result.title} (already owned locally)');
+              continue;
+            }
+
+            seenVideoIds.add(result.videoId);
+            youtubeTracks.add(HybridTrackFactory.fromYouTubeSearchResult(result));
+          }
+
+          // Small delay to avoid rate limiting
+          await Future.delayed(const Duration(milliseconds: 200));
+        } catch (e) {
+          log.warning('Failed YouTube search for artist "$artist": $e');
+          continue;
+        }
+      }
+
+      // If we still need more tracks, search by genre
+      if (youtubeTracks.length < limit && topGenres.isNotEmpty) {
+        for (final genre in topGenres) {
+          if (youtubeTracks.length >= limit) break;
+
+          try {
+            final query = '$genre music official';
+            final results = await youtubeService.searchMusic(query, limit: 5);
+
+            final strictFilter = config.youtubeQualityFilter == YouTubeQualityFilter.strict;
+            final filteredResults = youtubeService.filterByQuality(
+              results,
+              strictFilter: strictFilter,
+              preferOfficial: config.youtubePreferOfficial,
+            );
+
+            // Convert to HybridTracks (lazy caching - done when about to play)
+            for (final result in filteredResults) {
+              if (youtubeTracks.length >= limit) break;
+              if (seenVideoIds.contains(result.videoId)) continue;
+
+              // DUPLICATE DETECTION: Skip if user already owns this track locally
+              final youtubeSignature = _normalizeTrackSignature(result.author, result.title);
+              if (localTrackSignatures.contains(youtubeSignature)) {
+                log.fine('Skipping duplicate track: ${result.author} - ${result.title} (already owned locally)');
+                continue;
+              }
+
+              seenVideoIds.add(result.videoId);
+              youtubeTracks.add(HybridTrackFactory.fromYouTubeSearchResult(result));
+            }
+
+            await Future.delayed(const Duration(milliseconds: 200));
+          } catch (e) {
+            log.warning('Failed YouTube search for genre "$genre": $e');
+            continue;
+          }
+        }
+      }
+
+      log.info('Generated ${youtubeTracks.length} YouTube recommendations');
+      return youtubeTracks;
+    } catch (e, stackTrace) {
+      log.severe('Error generating YouTube recommendations', e, stackTrace);
+      return [];
+    }
+  }
+
+  /// Blend local and YouTube tracks into a hybrid playlist
+  ///
+  /// Uses weighted interleaving to distribute YouTube tracks evenly
+  /// throughout the playlist while maintaining the configured ratio.
+  ///
+  /// Parameters:
+  /// - [localTracks]: Local song recommendations
+  /// - [youtubeTracks]: YouTube track recommendations
+  /// - [youtubeRatio]: Ratio of YouTube content (0.0 to 1.0)
+  ///
+  /// Returns blended list of HybridTracks
+  List<HybridTrack> blendTracks(
+    List<Song> localTracks,
+    List<HybridTrack> youtubeTracks,
+    double youtubeRatio,
+  ) {
+    try {
+      log.info('Blending ${localTracks.length} local + ${youtubeTracks.length} YouTube tracks (ratio: $youtubeRatio)');
+
+      if (youtubeTracks.isEmpty) {
+        // No YouTube tracks, return all local
+        return HybridTrackFactory.fromSongs(localTracks);
+      }
+
+      if (localTracks.isEmpty) {
+        // No local tracks, return all YouTube
+        return youtubeTracks;
+      }
+
+      final blended = <HybridTrack>[];
+      final totalTracks = localTracks.length;
+      final youtubeCount = (totalTracks * youtubeRatio).round().clamp(0, youtubeTracks.length);
+      final localCount = totalTracks - youtubeCount;
+
+      log.fine('Target blend: $localCount local + $youtubeCount YouTube = $totalTracks total');
+
+      // Calculate interleave pattern
+      // Example for 70/30 (7 local, 3 YouTube): L L L Y L L L Y L L
+      final localPerYoutube = youtubeCount > 0 ? (localCount / youtubeCount).round() : localCount;
+
+      int localIndex = 0;
+      int youtubeIndex = 0;
+      int localStreak = 0;
+
+      while (blended.length < totalTracks) {
+        // Add local tracks
+        if (localIndex < localCount &&
+            (localStreak < localPerYoutube || youtubeIndex >= youtubeCount)) {
+          blended.add(HybridTrack.local(song: localTracks[localIndex++]));
+          localStreak++;
+        }
+        // Add YouTube track
+        else if (youtubeIndex < youtubeCount) {
+          blended.add(youtubeTracks[youtubeIndex++]);
+          localStreak = 0;
+        }
+        // Fill remaining with local if YouTube exhausted
+        else if (localIndex < localCount) {
+          blended.add(HybridTrack.local(song: localTracks[localIndex++]));
+        } else {
+          break; // Both exhausted
+        }
+      }
+
+      final actualLocalCount = blended.where((t) => t.isLocal).length;
+      final actualYouTubeCount = blended.where((t) => t.isYouTube).length;
+      log.info('Final blend: $actualLocalCount local + $actualYouTubeCount YouTube = ${blended.length} total');
+
+      return blended;
+    } catch (e, stackTrace) {
+      log.severe('Error blending tracks', e, stackTrace);
+      // Fallback: return all local tracks
+      return HybridTrackFactory.fromSongs(localTracks);
+    }
+  }
+
+  /// Build a hybrid discovery playlist with YouTube integration
+  ///
+  /// Generates local recommendations, searches YouTube for similar content,
+  /// filters for quality, and blends them according to the configured ratio.
+  ///
+  /// Parameters:
+  /// - [seedSong]: The seed song for discovery
+  /// - [includeOfflineOnly]: If true, marks this as an offline station (downloads will be triggered)
+  /// - [playlistSize]: Target size of the playlist
+  /// - [config]: Discovery configuration with YouTube settings
+  /// - [sessionId]: Discovery session ID for tracking
+  ///
+  /// Returns hybrid playlist of local and YouTube tracks
+  ///
+  /// **IMPORTANT**: For offline mode stations, this uses the FULL song pool for recommendations,
+  /// not just downloaded songs. The auto-download service will download the recommended songs
+  /// after playlist creation. This ensures offline stations have proper variety.
+  Future<List<HybridTrack>> buildHybridDiscoveryPlaylist(
+    Song seedSong, {
+    bool includeOfflineOnly = false,
+    int playlistSize = 50,
+    DiscoveryConfig config = const DiscoveryConfig(),
+    int? sessionId,
+  }) async {
+    try {
+      log.info('Building hybrid discovery playlist (size: $playlistSize, YouTube: ${config.youtubeEnabled}, offline: $includeOfflineOnly)');
+
+      // Check if YouTube is enabled
+      if (!config.youtubeEnabled) {
+        log.fine('YouTube disabled, using local-only playlist');
+        final localSongs = await buildDiscoveryPlaylist(
+          seedSong,
+          includeOfflineOnly: includeOfflineOnly,
+          playlistSize: playlistSize,
+          sessionId: sessionId,
+        );
+        return HybridTrackFactory.fromSongs(localSongs);
+      }
+
+      // Skip service availability check - let individual requests fail gracefully
+      // This allows offline work and graceful degradation
+      final youtubeService = ref.read(youTubeDiscoveryServiceProvider.notifier);
+      log.info('YouTube discovery enabled - will attempt search (may fail gracefully if service unavailable)');
+
+      // CRITICAL: Always use online mode for recommendation generation
+      // Offline mode only affects which songs get auto-downloaded, not playlist generation
+      // This prevents the "0 candidates" issue when creating offline stations
+      final mode = DiscoveryMode.online;
+
+      // Calculate how many local vs YouTube tracks we need
+      final youtubeCount = (playlistSize * config.youtubeRatio).round();
+      final localCount = playlistSize - youtubeCount;
+
+      log.fine('Target: $localCount local + $youtubeCount YouTube tracks');
+
+      // Generate local recommendations (excluding seed song)
+      final localRecommendations = await generateSimilarSongs(
+        seedSong,
+        limit: localCount,
+        mode: mode,
+        config: config,
+        sessionId: sessionId,
+      );
+
+      log.fine('Generated ${localRecommendations.length} local recommendations');
+
+      // Log download status for offline stations
+      if (includeOfflineOnly) {
+        final downloadedCount = localRecommendations.where((s) => s.downloadFilePath != null).length;
+        final needDownloadCount = localRecommendations.length - downloadedCount;
+        log.info('Offline station local tracks: $downloadedCount already downloaded, $needDownloadCount need downloading');
+      }
+
+      // Generate YouTube recommendations based on local tracks
+      final youtubeRecommendations = await generateYouTubeRecommendations(
+        seedSong,
+        localRecommendations,
+        limit: youtubeCount,
+        config: config,
+      );
+
+      log.fine('Generated ${youtubeRecommendations.length} YouTube recommendations');
+
+      // Blend the tracks
+      final blendedTracks = blendTracks(
+        localRecommendations,
+        youtubeRecommendations,
+        config.youtubeRatio,
+      );
+
+      // Add seed song at the beginning
+      final playlist = [
+        HybridTrack.local(song: seedSong),
+        ...blendedTracks,
+      ];
+
+      log.info('Built hybrid playlist with ${playlist.length} tracks '
+          '(${playlist.where((t) => t.isLocal).length} local, '
+          '${playlist.where((t) => t.isYouTube).length} YouTube)');
+
+      return playlist;
+    } catch (e, stackTrace) {
+      log.severe('Error building hybrid discovery playlist', e, stackTrace);
+
+      // Fallback to local-only on any error
+      log.warning('Falling back to local-only playlist due to error');
+      final localSongs = await buildDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: includeOfflineOnly,
+        playlistSize: playlistSize,
+        sessionId: sessionId,
+      );
+      return HybridTrackFactory.fromSongs(localSongs);
+    }
   }
 }

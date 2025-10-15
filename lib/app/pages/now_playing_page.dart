@@ -16,10 +16,12 @@ import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../state/audio.dart';
 import '../../state/music.dart';
+import '../../state/settings.dart';
 import '../../state/theme.dart';
 import '../app_router.dart';
 import '../images.dart';
 import '../widgets/rating_buttons.dart';
+import '../widgets/youtube_badge.dart';
 import '../context_menus.dart';
 import '../gradient.dart';
 import '../now_playing_bar.dart';
@@ -30,6 +32,7 @@ class NowPlayingPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final itemData = ref.watch(mediaItemDataProvider);
     final audioControl = ref.watch(audioControlProvider);
 
@@ -37,7 +40,7 @@ class NowPlayingPage extends HookConsumerWidget {
 
     final scaffold = AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
-        systemNavigationBarColor: colors?.gradientLow,
+        systemNavigationBarColor: colors?.gradientLow ?? base.gradientLow,
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
@@ -63,13 +66,13 @@ class NowPlayingPage extends HookConsumerWidget {
             ],
           ],
         ),
-        body: Stack(
+        body: const Stack(
           children: [
-            const MediaItemGradient(),
+            MediaItemGradient(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Column(
-                children: const [
+                children: [
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -96,7 +99,9 @@ class NowPlayingPage extends HookConsumerWidget {
       ),
     );
 
-    if (colors != null) {
+    // Only wrap with dynamic theme if colors are available
+    // The mediaItemThemeProvider already checks enableDynamicColors setting
+    if (colors != null && colors != base) {
       return Theme(data: colors.theme, child: scaffold);
     } else {
       return scaffold;
@@ -174,6 +179,9 @@ class _TrackInfo extends HookConsumerWidget {
     final audioControl = ref.watch(audioControlProvider);
     final theme = Theme.of(context);
 
+    // Check if this is a YouTube track
+    final isYouTube = item?.extras?['isYouTube'] == true;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,34 +196,48 @@ class _TrackInfo extends HookConsumerWidget {
                     style: theme.textTheme.headlineSmall,
                     speed: 50,
                   ),
-                  Text(
-                    item?.artist ?? '',
-                    style: theme.textTheme.titleMedium!,
-                    maxLines: 1,
-                    softWrap: false,
-                    overflow: TextOverflow.fade,
+                  // Artist name with YouTube badge
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item?.artist ?? '',
+                          style: theme.textTheme.titleMedium!,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.fade,
+                        ),
+                      ),
+                      if (isYouTube) ...[
+                        const SizedBox(width: 8),
+                        const YouTubeBadge(
+                          isYouTube: true,
+                          size: YouTubeBadgeSize.normal,
+                        ),
+                      ],
+                    ],
                   ),
+                  // Source label for YouTube tracks
+                  if (isYouTube)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Streaming from YouTube',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.red.shade700,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             // Rating buttons for the currently playing song
             if (item?.id != null)
-              ref.watch(songProvider(item!.id)).when(
-                data: (song) {
-                  // Use station-specific ratings if playing discovery station
-                  final stationId = itemData?.contextType == QueueContextType.discovery
-                      ? audioControl.currentDiscoverySessionId
-                      : null;
-
-                  return SongRatingButtons(
-                    song: song,
-                    size: 32,
-                    showBoth: true, // Show both thumbs up and thumbs down
-                    stationId: stationId, // Pass station ID for station-specific ratings
-                  );
-                },
-                loading: () => const SizedBox(width: 80, height: 32),
-                error: (_, __) => const SizedBox(width: 80, height: 32),
+              _RatingButtonsForCurrentTrack(
+                mediaItem: item!,
+                itemData: itemData,
+                audioControl: audioControl,
               )
             else
               const SizedBox(width: 80, height: 32),
@@ -277,6 +299,7 @@ class _Progress extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final position = ref.watch(positionProvider);
     final duration = ref.watch(durationProvider);
     final audio = ref.watch(audioControlProvider);
@@ -284,15 +307,18 @@ class _Progress extends HookConsumerWidget {
     final changeValue = useState(position.toDouble());
     final changing = useState(false);
 
+    // Use onSurface for better visibility on dark backgrounds
+    final sliderColor = colors?.theme.colorScheme.onSurface ?? base.theme.colorScheme.onSurface;
+
     return Column(
       children: [
         Slider(
           value: changing.value ? changeValue.value : position.toDouble(),
           min: 0,
           max: max(duration.toDouble(), position.toDouble()),
-          thumbColor: colors?.theme.colorScheme.onBackground,
-          activeColor: colors?.theme.colorScheme.onBackground,
-          inactiveColor: colors?.theme.colorScheme.surface,
+          thumbColor: sliderColor,
+          activeColor: sliderColor,
+          inactiveColor: sliderColor,
           onChanged: (value) {
             changeValue.value = value;
           },
@@ -411,11 +437,16 @@ class _Controls extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
     final base = ref.watch(baseThemeProvider);
     final audio = ref.watch(audioControlProvider);
 
+    // Use a bright color that contrasts well with dark backgrounds
+    final iconColor = colors?.theme.colorScheme.onSurface ??
+                     base.theme.colorScheme.onSurface;
+
     return IconTheme(
-      data: IconThemeData(color: base.theme.colorScheme.onBackground),
+      data: IconThemeData(color: iconColor),
       child: Column(
         children: [
           SizedBox(
@@ -716,6 +747,68 @@ class _DiscoveryStationTitle extends HookConsumerWidget {
         );
       },
     );
+  }
+}
+
+/// Widget that handles rating buttons for both local and YouTube tracks
+class _RatingButtonsForCurrentTrack extends HookConsumerWidget {
+  final MediaItem mediaItem;
+  final MediaItemData? itemData;
+  final AudioControl audioControl;
+
+  const _RatingButtonsForCurrentTrack({
+    required this.mediaItem,
+    required this.itemData,
+    required this.audioControl,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isYouTube = mediaItem.extras?['isYouTube'] == true;
+
+    if (isYouTube) {
+      // YouTube track - create a synthetic Song object from MediaItem
+      final youtubeSong = Song(
+        sourceId: ref.watch(sourceIdProvider),
+        id: mediaItem.id,
+        title: mediaItem.title,
+        artist: mediaItem.artist,
+        album: mediaItem.album,
+        duration: mediaItem.duration,
+        userRating: UserRating.unrated, // YouTube tracks don't have persisted ratings
+      );
+
+      // Use station-specific ratings if playing discovery station
+      final stationId = itemData?.contextType == QueueContextType.discovery
+          ? audioControl.currentDiscoverySessionId
+          : null;
+
+      return SongRatingButtons(
+        song: youtubeSong,
+        size: 32,
+        showBoth: true, // Show both thumbs up and thumbs down
+        stationId: stationId, // Pass station ID for station-specific ratings
+      );
+    } else {
+      // Local track - use the song provider
+      return ref.watch(songProvider(mediaItem.id)).when(
+        data: (song) {
+          // Use station-specific ratings if playing discovery station
+          final stationId = itemData?.contextType == QueueContextType.discovery
+              ? audioControl.currentDiscoverySessionId
+              : null;
+
+          return SongRatingButtons(
+            song: song,
+            size: 32,
+            showBoth: true, // Show both thumbs up and thumbs down
+            stationId: stationId, // Pass station ID for station-specific ratings
+          );
+        },
+        loading: () => const SizedBox(width: 80, height: 32),
+        error: (_, __) => const SizedBox(width: 80, height: 32),
+      );
+    }
   }
 }
 

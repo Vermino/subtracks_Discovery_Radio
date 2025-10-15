@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../database/database.dart';
@@ -13,6 +13,7 @@ import '../models/music.dart';
 import '../services/audio_service.dart';
 import '../services/cache_service.dart';
 import '../services/discovery_service.dart';
+import '../services/settings_service.dart';
 import '../state/theme.dart';
 import 'app_router.dart';
 import 'hooks/use_download_actions.dart';
@@ -29,7 +30,7 @@ Future<T?> showContextMenu<T>({
   required WidgetBuilder builder,
 }) {
   return showModalBottomSheet<T>(
-    backgroundColor: ref.read(baseThemeProvider).theme.colorScheme.background,
+    backgroundColor: ref.read(baseThemeProvider).theme.colorScheme.surface,
     useRootNavigator: true,
     isScrollControlled: true,
     context: context,
@@ -410,11 +411,21 @@ class _PlayDiscoveryRadio extends HookConsumerWidget {
       icon: const Icon(Icons.explore),
       onTap: () async {
         final audioControl = ref.read(audioControlProvider);
+        final settings = ref.read(settingsServiceProvider);
         Navigator.of(context).pop(); // Close context menu
 
-        await audioControl.playDiscoveryRadio(
+        // Use hybrid discovery with YouTube integration if enabled
+        await audioControl.playHybridDiscoveryRadio(
           seedSong: song,
-          mode: DiscoveryMode.online, // Default to online, can be made configurable later
+          mode: DiscoveryMode.online,
+          config: DiscoveryConfig(
+            youtubeEnabled: settings.app.youtubeDiscoveryEnabled,
+            youtubeRatio: settings.app.youtubeDiscoveryRatio,
+            youtubeQualityFilter: YouTubeQualityFilter.values.byName(
+              settings.app.youtubeQualityFilter,
+            ),
+            youtubePreferOfficial: settings.app.youtubePreferOfficial,
+          ),
         );
       },
     );
@@ -462,6 +473,7 @@ class _PlayAlbumRadio extends HookConsumerWidget {
       icon: const Icon(Icons.explore),
       onTap: () async {
         final audioControl = ref.read(audioControlProvider);
+        final settings = ref.read(settingsServiceProvider);
         Navigator.of(context).pop(); // Close context menu
 
         // Get first song from album as seed
@@ -472,9 +484,18 @@ class _PlayAlbumRadio extends HookConsumerWidget {
         ).get();
 
         if (songs.isNotEmpty) {
-          await audioControl.playDiscoveryRadio(
+          // Use hybrid discovery with YouTube integration if enabled
+          await audioControl.playHybridDiscoveryRadio(
             seedSong: songs.first,
             mode: DiscoveryMode.online,
+            config: DiscoveryConfig(
+              youtubeEnabled: settings.app.youtubeDiscoveryEnabled,
+              youtubeRatio: settings.app.youtubeDiscoveryRatio,
+              youtubeQualityFilter: YouTubeQualityFilter.values.byName(
+                settings.app.youtubeQualityFilter,
+              ),
+              youtubePreferOfficial: settings.app.youtubePreferOfficial,
+            ),
           );
         }
       },

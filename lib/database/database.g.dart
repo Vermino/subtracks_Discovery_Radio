@@ -1173,9 +1173,102 @@ class AppSettingsTable extends Table
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _youtubeDiscoveryEnabledMeta =
+      const VerificationMeta('youtubeDiscoveryEnabled');
+  late final GeneratedColumn<bool> youtubeDiscoveryEnabled =
+      GeneratedColumn<bool>('youtube_discovery_enabled', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          $customConstraints: 'NOT NULL DEFAULT 0',
+          defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _youtubeDiscoveryRatioMeta =
+      const VerificationMeta('youtubeDiscoveryRatio');
+  late final GeneratedColumn<double> youtubeDiscoveryRatio =
+      GeneratedColumn<double>('youtube_discovery_ratio', aliasedName, false,
+          type: DriftSqlType.double,
+          requiredDuringInsert: false,
+          $customConstraints: 'NOT NULL DEFAULT 0.3',
+          defaultValue: const CustomExpression('0.3'));
+  static const VerificationMeta _youtubeQualityFilterMeta =
+      const VerificationMeta('youtubeQualityFilter');
+  late final GeneratedColumn<String> youtubeQualityFilter =
+      GeneratedColumn<String>('youtube_quality_filter', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NOT NULL DEFAULT \'moderate\'',
+          defaultValue: const CustomExpression('\'moderate\''));
+  static const VerificationMeta _youtubePreferOfficialMeta =
+      const VerificationMeta('youtubePreferOfficial');
+  late final GeneratedColumn<bool> youtubePreferOfficial =
+      GeneratedColumn<bool>('youtube_prefer_official', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          $customConstraints: 'NOT NULL DEFAULT 1',
+          defaultValue: const CustomExpression('1'));
+  static const VerificationMeta _themePresetMeta =
+      const VerificationMeta('themePreset');
+  late final GeneratedColumn<String> themePreset = GeneratedColumn<String>(
+      'theme_preset', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT \'subtracks\'',
+      defaultValue: const CustomExpression('\'subtracks\''));
+  static const VerificationMeta _enableDynamicColorsMeta =
+      const VerificationMeta('enableDynamicColors');
+  late final GeneratedColumn<bool> enableDynamicColors = GeneratedColumn<bool>(
+      'enable_dynamic_colors', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 1',
+      defaultValue: const CustomExpression('1'));
+  static const VerificationMeta _customSeedColorMeta =
+      const VerificationMeta('customSeedColor');
+  late final GeneratedColumn<int> customSeedColor = GeneratedColumn<int>(
+      'custom_seed_color', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _downloadPreferenceMeta =
+      const VerificationMeta('downloadPreference');
+  late final GeneratedColumn<String> downloadPreference =
+      GeneratedColumn<String>('download_preference', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NOT NULL DEFAULT \'any_connection\'',
+          defaultValue: const CustomExpression('\'any_connection\''));
+  static const VerificationMeta _thumbsUpAutoDownloadMeta =
+      const VerificationMeta('thumbsUpAutoDownload');
+  late final GeneratedColumn<bool> thumbsUpAutoDownload = GeneratedColumn<bool>(
+      'thumbs_up_auto_download', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _thumbsDownAutoDeleteMeta =
+      const VerificationMeta('thumbsDownAutoDelete');
+  late final GeneratedColumn<bool> thumbsDownAutoDelete = GeneratedColumn<bool>(
+      'thumbs_down_auto_delete', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, maxBitrateWifi, maxBitrateMobile, streamFormat];
+  List<GeneratedColumn> get $columns => [
+        id,
+        maxBitrateWifi,
+        maxBitrateMobile,
+        streamFormat,
+        youtubeDiscoveryEnabled,
+        youtubeDiscoveryRatio,
+        youtubeQualityFilter,
+        youtubePreferOfficial,
+        themePreset,
+        enableDynamicColors,
+        customSeedColor,
+        downloadPreference,
+        thumbsUpAutoDownload,
+        thumbsDownAutoDelete
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1211,6 +1304,67 @@ class AppSettingsTable extends Table
           streamFormat.isAcceptableOrUnknown(
               data['stream_format']!, _streamFormatMeta));
     }
+    if (data.containsKey('youtube_discovery_enabled')) {
+      context.handle(
+          _youtubeDiscoveryEnabledMeta,
+          youtubeDiscoveryEnabled.isAcceptableOrUnknown(
+              data['youtube_discovery_enabled']!,
+              _youtubeDiscoveryEnabledMeta));
+    }
+    if (data.containsKey('youtube_discovery_ratio')) {
+      context.handle(
+          _youtubeDiscoveryRatioMeta,
+          youtubeDiscoveryRatio.isAcceptableOrUnknown(
+              data['youtube_discovery_ratio']!, _youtubeDiscoveryRatioMeta));
+    }
+    if (data.containsKey('youtube_quality_filter')) {
+      context.handle(
+          _youtubeQualityFilterMeta,
+          youtubeQualityFilter.isAcceptableOrUnknown(
+              data['youtube_quality_filter']!, _youtubeQualityFilterMeta));
+    }
+    if (data.containsKey('youtube_prefer_official')) {
+      context.handle(
+          _youtubePreferOfficialMeta,
+          youtubePreferOfficial.isAcceptableOrUnknown(
+              data['youtube_prefer_official']!, _youtubePreferOfficialMeta));
+    }
+    if (data.containsKey('theme_preset')) {
+      context.handle(
+          _themePresetMeta,
+          themePreset.isAcceptableOrUnknown(
+              data['theme_preset']!, _themePresetMeta));
+    }
+    if (data.containsKey('enable_dynamic_colors')) {
+      context.handle(
+          _enableDynamicColorsMeta,
+          enableDynamicColors.isAcceptableOrUnknown(
+              data['enable_dynamic_colors']!, _enableDynamicColorsMeta));
+    }
+    if (data.containsKey('custom_seed_color')) {
+      context.handle(
+          _customSeedColorMeta,
+          customSeedColor.isAcceptableOrUnknown(
+              data['custom_seed_color']!, _customSeedColorMeta));
+    }
+    if (data.containsKey('download_preference')) {
+      context.handle(
+          _downloadPreferenceMeta,
+          downloadPreference.isAcceptableOrUnknown(
+              data['download_preference']!, _downloadPreferenceMeta));
+    }
+    if (data.containsKey('thumbs_up_auto_download')) {
+      context.handle(
+          _thumbsUpAutoDownloadMeta,
+          thumbsUpAutoDownload.isAcceptableOrUnknown(
+              data['thumbs_up_auto_download']!, _thumbsUpAutoDownloadMeta));
+    }
+    if (data.containsKey('thumbs_down_auto_delete')) {
+      context.handle(
+          _thumbsDownAutoDeleteMeta,
+          thumbsDownAutoDelete.isAcceptableOrUnknown(
+              data['thumbs_down_auto_delete']!, _thumbsDownAutoDeleteMeta));
+    }
     return context;
   }
 
@@ -1226,6 +1380,30 @@ class AppSettingsTable extends Table
           DriftSqlType.int, data['${effectivePrefix}max_bitrate_mobile'])!,
       streamFormat: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}stream_format']),
+      youtubeDiscoveryEnabled: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool,
+          data['${effectivePrefix}youtube_discovery_enabled'])!,
+      youtubeDiscoveryRatio: attachedDatabase.typeMapping.read(
+          DriftSqlType.double,
+          data['${effectivePrefix}youtube_discovery_ratio'])!,
+      youtubeQualityFilter: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}youtube_quality_filter'])!,
+      youtubePreferOfficial: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool,
+          data['${effectivePrefix}youtube_prefer_official'])!,
+      themePreset: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}theme_preset'])!,
+      enableDynamicColors: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}enable_dynamic_colors'])!,
+      customSeedColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}custom_seed_color']),
+      downloadPreference: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}download_preference'])!,
+      thumbsUpAutoDownload: attachedDatabase.typeMapping.read(DriftSqlType.bool,
+          data['${effectivePrefix}thumbs_up_auto_download'])!,
+      thumbsDownAutoDelete: attachedDatabase.typeMapping.read(DriftSqlType.bool,
+          data['${effectivePrefix}thumbs_down_auto_delete'])!,
     );
   }
 
@@ -1243,17 +1421,47 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
   final Value<int> maxBitrateWifi;
   final Value<int> maxBitrateMobile;
   final Value<String?> streamFormat;
+  final Value<bool> youtubeDiscoveryEnabled;
+  final Value<double> youtubeDiscoveryRatio;
+  final Value<String> youtubeQualityFilter;
+  final Value<bool> youtubePreferOfficial;
+  final Value<String> themePreset;
+  final Value<bool> enableDynamicColors;
+  final Value<int?> customSeedColor;
+  final Value<String> downloadPreference;
+  final Value<bool> thumbsUpAutoDownload;
+  final Value<bool> thumbsDownAutoDelete;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.maxBitrateWifi = const Value.absent(),
     this.maxBitrateMobile = const Value.absent(),
     this.streamFormat = const Value.absent(),
+    this.youtubeDiscoveryEnabled = const Value.absent(),
+    this.youtubeDiscoveryRatio = const Value.absent(),
+    this.youtubeQualityFilter = const Value.absent(),
+    this.youtubePreferOfficial = const Value.absent(),
+    this.themePreset = const Value.absent(),
+    this.enableDynamicColors = const Value.absent(),
+    this.customSeedColor = const Value.absent(),
+    this.downloadPreference = const Value.absent(),
+    this.thumbsUpAutoDownload = const Value.absent(),
+    this.thumbsDownAutoDelete = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
     required int maxBitrateWifi,
     required int maxBitrateMobile,
     this.streamFormat = const Value.absent(),
+    this.youtubeDiscoveryEnabled = const Value.absent(),
+    this.youtubeDiscoveryRatio = const Value.absent(),
+    this.youtubeQualityFilter = const Value.absent(),
+    this.youtubePreferOfficial = const Value.absent(),
+    this.themePreset = const Value.absent(),
+    this.enableDynamicColors = const Value.absent(),
+    this.customSeedColor = const Value.absent(),
+    this.downloadPreference = const Value.absent(),
+    this.thumbsUpAutoDownload = const Value.absent(),
+    this.thumbsDownAutoDelete = const Value.absent(),
   })  : maxBitrateWifi = Value(maxBitrateWifi),
         maxBitrateMobile = Value(maxBitrateMobile);
   static Insertable<AppSettings> custom({
@@ -1261,12 +1469,39 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     Expression<int>? maxBitrateWifi,
     Expression<int>? maxBitrateMobile,
     Expression<String>? streamFormat,
+    Expression<bool>? youtubeDiscoveryEnabled,
+    Expression<double>? youtubeDiscoveryRatio,
+    Expression<String>? youtubeQualityFilter,
+    Expression<bool>? youtubePreferOfficial,
+    Expression<String>? themePreset,
+    Expression<bool>? enableDynamicColors,
+    Expression<int>? customSeedColor,
+    Expression<String>? downloadPreference,
+    Expression<bool>? thumbsUpAutoDownload,
+    Expression<bool>? thumbsDownAutoDelete,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (maxBitrateWifi != null) 'max_bitrate_wifi': maxBitrateWifi,
       if (maxBitrateMobile != null) 'max_bitrate_mobile': maxBitrateMobile,
       if (streamFormat != null) 'stream_format': streamFormat,
+      if (youtubeDiscoveryEnabled != null)
+        'youtube_discovery_enabled': youtubeDiscoveryEnabled,
+      if (youtubeDiscoveryRatio != null)
+        'youtube_discovery_ratio': youtubeDiscoveryRatio,
+      if (youtubeQualityFilter != null)
+        'youtube_quality_filter': youtubeQualityFilter,
+      if (youtubePreferOfficial != null)
+        'youtube_prefer_official': youtubePreferOfficial,
+      if (themePreset != null) 'theme_preset': themePreset,
+      if (enableDynamicColors != null)
+        'enable_dynamic_colors': enableDynamicColors,
+      if (customSeedColor != null) 'custom_seed_color': customSeedColor,
+      if (downloadPreference != null) 'download_preference': downloadPreference,
+      if (thumbsUpAutoDownload != null)
+        'thumbs_up_auto_download': thumbsUpAutoDownload,
+      if (thumbsDownAutoDelete != null)
+        'thumbs_down_auto_delete': thumbsDownAutoDelete,
     });
   }
 
@@ -1274,12 +1509,35 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
       {Value<int>? id,
       Value<int>? maxBitrateWifi,
       Value<int>? maxBitrateMobile,
-      Value<String?>? streamFormat}) {
+      Value<String?>? streamFormat,
+      Value<bool>? youtubeDiscoveryEnabled,
+      Value<double>? youtubeDiscoveryRatio,
+      Value<String>? youtubeQualityFilter,
+      Value<bool>? youtubePreferOfficial,
+      Value<String>? themePreset,
+      Value<bool>? enableDynamicColors,
+      Value<int?>? customSeedColor,
+      Value<String>? downloadPreference,
+      Value<bool>? thumbsUpAutoDownload,
+      Value<bool>? thumbsDownAutoDelete}) {
     return AppSettingsCompanion(
       id: id ?? this.id,
       maxBitrateWifi: maxBitrateWifi ?? this.maxBitrateWifi,
       maxBitrateMobile: maxBitrateMobile ?? this.maxBitrateMobile,
       streamFormat: streamFormat ?? this.streamFormat,
+      youtubeDiscoveryEnabled:
+          youtubeDiscoveryEnabled ?? this.youtubeDiscoveryEnabled,
+      youtubeDiscoveryRatio:
+          youtubeDiscoveryRatio ?? this.youtubeDiscoveryRatio,
+      youtubeQualityFilter: youtubeQualityFilter ?? this.youtubeQualityFilter,
+      youtubePreferOfficial:
+          youtubePreferOfficial ?? this.youtubePreferOfficial,
+      themePreset: themePreset ?? this.themePreset,
+      enableDynamicColors: enableDynamicColors ?? this.enableDynamicColors,
+      customSeedColor: customSeedColor ?? this.customSeedColor,
+      downloadPreference: downloadPreference ?? this.downloadPreference,
+      thumbsUpAutoDownload: thumbsUpAutoDownload ?? this.thumbsUpAutoDownload,
+      thumbsDownAutoDelete: thumbsDownAutoDelete ?? this.thumbsDownAutoDelete,
     );
   }
 
@@ -1298,6 +1556,42 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
     if (streamFormat.present) {
       map['stream_format'] = Variable<String>(streamFormat.value);
     }
+    if (youtubeDiscoveryEnabled.present) {
+      map['youtube_discovery_enabled'] =
+          Variable<bool>(youtubeDiscoveryEnabled.value);
+    }
+    if (youtubeDiscoveryRatio.present) {
+      map['youtube_discovery_ratio'] =
+          Variable<double>(youtubeDiscoveryRatio.value);
+    }
+    if (youtubeQualityFilter.present) {
+      map['youtube_quality_filter'] =
+          Variable<String>(youtubeQualityFilter.value);
+    }
+    if (youtubePreferOfficial.present) {
+      map['youtube_prefer_official'] =
+          Variable<bool>(youtubePreferOfficial.value);
+    }
+    if (themePreset.present) {
+      map['theme_preset'] = Variable<String>(themePreset.value);
+    }
+    if (enableDynamicColors.present) {
+      map['enable_dynamic_colors'] = Variable<bool>(enableDynamicColors.value);
+    }
+    if (customSeedColor.present) {
+      map['custom_seed_color'] = Variable<int>(customSeedColor.value);
+    }
+    if (downloadPreference.present) {
+      map['download_preference'] = Variable<String>(downloadPreference.value);
+    }
+    if (thumbsUpAutoDownload.present) {
+      map['thumbs_up_auto_download'] =
+          Variable<bool>(thumbsUpAutoDownload.value);
+    }
+    if (thumbsDownAutoDelete.present) {
+      map['thumbs_down_auto_delete'] =
+          Variable<bool>(thumbsDownAutoDelete.value);
+    }
     return map;
   }
 
@@ -1307,7 +1601,17 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettings> {
           ..write('id: $id, ')
           ..write('maxBitrateWifi: $maxBitrateWifi, ')
           ..write('maxBitrateMobile: $maxBitrateMobile, ')
-          ..write('streamFormat: $streamFormat')
+          ..write('streamFormat: $streamFormat, ')
+          ..write('youtubeDiscoveryEnabled: $youtubeDiscoveryEnabled, ')
+          ..write('youtubeDiscoveryRatio: $youtubeDiscoveryRatio, ')
+          ..write('youtubeQualityFilter: $youtubeQualityFilter, ')
+          ..write('youtubePreferOfficial: $youtubePreferOfficial, ')
+          ..write('themePreset: $themePreset, ')
+          ..write('enableDynamicColors: $enableDynamicColors, ')
+          ..write('customSeedColor: $customSeedColor, ')
+          ..write('downloadPreference: $downloadPreference, ')
+          ..write('thumbsUpAutoDownload: $thumbsUpAutoDownload, ')
+          ..write('thumbsDownAutoDelete: $thumbsDownAutoDelete')
           ..write(')'))
         .toString();
   }
@@ -4636,6 +4940,14 @@ class DiscoverySessions extends Table
       requiredDuringInsert: false,
       $customConstraints: 'NOT NULL DEFAULT 50',
       defaultValue: const CustomExpression('50'));
+  static const VerificationMeta _youtubeRatioMeta =
+      const VerificationMeta('youtubeRatio');
+  late final GeneratedColumn<double> youtubeRatio = GeneratedColumn<double>(
+      'youtube_ratio', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0.3',
+      defaultValue: const CustomExpression('0.3'));
   static const VerificationMeta _stationNameMeta =
       const VerificationMeta('stationName');
   late final GeneratedColumn<String> stationName = GeneratedColumn<String>(
@@ -4685,6 +4997,7 @@ class DiscoverySessions extends Table
         sourceId,
         mode,
         playlistSize,
+        youtubeRatio,
         stationName,
         lastPlayedAt,
         playCount,
@@ -4740,6 +5053,12 @@ class DiscoverySessions extends Table
           playlistSize.isAcceptableOrUnknown(
               data['playlist_size']!, _playlistSizeMeta));
     }
+    if (data.containsKey('youtube_ratio')) {
+      context.handle(
+          _youtubeRatioMeta,
+          youtubeRatio.isAcceptableOrUnknown(
+              data['youtube_ratio']!, _youtubeRatioMeta));
+    }
     if (data.containsKey('station_name')) {
       context.handle(
           _stationNameMeta,
@@ -4789,6 +5108,8 @@ class DiscoverySessions extends Table
           .read(DriftSqlType.string, data['${effectivePrefix}mode'])!,
       playlistSize: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}playlist_size'])!,
+      youtubeRatio: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}youtube_ratio'])!,
       stationName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}station_name']),
       lastPlayedAt: attachedDatabase.typeMapping
@@ -4825,6 +5146,7 @@ class DiscoverySession extends DataClass
 
   /// 'online' or 'offline'
   final int playlistSize;
+  final double youtubeRatio;
   final String? stationName;
   final int? lastPlayedAt;
   final int playCount;
@@ -4838,6 +5160,7 @@ class DiscoverySession extends DataClass
       required this.sourceId,
       required this.mode,
       required this.playlistSize,
+      required this.youtubeRatio,
       this.stationName,
       this.lastPlayedAt,
       required this.playCount,
@@ -4857,6 +5180,7 @@ class DiscoverySession extends DataClass
     map['source_id'] = Variable<int>(sourceId);
     map['mode'] = Variable<String>(mode);
     map['playlist_size'] = Variable<int>(playlistSize);
+    map['youtube_ratio'] = Variable<double>(youtubeRatio);
     if (!nullToAbsent || stationName != null) {
       map['station_name'] = Variable<String>(stationName);
     }
@@ -4882,6 +5206,7 @@ class DiscoverySession extends DataClass
       sourceId: Value(sourceId),
       mode: Value(mode),
       playlistSize: Value(playlistSize),
+      youtubeRatio: Value(youtubeRatio),
       stationName: stationName == null && nullToAbsent
           ? const Value.absent()
           : Value(stationName),
@@ -4905,6 +5230,7 @@ class DiscoverySession extends DataClass
       sourceId: serializer.fromJson<int>(json['source_id']),
       mode: serializer.fromJson<String>(json['mode']),
       playlistSize: serializer.fromJson<int>(json['playlist_size']),
+      youtubeRatio: serializer.fromJson<double>(json['youtube_ratio']),
       stationName: serializer.fromJson<String?>(json['station_name']),
       lastPlayedAt: serializer.fromJson<int?>(json['last_played_at']),
       playCount: serializer.fromJson<int>(json['play_count']),
@@ -4923,6 +5249,7 @@ class DiscoverySession extends DataClass
       'source_id': serializer.toJson<int>(sourceId),
       'mode': serializer.toJson<String>(mode),
       'playlist_size': serializer.toJson<int>(playlistSize),
+      'youtube_ratio': serializer.toJson<double>(youtubeRatio),
       'station_name': serializer.toJson<String?>(stationName),
       'last_played_at': serializer.toJson<int?>(lastPlayedAt),
       'play_count': serializer.toJson<int>(playCount),
@@ -4939,6 +5266,7 @@ class DiscoverySession extends DataClass
           int? sourceId,
           String? mode,
           int? playlistSize,
+          double? youtubeRatio,
           Value<String?> stationName = const Value.absent(),
           Value<int?> lastPlayedAt = const Value.absent(),
           int? playCount,
@@ -4952,6 +5280,7 @@ class DiscoverySession extends DataClass
         sourceId: sourceId ?? this.sourceId,
         mode: mode ?? this.mode,
         playlistSize: playlistSize ?? this.playlistSize,
+        youtubeRatio: youtubeRatio ?? this.youtubeRatio,
         stationName: stationName.present ? stationName.value : this.stationName,
         lastPlayedAt:
             lastPlayedAt.present ? lastPlayedAt.value : this.lastPlayedAt,
@@ -4969,6 +5298,7 @@ class DiscoverySession extends DataClass
           ..write('sourceId: $sourceId, ')
           ..write('mode: $mode, ')
           ..write('playlistSize: $playlistSize, ')
+          ..write('youtubeRatio: $youtubeRatio, ')
           ..write('stationName: $stationName, ')
           ..write('lastPlayedAt: $lastPlayedAt, ')
           ..write('playCount: $playCount, ')
@@ -4987,6 +5317,7 @@ class DiscoverySession extends DataClass
       sourceId,
       mode,
       playlistSize,
+      youtubeRatio,
       stationName,
       lastPlayedAt,
       playCount,
@@ -5003,6 +5334,7 @@ class DiscoverySession extends DataClass
           other.sourceId == this.sourceId &&
           other.mode == this.mode &&
           other.playlistSize == this.playlistSize &&
+          other.youtubeRatio == this.youtubeRatio &&
           other.stationName == this.stationName &&
           other.lastPlayedAt == this.lastPlayedAt &&
           other.playCount == this.playCount &&
@@ -5018,6 +5350,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
   final Value<int> sourceId;
   final Value<String> mode;
   final Value<int> playlistSize;
+  final Value<double> youtubeRatio;
   final Value<String?> stationName;
   final Value<int?> lastPlayedAt;
   final Value<int> playCount;
@@ -5031,6 +5364,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     this.sourceId = const Value.absent(),
     this.mode = const Value.absent(),
     this.playlistSize = const Value.absent(),
+    this.youtubeRatio = const Value.absent(),
     this.stationName = const Value.absent(),
     this.lastPlayedAt = const Value.absent(),
     this.playCount = const Value.absent(),
@@ -5045,6 +5379,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     required int sourceId,
     required String mode,
     this.playlistSize = const Value.absent(),
+    this.youtubeRatio = const Value.absent(),
     this.stationName = const Value.absent(),
     this.lastPlayedAt = const Value.absent(),
     this.playCount = const Value.absent(),
@@ -5061,6 +5396,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     Expression<int>? sourceId,
     Expression<String>? mode,
     Expression<int>? playlistSize,
+    Expression<double>? youtubeRatio,
     Expression<String>? stationName,
     Expression<int>? lastPlayedAt,
     Expression<int>? playCount,
@@ -5075,6 +5411,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
       if (sourceId != null) 'source_id': sourceId,
       if (mode != null) 'mode': mode,
       if (playlistSize != null) 'playlist_size': playlistSize,
+      if (youtubeRatio != null) 'youtube_ratio': youtubeRatio,
       if (stationName != null) 'station_name': stationName,
       if (lastPlayedAt != null) 'last_played_at': lastPlayedAt,
       if (playCount != null) 'play_count': playCount,
@@ -5091,6 +5428,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
       Value<int>? sourceId,
       Value<String>? mode,
       Value<int>? playlistSize,
+      Value<double>? youtubeRatio,
       Value<String?>? stationName,
       Value<int?>? lastPlayedAt,
       Value<int>? playCount,
@@ -5104,6 +5442,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
       sourceId: sourceId ?? this.sourceId,
       mode: mode ?? this.mode,
       playlistSize: playlistSize ?? this.playlistSize,
+      youtubeRatio: youtubeRatio ?? this.youtubeRatio,
       stationName: stationName ?? this.stationName,
       lastPlayedAt: lastPlayedAt ?? this.lastPlayedAt,
       playCount: playCount ?? this.playCount,
@@ -5136,6 +5475,9 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
     if (playlistSize.present) {
       map['playlist_size'] = Variable<int>(playlistSize.value);
     }
+    if (youtubeRatio.present) {
+      map['youtube_ratio'] = Variable<double>(youtubeRatio.value);
+    }
     if (stationName.present) {
       map['station_name'] = Variable<String>(stationName.value);
     }
@@ -5164,6 +5506,7 @@ class DiscoverySessionsCompanion extends UpdateCompanion<DiscoverySession> {
           ..write('sourceId: $sourceId, ')
           ..write('mode: $mode, ')
           ..write('playlistSize: $playlistSize, ')
+          ..write('youtubeRatio: $youtubeRatio, ')
           ..write('stationName: $stationName, ')
           ..write('lastPlayedAt: $lastPlayedAt, ')
           ..write('playCount: $playCount, ')
@@ -5228,6 +5571,21 @@ class DiscoveryInteractions extends Table
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
+  static const VerificationMeta _trackSourceMeta =
+      const VerificationMeta('trackSource');
+  late final GeneratedColumn<String> trackSource = GeneratedColumn<String>(
+      'track_source', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT \'local\'',
+      defaultValue: const CustomExpression('\'local\''));
+  static const VerificationMeta _youtubeVideoIdMeta =
+      const VerificationMeta('youtubeVideoId');
+  late final GeneratedColumn<String> youtubeVideoId = GeneratedColumn<String>(
+      'youtube_video_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   static const VerificationMeta _timestampMeta =
       const VerificationMeta('timestamp');
   late final GeneratedColumn<int> timestamp = GeneratedColumn<int>(
@@ -5247,6 +5605,8 @@ class DiscoveryInteractions extends Table
         positionInPlaylist,
         songDurationMs,
         playDurationMs,
+        trackSource,
+        youtubeVideoId,
         timestamp
       ];
   @override
@@ -5303,6 +5663,18 @@ class DiscoveryInteractions extends Table
           playDurationMs.isAcceptableOrUnknown(
               data['play_duration_ms']!, _playDurationMsMeta));
     }
+    if (data.containsKey('track_source')) {
+      context.handle(
+          _trackSourceMeta,
+          trackSource.isAcceptableOrUnknown(
+              data['track_source']!, _trackSourceMeta));
+    }
+    if (data.containsKey('youtube_video_id')) {
+      context.handle(
+          _youtubeVideoIdMeta,
+          youtubeVideoId.isAcceptableOrUnknown(
+              data['youtube_video_id']!, _youtubeVideoIdMeta));
+    }
     if (data.containsKey('timestamp')) {
       context.handle(_timestampMeta,
           timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
@@ -5330,6 +5702,10 @@ class DiscoveryInteractions extends Table
           .read(DriftSqlType.int, data['${effectivePrefix}song_duration_ms']),
       playDurationMs: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}play_duration_ms']),
+      trackSource: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}track_source'])!,
+      youtubeVideoId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}youtube_video_id']),
       timestamp: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}timestamp'])!,
     );
@@ -5361,6 +5737,12 @@ class DiscoveryInteraction extends DataClass
   final int? playDurationMs;
 
   /// How long the song was actually played
+  final String trackSource;
+
+  /// 'local' or 'youtube'
+  final String? youtubeVideoId;
+
+  /// NULL for local tracks, video ID for YouTube tracks
   final int timestamp;
   const DiscoveryInteraction(
       {required this.id,
@@ -5370,6 +5752,8 @@ class DiscoveryInteraction extends DataClass
       required this.positionInPlaylist,
       this.songDurationMs,
       this.playDurationMs,
+      required this.trackSource,
+      this.youtubeVideoId,
       required this.timestamp});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5384,6 +5768,10 @@ class DiscoveryInteraction extends DataClass
     }
     if (!nullToAbsent || playDurationMs != null) {
       map['play_duration_ms'] = Variable<int>(playDurationMs);
+    }
+    map['track_source'] = Variable<String>(trackSource);
+    if (!nullToAbsent || youtubeVideoId != null) {
+      map['youtube_video_id'] = Variable<String>(youtubeVideoId);
     }
     map['timestamp'] = Variable<int>(timestamp);
     return map;
@@ -5402,6 +5790,10 @@ class DiscoveryInteraction extends DataClass
       playDurationMs: playDurationMs == null && nullToAbsent
           ? const Value.absent()
           : Value(playDurationMs),
+      trackSource: Value(trackSource),
+      youtubeVideoId: youtubeVideoId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(youtubeVideoId),
       timestamp: Value(timestamp),
     );
   }
@@ -5418,6 +5810,8 @@ class DiscoveryInteraction extends DataClass
           serializer.fromJson<int>(json['position_in_playlist']),
       songDurationMs: serializer.fromJson<int?>(json['song_duration_ms']),
       playDurationMs: serializer.fromJson<int?>(json['play_duration_ms']),
+      trackSource: serializer.fromJson<String>(json['track_source']),
+      youtubeVideoId: serializer.fromJson<String?>(json['youtube_video_id']),
       timestamp: serializer.fromJson<int>(json['timestamp']),
     );
   }
@@ -5432,6 +5826,8 @@ class DiscoveryInteraction extends DataClass
       'position_in_playlist': serializer.toJson<int>(positionInPlaylist),
       'song_duration_ms': serializer.toJson<int?>(songDurationMs),
       'play_duration_ms': serializer.toJson<int?>(playDurationMs),
+      'track_source': serializer.toJson<String>(trackSource),
+      'youtube_video_id': serializer.toJson<String?>(youtubeVideoId),
       'timestamp': serializer.toJson<int>(timestamp),
     };
   }
@@ -5444,6 +5840,8 @@ class DiscoveryInteraction extends DataClass
           int? positionInPlaylist,
           Value<int?> songDurationMs = const Value.absent(),
           Value<int?> playDurationMs = const Value.absent(),
+          String? trackSource,
+          Value<String?> youtubeVideoId = const Value.absent(),
           int? timestamp}) =>
       DiscoveryInteraction(
         id: id ?? this.id,
@@ -5455,6 +5853,9 @@ class DiscoveryInteraction extends DataClass
             songDurationMs.present ? songDurationMs.value : this.songDurationMs,
         playDurationMs:
             playDurationMs.present ? playDurationMs.value : this.playDurationMs,
+        trackSource: trackSource ?? this.trackSource,
+        youtubeVideoId:
+            youtubeVideoId.present ? youtubeVideoId.value : this.youtubeVideoId,
         timestamp: timestamp ?? this.timestamp,
       );
   @override
@@ -5467,14 +5868,25 @@ class DiscoveryInteraction extends DataClass
           ..write('positionInPlaylist: $positionInPlaylist, ')
           ..write('songDurationMs: $songDurationMs, ')
           ..write('playDurationMs: $playDurationMs, ')
+          ..write('trackSource: $trackSource, ')
+          ..write('youtubeVideoId: $youtubeVideoId, ')
           ..write('timestamp: $timestamp')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, sessionId, songId, interactionType,
-      positionInPlaylist, songDurationMs, playDurationMs, timestamp);
+  int get hashCode => Object.hash(
+      id,
+      sessionId,
+      songId,
+      interactionType,
+      positionInPlaylist,
+      songDurationMs,
+      playDurationMs,
+      trackSource,
+      youtubeVideoId,
+      timestamp);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5486,6 +5898,8 @@ class DiscoveryInteraction extends DataClass
           other.positionInPlaylist == this.positionInPlaylist &&
           other.songDurationMs == this.songDurationMs &&
           other.playDurationMs == this.playDurationMs &&
+          other.trackSource == this.trackSource &&
+          other.youtubeVideoId == this.youtubeVideoId &&
           other.timestamp == this.timestamp);
 }
 
@@ -5498,6 +5912,8 @@ class DiscoveryInteractionsCompanion
   final Value<int> positionInPlaylist;
   final Value<int?> songDurationMs;
   final Value<int?> playDurationMs;
+  final Value<String> trackSource;
+  final Value<String?> youtubeVideoId;
   final Value<int> timestamp;
   const DiscoveryInteractionsCompanion({
     this.id = const Value.absent(),
@@ -5507,6 +5923,8 @@ class DiscoveryInteractionsCompanion
     this.positionInPlaylist = const Value.absent(),
     this.songDurationMs = const Value.absent(),
     this.playDurationMs = const Value.absent(),
+    this.trackSource = const Value.absent(),
+    this.youtubeVideoId = const Value.absent(),
     this.timestamp = const Value.absent(),
   });
   DiscoveryInteractionsCompanion.insert({
@@ -5517,6 +5935,8 @@ class DiscoveryInteractionsCompanion
     required int positionInPlaylist,
     this.songDurationMs = const Value.absent(),
     this.playDurationMs = const Value.absent(),
+    this.trackSource = const Value.absent(),
+    this.youtubeVideoId = const Value.absent(),
     this.timestamp = const Value.absent(),
   })  : sessionId = Value(sessionId),
         songId = Value(songId),
@@ -5530,6 +5950,8 @@ class DiscoveryInteractionsCompanion
     Expression<int>? positionInPlaylist,
     Expression<int>? songDurationMs,
     Expression<int>? playDurationMs,
+    Expression<String>? trackSource,
+    Expression<String>? youtubeVideoId,
     Expression<int>? timestamp,
   }) {
     return RawValuesInsertable({
@@ -5541,6 +5963,8 @@ class DiscoveryInteractionsCompanion
         'position_in_playlist': positionInPlaylist,
       if (songDurationMs != null) 'song_duration_ms': songDurationMs,
       if (playDurationMs != null) 'play_duration_ms': playDurationMs,
+      if (trackSource != null) 'track_source': trackSource,
+      if (youtubeVideoId != null) 'youtube_video_id': youtubeVideoId,
       if (timestamp != null) 'timestamp': timestamp,
     });
   }
@@ -5553,6 +5977,8 @@ class DiscoveryInteractionsCompanion
       Value<int>? positionInPlaylist,
       Value<int?>? songDurationMs,
       Value<int?>? playDurationMs,
+      Value<String>? trackSource,
+      Value<String?>? youtubeVideoId,
       Value<int>? timestamp}) {
     return DiscoveryInteractionsCompanion(
       id: id ?? this.id,
@@ -5562,6 +5988,8 @@ class DiscoveryInteractionsCompanion
       positionInPlaylist: positionInPlaylist ?? this.positionInPlaylist,
       songDurationMs: songDurationMs ?? this.songDurationMs,
       playDurationMs: playDurationMs ?? this.playDurationMs,
+      trackSource: trackSource ?? this.trackSource,
+      youtubeVideoId: youtubeVideoId ?? this.youtubeVideoId,
       timestamp: timestamp ?? this.timestamp,
     );
   }
@@ -5590,6 +6018,12 @@ class DiscoveryInteractionsCompanion
     if (playDurationMs.present) {
       map['play_duration_ms'] = Variable<int>(playDurationMs.value);
     }
+    if (trackSource.present) {
+      map['track_source'] = Variable<String>(trackSource.value);
+    }
+    if (youtubeVideoId.present) {
+      map['youtube_video_id'] = Variable<String>(youtubeVideoId.value);
+    }
     if (timestamp.present) {
       map['timestamp'] = Variable<int>(timestamp.value);
     }
@@ -5606,7 +6040,1450 @@ class DiscoveryInteractionsCompanion
           ..write('positionInPlaylist: $positionInPlaylist, ')
           ..write('songDurationMs: $songDurationMs, ')
           ..write('playDurationMs: $playDurationMs, ')
+          ..write('trackSource: $trackSource, ')
+          ..write('youtubeVideoId: $youtubeVideoId, ')
           ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class YoutubeTracks extends Table with TableInfo<YoutubeTracks, YoutubeTrack> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  YoutubeTracks(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'PRIMARY KEY NOT NULL');
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _artistMeta = const VerificationMeta('artist');
+  late final GeneratedColumn<String> artist = GeneratedColumn<String>(
+      'artist', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _channelNameMeta =
+      const VerificationMeta('channelName');
+  late final GeneratedColumn<String> channelName = GeneratedColumn<String>(
+      'channel_name', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _durationSecondsMeta =
+      const VerificationMeta('durationSeconds');
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+      'duration_seconds', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _thumbnailUrlMeta =
+      const VerificationMeta('thumbnailUrl');
+  late final GeneratedColumn<String> thumbnailUrl = GeneratedColumn<String>(
+      'thumbnail_url', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _audioUrlMeta =
+      const VerificationMeta('audioUrl');
+  late final GeneratedColumn<String> audioUrl = GeneratedColumn<String>(
+      'audio_url', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _audioBitrateMeta =
+      const VerificationMeta('audioBitrate');
+  late final GeneratedColumn<int> audioBitrate = GeneratedColumn<int>(
+      'audio_bitrate', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _audioCodecMeta =
+      const VerificationMeta('audioCodec');
+  late final GeneratedColumn<String> audioCodec = GeneratedColumn<String>(
+      'audio_codec', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _audioQualityMeta =
+      const VerificationMeta('audioQuality');
+  late final GeneratedColumn<String> audioQuality = GeneratedColumn<String>(
+      'audio_quality', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _cachedAtMeta =
+      const VerificationMeta('cachedAt');
+  late final GeneratedColumn<int> cachedAt = GeneratedColumn<int>(
+      'cached_at', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _expiresAtMeta =
+      const VerificationMeta('expiresAt');
+  late final GeneratedColumn<int> expiresAt = GeneratedColumn<int>(
+      'expires_at', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _accessCountMeta =
+      const VerificationMeta('accessCount');
+  late final GeneratedColumn<int> accessCount = GeneratedColumn<int>(
+      'access_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0',
+      defaultValue: const CustomExpression('0'));
+  static const VerificationMeta _lastAccessedMeta =
+      const VerificationMeta('lastAccessed');
+  late final GeneratedColumn<int> lastAccessed = GeneratedColumn<int>(
+      'last_accessed', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        title,
+        artist,
+        channelName,
+        durationSeconds,
+        thumbnailUrl,
+        audioUrl,
+        audioBitrate,
+        audioCodec,
+        audioQuality,
+        cachedAt,
+        expiresAt,
+        accessCount,
+        lastAccessed
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'youtube_tracks';
+  @override
+  VerificationContext validateIntegrity(Insertable<YoutubeTrack> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('artist')) {
+      context.handle(_artistMeta,
+          artist.isAcceptableOrUnknown(data['artist']!, _artistMeta));
+    }
+    if (data.containsKey('channel_name')) {
+      context.handle(
+          _channelNameMeta,
+          channelName.isAcceptableOrUnknown(
+              data['channel_name']!, _channelNameMeta));
+    } else if (isInserting) {
+      context.missing(_channelNameMeta);
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+          _durationSecondsMeta,
+          durationSeconds.isAcceptableOrUnknown(
+              data['duration_seconds']!, _durationSecondsMeta));
+    } else if (isInserting) {
+      context.missing(_durationSecondsMeta);
+    }
+    if (data.containsKey('thumbnail_url')) {
+      context.handle(
+          _thumbnailUrlMeta,
+          thumbnailUrl.isAcceptableOrUnknown(
+              data['thumbnail_url']!, _thumbnailUrlMeta));
+    }
+    if (data.containsKey('audio_url')) {
+      context.handle(_audioUrlMeta,
+          audioUrl.isAcceptableOrUnknown(data['audio_url']!, _audioUrlMeta));
+    } else if (isInserting) {
+      context.missing(_audioUrlMeta);
+    }
+    if (data.containsKey('audio_bitrate')) {
+      context.handle(
+          _audioBitrateMeta,
+          audioBitrate.isAcceptableOrUnknown(
+              data['audio_bitrate']!, _audioBitrateMeta));
+    } else if (isInserting) {
+      context.missing(_audioBitrateMeta);
+    }
+    if (data.containsKey('audio_codec')) {
+      context.handle(
+          _audioCodecMeta,
+          audioCodec.isAcceptableOrUnknown(
+              data['audio_codec']!, _audioCodecMeta));
+    } else if (isInserting) {
+      context.missing(_audioCodecMeta);
+    }
+    if (data.containsKey('audio_quality')) {
+      context.handle(
+          _audioQualityMeta,
+          audioQuality.isAcceptableOrUnknown(
+              data['audio_quality']!, _audioQualityMeta));
+    } else if (isInserting) {
+      context.missing(_audioQualityMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(_cachedAtMeta,
+          cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta));
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(_expiresAtMeta,
+          expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta));
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    if (data.containsKey('access_count')) {
+      context.handle(
+          _accessCountMeta,
+          accessCount.isAcceptableOrUnknown(
+              data['access_count']!, _accessCountMeta));
+    }
+    if (data.containsKey('last_accessed')) {
+      context.handle(
+          _lastAccessedMeta,
+          lastAccessed.isAcceptableOrUnknown(
+              data['last_accessed']!, _lastAccessedMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  YoutubeTrack map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return YoutubeTrack(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      artist: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artist']),
+      channelName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}channel_name'])!,
+      durationSeconds: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}duration_seconds'])!,
+      thumbnailUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thumbnail_url']),
+      audioUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}audio_url'])!,
+      audioBitrate: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}audio_bitrate'])!,
+      audioCodec: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}audio_codec'])!,
+      audioQuality: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}audio_quality'])!,
+      cachedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cached_at'])!,
+      expiresAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}expires_at'])!,
+      accessCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}access_count'])!,
+      lastAccessed: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_accessed']),
+    );
+  }
+
+  @override
+  YoutubeTracks createAlias(String alias) {
+    return YoutubeTracks(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class YoutubeTrack extends DataClass implements Insertable<YoutubeTrack> {
+  final String id;
+
+  /// YouTube video ID
+  final String title;
+  final String? artist;
+  final String channelName;
+  final int durationSeconds;
+  final String? thumbnailUrl;
+  final String audioUrl;
+  final int audioBitrate;
+  final String audioCodec;
+  final String audioQuality;
+  final int cachedAt;
+
+  /// Unix timestamp
+  final int expiresAt;
+
+  /// Unix timestamp for audio URL
+  final int accessCount;
+  final int? lastAccessed;
+  const YoutubeTrack(
+      {required this.id,
+      required this.title,
+      this.artist,
+      required this.channelName,
+      required this.durationSeconds,
+      this.thumbnailUrl,
+      required this.audioUrl,
+      required this.audioBitrate,
+      required this.audioCodec,
+      required this.audioQuality,
+      required this.cachedAt,
+      required this.expiresAt,
+      required this.accessCount,
+      this.lastAccessed});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || artist != null) {
+      map['artist'] = Variable<String>(artist);
+    }
+    map['channel_name'] = Variable<String>(channelName);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    if (!nullToAbsent || thumbnailUrl != null) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    map['audio_url'] = Variable<String>(audioUrl);
+    map['audio_bitrate'] = Variable<int>(audioBitrate);
+    map['audio_codec'] = Variable<String>(audioCodec);
+    map['audio_quality'] = Variable<String>(audioQuality);
+    map['cached_at'] = Variable<int>(cachedAt);
+    map['expires_at'] = Variable<int>(expiresAt);
+    map['access_count'] = Variable<int>(accessCount);
+    if (!nullToAbsent || lastAccessed != null) {
+      map['last_accessed'] = Variable<int>(lastAccessed);
+    }
+    return map;
+  }
+
+  YoutubeTracksCompanion toCompanion(bool nullToAbsent) {
+    return YoutubeTracksCompanion(
+      id: Value(id),
+      title: Value(title),
+      artist:
+          artist == null && nullToAbsent ? const Value.absent() : Value(artist),
+      channelName: Value(channelName),
+      durationSeconds: Value(durationSeconds),
+      thumbnailUrl: thumbnailUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailUrl),
+      audioUrl: Value(audioUrl),
+      audioBitrate: Value(audioBitrate),
+      audioCodec: Value(audioCodec),
+      audioQuality: Value(audioQuality),
+      cachedAt: Value(cachedAt),
+      expiresAt: Value(expiresAt),
+      accessCount: Value(accessCount),
+      lastAccessed: lastAccessed == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastAccessed),
+    );
+  }
+
+  factory YoutubeTrack.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return YoutubeTrack(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      artist: serializer.fromJson<String?>(json['artist']),
+      channelName: serializer.fromJson<String>(json['channel_name']),
+      durationSeconds: serializer.fromJson<int>(json['duration_seconds']),
+      thumbnailUrl: serializer.fromJson<String?>(json['thumbnail_url']),
+      audioUrl: serializer.fromJson<String>(json['audio_url']),
+      audioBitrate: serializer.fromJson<int>(json['audio_bitrate']),
+      audioCodec: serializer.fromJson<String>(json['audio_codec']),
+      audioQuality: serializer.fromJson<String>(json['audio_quality']),
+      cachedAt: serializer.fromJson<int>(json['cached_at']),
+      expiresAt: serializer.fromJson<int>(json['expires_at']),
+      accessCount: serializer.fromJson<int>(json['access_count']),
+      lastAccessed: serializer.fromJson<int?>(json['last_accessed']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'artist': serializer.toJson<String?>(artist),
+      'channel_name': serializer.toJson<String>(channelName),
+      'duration_seconds': serializer.toJson<int>(durationSeconds),
+      'thumbnail_url': serializer.toJson<String?>(thumbnailUrl),
+      'audio_url': serializer.toJson<String>(audioUrl),
+      'audio_bitrate': serializer.toJson<int>(audioBitrate),
+      'audio_codec': serializer.toJson<String>(audioCodec),
+      'audio_quality': serializer.toJson<String>(audioQuality),
+      'cached_at': serializer.toJson<int>(cachedAt),
+      'expires_at': serializer.toJson<int>(expiresAt),
+      'access_count': serializer.toJson<int>(accessCount),
+      'last_accessed': serializer.toJson<int?>(lastAccessed),
+    };
+  }
+
+  YoutubeTrack copyWith(
+          {String? id,
+          String? title,
+          Value<String?> artist = const Value.absent(),
+          String? channelName,
+          int? durationSeconds,
+          Value<String?> thumbnailUrl = const Value.absent(),
+          String? audioUrl,
+          int? audioBitrate,
+          String? audioCodec,
+          String? audioQuality,
+          int? cachedAt,
+          int? expiresAt,
+          int? accessCount,
+          Value<int?> lastAccessed = const Value.absent()}) =>
+      YoutubeTrack(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        artist: artist.present ? artist.value : this.artist,
+        channelName: channelName ?? this.channelName,
+        durationSeconds: durationSeconds ?? this.durationSeconds,
+        thumbnailUrl:
+            thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+        audioUrl: audioUrl ?? this.audioUrl,
+        audioBitrate: audioBitrate ?? this.audioBitrate,
+        audioCodec: audioCodec ?? this.audioCodec,
+        audioQuality: audioQuality ?? this.audioQuality,
+        cachedAt: cachedAt ?? this.cachedAt,
+        expiresAt: expiresAt ?? this.expiresAt,
+        accessCount: accessCount ?? this.accessCount,
+        lastAccessed:
+            lastAccessed.present ? lastAccessed.value : this.lastAccessed,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('YoutubeTrack(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('artist: $artist, ')
+          ..write('channelName: $channelName, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('audioUrl: $audioUrl, ')
+          ..write('audioBitrate: $audioBitrate, ')
+          ..write('audioCodec: $audioCodec, ')
+          ..write('audioQuality: $audioQuality, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('accessCount: $accessCount, ')
+          ..write('lastAccessed: $lastAccessed')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      title,
+      artist,
+      channelName,
+      durationSeconds,
+      thumbnailUrl,
+      audioUrl,
+      audioBitrate,
+      audioCodec,
+      audioQuality,
+      cachedAt,
+      expiresAt,
+      accessCount,
+      lastAccessed);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is YoutubeTrack &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.artist == this.artist &&
+          other.channelName == this.channelName &&
+          other.durationSeconds == this.durationSeconds &&
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.audioUrl == this.audioUrl &&
+          other.audioBitrate == this.audioBitrate &&
+          other.audioCodec == this.audioCodec &&
+          other.audioQuality == this.audioQuality &&
+          other.cachedAt == this.cachedAt &&
+          other.expiresAt == this.expiresAt &&
+          other.accessCount == this.accessCount &&
+          other.lastAccessed == this.lastAccessed);
+}
+
+class YoutubeTracksCompanion extends UpdateCompanion<YoutubeTrack> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> artist;
+  final Value<String> channelName;
+  final Value<int> durationSeconds;
+  final Value<String?> thumbnailUrl;
+  final Value<String> audioUrl;
+  final Value<int> audioBitrate;
+  final Value<String> audioCodec;
+  final Value<String> audioQuality;
+  final Value<int> cachedAt;
+  final Value<int> expiresAt;
+  final Value<int> accessCount;
+  final Value<int?> lastAccessed;
+  final Value<int> rowid;
+  const YoutubeTracksCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.channelName = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.audioUrl = const Value.absent(),
+    this.audioBitrate = const Value.absent(),
+    this.audioCodec = const Value.absent(),
+    this.audioQuality = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.accessCount = const Value.absent(),
+    this.lastAccessed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  YoutubeTracksCompanion.insert({
+    required String id,
+    required String title,
+    this.artist = const Value.absent(),
+    required String channelName,
+    required int durationSeconds,
+    this.thumbnailUrl = const Value.absent(),
+    required String audioUrl,
+    required int audioBitrate,
+    required String audioCodec,
+    required String audioQuality,
+    required int cachedAt,
+    required int expiresAt,
+    this.accessCount = const Value.absent(),
+    this.lastAccessed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        title = Value(title),
+        channelName = Value(channelName),
+        durationSeconds = Value(durationSeconds),
+        audioUrl = Value(audioUrl),
+        audioBitrate = Value(audioBitrate),
+        audioCodec = Value(audioCodec),
+        audioQuality = Value(audioQuality),
+        cachedAt = Value(cachedAt),
+        expiresAt = Value(expiresAt);
+  static Insertable<YoutubeTrack> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? artist,
+    Expression<String>? channelName,
+    Expression<int>? durationSeconds,
+    Expression<String>? thumbnailUrl,
+    Expression<String>? audioUrl,
+    Expression<int>? audioBitrate,
+    Expression<String>? audioCodec,
+    Expression<String>? audioQuality,
+    Expression<int>? cachedAt,
+    Expression<int>? expiresAt,
+    Expression<int>? accessCount,
+    Expression<int>? lastAccessed,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (artist != null) 'artist': artist,
+      if (channelName != null) 'channel_name': channelName,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (audioUrl != null) 'audio_url': audioUrl,
+      if (audioBitrate != null) 'audio_bitrate': audioBitrate,
+      if (audioCodec != null) 'audio_codec': audioCodec,
+      if (audioQuality != null) 'audio_quality': audioQuality,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (accessCount != null) 'access_count': accessCount,
+      if (lastAccessed != null) 'last_accessed': lastAccessed,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  YoutubeTracksCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? title,
+      Value<String?>? artist,
+      Value<String>? channelName,
+      Value<int>? durationSeconds,
+      Value<String?>? thumbnailUrl,
+      Value<String>? audioUrl,
+      Value<int>? audioBitrate,
+      Value<String>? audioCodec,
+      Value<String>? audioQuality,
+      Value<int>? cachedAt,
+      Value<int>? expiresAt,
+      Value<int>? accessCount,
+      Value<int?>? lastAccessed,
+      Value<int>? rowid}) {
+    return YoutubeTracksCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      channelName: channelName ?? this.channelName,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      audioUrl: audioUrl ?? this.audioUrl,
+      audioBitrate: audioBitrate ?? this.audioBitrate,
+      audioCodec: audioCodec ?? this.audioCodec,
+      audioQuality: audioQuality ?? this.audioQuality,
+      cachedAt: cachedAt ?? this.cachedAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      accessCount: accessCount ?? this.accessCount,
+      lastAccessed: lastAccessed ?? this.lastAccessed,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (artist.present) {
+      map['artist'] = Variable<String>(artist.value);
+    }
+    if (channelName.present) {
+      map['channel_name'] = Variable<String>(channelName.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (thumbnailUrl.present) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
+    }
+    if (audioUrl.present) {
+      map['audio_url'] = Variable<String>(audioUrl.value);
+    }
+    if (audioBitrate.present) {
+      map['audio_bitrate'] = Variable<int>(audioBitrate.value);
+    }
+    if (audioCodec.present) {
+      map['audio_codec'] = Variable<String>(audioCodec.value);
+    }
+    if (audioQuality.present) {
+      map['audio_quality'] = Variable<String>(audioQuality.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<int>(cachedAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<int>(expiresAt.value);
+    }
+    if (accessCount.present) {
+      map['access_count'] = Variable<int>(accessCount.value);
+    }
+    if (lastAccessed.present) {
+      map['last_accessed'] = Variable<int>(lastAccessed.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('YoutubeTracksCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('artist: $artist, ')
+          ..write('channelName: $channelName, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('audioUrl: $audioUrl, ')
+          ..write('audioBitrate: $audioBitrate, ')
+          ..write('audioCodec: $audioCodec, ')
+          ..write('audioQuality: $audioQuality, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('accessCount: $accessCount, ')
+          ..write('lastAccessed: $lastAccessed, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class YoutubeDiscoveryItems extends Table
+    with TableInfo<YoutubeDiscoveryItems, YoutubeDiscoveryItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  YoutubeDiscoveryItems(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  static const VerificationMeta _sessionIdMeta =
+      const VerificationMeta('sessionId');
+  late final GeneratedColumn<int> sessionId = GeneratedColumn<int>(
+      'session_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _youtubeTrackIdMeta =
+      const VerificationMeta('youtubeTrackId');
+  late final GeneratedColumn<String> youtubeTrackId = GeneratedColumn<String>(
+      'youtube_track_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _positionInPlaylistMeta =
+      const VerificationMeta('positionInPlaylist');
+  late final GeneratedColumn<int> positionInPlaylist = GeneratedColumn<int>(
+      'position_in_playlist', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _discoveredAtMeta =
+      const VerificationMeta('discoveredAt');
+  late final GeneratedColumn<int> discoveredAt = GeneratedColumn<int>(
+      'discovered_at', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'NOT NULL DEFAULT (strftime(\'%s\', CURRENT_TIMESTAMP))',
+      defaultValue:
+          const CustomExpression('strftime(\'%s\', CURRENT_TIMESTAMP)'));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, sessionId, youtubeTrackId, positionInPlaylist, discoveredAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'youtube_discovery_items';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<YoutubeDiscoveryItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(_sessionIdMeta,
+          sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta));
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('youtube_track_id')) {
+      context.handle(
+          _youtubeTrackIdMeta,
+          youtubeTrackId.isAcceptableOrUnknown(
+              data['youtube_track_id']!, _youtubeTrackIdMeta));
+    } else if (isInserting) {
+      context.missing(_youtubeTrackIdMeta);
+    }
+    if (data.containsKey('position_in_playlist')) {
+      context.handle(
+          _positionInPlaylistMeta,
+          positionInPlaylist.isAcceptableOrUnknown(
+              data['position_in_playlist']!, _positionInPlaylistMeta));
+    } else if (isInserting) {
+      context.missing(_positionInPlaylistMeta);
+    }
+    if (data.containsKey('discovered_at')) {
+      context.handle(
+          _discoveredAtMeta,
+          discoveredAt.isAcceptableOrUnknown(
+              data['discovered_at']!, _discoveredAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  YoutubeDiscoveryItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return YoutubeDiscoveryItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      sessionId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}session_id'])!,
+      youtubeTrackId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}youtube_track_id'])!,
+      positionInPlaylist: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}position_in_playlist'])!,
+      discoveredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}discovered_at'])!,
+    );
+  }
+
+  @override
+  YoutubeDiscoveryItems createAlias(String alias) {
+    return YoutubeDiscoveryItems(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+        'FOREIGN KEY(session_id)REFERENCES discovery_sessions(id)ON DELETE CASCADE',
+        'FOREIGN KEY(youtube_track_id)REFERENCES youtube_tracks(id)ON DELETE CASCADE'
+      ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class YoutubeDiscoveryItem extends DataClass
+    implements Insertable<YoutubeDiscoveryItem> {
+  final int id;
+  final int sessionId;
+  final String youtubeTrackId;
+  final int positionInPlaylist;
+  final int discoveredAt;
+  const YoutubeDiscoveryItem(
+      {required this.id,
+      required this.sessionId,
+      required this.youtubeTrackId,
+      required this.positionInPlaylist,
+      required this.discoveredAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['session_id'] = Variable<int>(sessionId);
+    map['youtube_track_id'] = Variable<String>(youtubeTrackId);
+    map['position_in_playlist'] = Variable<int>(positionInPlaylist);
+    map['discovered_at'] = Variable<int>(discoveredAt);
+    return map;
+  }
+
+  YoutubeDiscoveryItemsCompanion toCompanion(bool nullToAbsent) {
+    return YoutubeDiscoveryItemsCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      youtubeTrackId: Value(youtubeTrackId),
+      positionInPlaylist: Value(positionInPlaylist),
+      discoveredAt: Value(discoveredAt),
+    );
+  }
+
+  factory YoutubeDiscoveryItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return YoutubeDiscoveryItem(
+      id: serializer.fromJson<int>(json['id']),
+      sessionId: serializer.fromJson<int>(json['session_id']),
+      youtubeTrackId: serializer.fromJson<String>(json['youtube_track_id']),
+      positionInPlaylist:
+          serializer.fromJson<int>(json['position_in_playlist']),
+      discoveredAt: serializer.fromJson<int>(json['discovered_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'session_id': serializer.toJson<int>(sessionId),
+      'youtube_track_id': serializer.toJson<String>(youtubeTrackId),
+      'position_in_playlist': serializer.toJson<int>(positionInPlaylist),
+      'discovered_at': serializer.toJson<int>(discoveredAt),
+    };
+  }
+
+  YoutubeDiscoveryItem copyWith(
+          {int? id,
+          int? sessionId,
+          String? youtubeTrackId,
+          int? positionInPlaylist,
+          int? discoveredAt}) =>
+      YoutubeDiscoveryItem(
+        id: id ?? this.id,
+        sessionId: sessionId ?? this.sessionId,
+        youtubeTrackId: youtubeTrackId ?? this.youtubeTrackId,
+        positionInPlaylist: positionInPlaylist ?? this.positionInPlaylist,
+        discoveredAt: discoveredAt ?? this.discoveredAt,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('YoutubeDiscoveryItem(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('youtubeTrackId: $youtubeTrackId, ')
+          ..write('positionInPlaylist: $positionInPlaylist, ')
+          ..write('discoveredAt: $discoveredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, sessionId, youtubeTrackId, positionInPlaylist, discoveredAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is YoutubeDiscoveryItem &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.youtubeTrackId == this.youtubeTrackId &&
+          other.positionInPlaylist == this.positionInPlaylist &&
+          other.discoveredAt == this.discoveredAt);
+}
+
+class YoutubeDiscoveryItemsCompanion
+    extends UpdateCompanion<YoutubeDiscoveryItem> {
+  final Value<int> id;
+  final Value<int> sessionId;
+  final Value<String> youtubeTrackId;
+  final Value<int> positionInPlaylist;
+  final Value<int> discoveredAt;
+  const YoutubeDiscoveryItemsCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.youtubeTrackId = const Value.absent(),
+    this.positionInPlaylist = const Value.absent(),
+    this.discoveredAt = const Value.absent(),
+  });
+  YoutubeDiscoveryItemsCompanion.insert({
+    this.id = const Value.absent(),
+    required int sessionId,
+    required String youtubeTrackId,
+    required int positionInPlaylist,
+    this.discoveredAt = const Value.absent(),
+  })  : sessionId = Value(sessionId),
+        youtubeTrackId = Value(youtubeTrackId),
+        positionInPlaylist = Value(positionInPlaylist);
+  static Insertable<YoutubeDiscoveryItem> custom({
+    Expression<int>? id,
+    Expression<int>? sessionId,
+    Expression<String>? youtubeTrackId,
+    Expression<int>? positionInPlaylist,
+    Expression<int>? discoveredAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (youtubeTrackId != null) 'youtube_track_id': youtubeTrackId,
+      if (positionInPlaylist != null)
+        'position_in_playlist': positionInPlaylist,
+      if (discoveredAt != null) 'discovered_at': discoveredAt,
+    });
+  }
+
+  YoutubeDiscoveryItemsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? sessionId,
+      Value<String>? youtubeTrackId,
+      Value<int>? positionInPlaylist,
+      Value<int>? discoveredAt}) {
+    return YoutubeDiscoveryItemsCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      youtubeTrackId: youtubeTrackId ?? this.youtubeTrackId,
+      positionInPlaylist: positionInPlaylist ?? this.positionInPlaylist,
+      discoveredAt: discoveredAt ?? this.discoveredAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<int>(sessionId.value);
+    }
+    if (youtubeTrackId.present) {
+      map['youtube_track_id'] = Variable<String>(youtubeTrackId.value);
+    }
+    if (positionInPlaylist.present) {
+      map['position_in_playlist'] = Variable<int>(positionInPlaylist.value);
+    }
+    if (discoveredAt.present) {
+      map['discovered_at'] = Variable<int>(discoveredAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('YoutubeDiscoveryItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('youtubeTrackId: $youtubeTrackId, ')
+          ..write('positionInPlaylist: $positionInPlaylist, ')
+          ..write('discoveredAt: $discoveredAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class LidarrRequests extends Table
+    with TableInfo<LidarrRequests, LidarrRequest> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  LidarrRequests(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  static const VerificationMeta _youtubeVideoIdMeta =
+      const VerificationMeta('youtubeVideoId');
+  late final GeneratedColumn<String> youtubeVideoId = GeneratedColumn<String>(
+      'youtube_video_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _artistNameMeta =
+      const VerificationMeta('artistName');
+  late final GeneratedColumn<String> artistName = GeneratedColumn<String>(
+      'artist_name', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _foreignArtistIdMeta =
+      const VerificationMeta('foreignArtistId');
+  late final GeneratedColumn<String> foreignArtistId = GeneratedColumn<String>(
+      'foreign_artist_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  static const VerificationMeta _requestedAtMeta =
+      const VerificationMeta('requestedAt');
+  late final GeneratedColumn<int> requestedAt = GeneratedColumn<int>(
+      'requested_at', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'NOT NULL DEFAULT (strftime(\'%s\', CURRENT_TIMESTAMP))',
+      defaultValue:
+          const CustomExpression('strftime(\'%s\', CURRENT_TIMESTAMP)'));
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  late final GeneratedColumn<int> completedAt = GeneratedColumn<int>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  static const VerificationMeta _errorMessageMeta =
+      const VerificationMeta('errorMessage');
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+      'error_message', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        youtubeVideoId,
+        artistName,
+        foreignArtistId,
+        status,
+        requestedAt,
+        completedAt,
+        errorMessage
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'lidarr_requests';
+  @override
+  VerificationContext validateIntegrity(Insertable<LidarrRequest> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('youtube_video_id')) {
+      context.handle(
+          _youtubeVideoIdMeta,
+          youtubeVideoId.isAcceptableOrUnknown(
+              data['youtube_video_id']!, _youtubeVideoIdMeta));
+    } else if (isInserting) {
+      context.missing(_youtubeVideoIdMeta);
+    }
+    if (data.containsKey('artist_name')) {
+      context.handle(
+          _artistNameMeta,
+          artistName.isAcceptableOrUnknown(
+              data['artist_name']!, _artistNameMeta));
+    } else if (isInserting) {
+      context.missing(_artistNameMeta);
+    }
+    if (data.containsKey('foreign_artist_id')) {
+      context.handle(
+          _foreignArtistIdMeta,
+          foreignArtistId.isAcceptableOrUnknown(
+              data['foreign_artist_id']!, _foreignArtistIdMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('requested_at')) {
+      context.handle(
+          _requestedAtMeta,
+          requestedAt.isAcceptableOrUnknown(
+              data['requested_at']!, _requestedAtMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(
+          _errorMessageMeta,
+          errorMessage.isAcceptableOrUnknown(
+              data['error_message']!, _errorMessageMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {youtubeVideoId},
+      ];
+  @override
+  LidarrRequest map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LidarrRequest(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      youtubeVideoId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}youtube_video_id'])!,
+      artistName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artist_name'])!,
+      foreignArtistId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}foreign_artist_id']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      requestedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}requested_at'])!,
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}completed_at']),
+      errorMessage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_message']),
+    );
+  }
+
+  @override
+  LidarrRequests createAlias(String alias) {
+    return LidarrRequests(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['UNIQUE(youtube_video_id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class LidarrRequest extends DataClass implements Insertable<LidarrRequest> {
+  final int id;
+  final String youtubeVideoId;
+  final String artistName;
+  final String? foreignArtistId;
+
+  /// MusicBrainz ID
+  final String status;
+
+  /// 'added', 'already_exists', 'not_found', 'failed'
+  final int requestedAt;
+  final int? completedAt;
+  final String? errorMessage;
+  const LidarrRequest(
+      {required this.id,
+      required this.youtubeVideoId,
+      required this.artistName,
+      this.foreignArtistId,
+      required this.status,
+      required this.requestedAt,
+      this.completedAt,
+      this.errorMessage});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['youtube_video_id'] = Variable<String>(youtubeVideoId);
+    map['artist_name'] = Variable<String>(artistName);
+    if (!nullToAbsent || foreignArtistId != null) {
+      map['foreign_artist_id'] = Variable<String>(foreignArtistId);
+    }
+    map['status'] = Variable<String>(status);
+    map['requested_at'] = Variable<int>(requestedAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<int>(completedAt);
+    }
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
+    }
+    return map;
+  }
+
+  LidarrRequestsCompanion toCompanion(bool nullToAbsent) {
+    return LidarrRequestsCompanion(
+      id: Value(id),
+      youtubeVideoId: Value(youtubeVideoId),
+      artistName: Value(artistName),
+      foreignArtistId: foreignArtistId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(foreignArtistId),
+      status: Value(status),
+      requestedAt: Value(requestedAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+      errorMessage: errorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorMessage),
+    );
+  }
+
+  factory LidarrRequest.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LidarrRequest(
+      id: serializer.fromJson<int>(json['id']),
+      youtubeVideoId: serializer.fromJson<String>(json['youtube_video_id']),
+      artistName: serializer.fromJson<String>(json['artist_name']),
+      foreignArtistId: serializer.fromJson<String?>(json['foreign_artist_id']),
+      status: serializer.fromJson<String>(json['status']),
+      requestedAt: serializer.fromJson<int>(json['requested_at']),
+      completedAt: serializer.fromJson<int?>(json['completed_at']),
+      errorMessage: serializer.fromJson<String?>(json['error_message']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'youtube_video_id': serializer.toJson<String>(youtubeVideoId),
+      'artist_name': serializer.toJson<String>(artistName),
+      'foreign_artist_id': serializer.toJson<String?>(foreignArtistId),
+      'status': serializer.toJson<String>(status),
+      'requested_at': serializer.toJson<int>(requestedAt),
+      'completed_at': serializer.toJson<int?>(completedAt),
+      'error_message': serializer.toJson<String?>(errorMessage),
+    };
+  }
+
+  LidarrRequest copyWith(
+          {int? id,
+          String? youtubeVideoId,
+          String? artistName,
+          Value<String?> foreignArtistId = const Value.absent(),
+          String? status,
+          int? requestedAt,
+          Value<int?> completedAt = const Value.absent(),
+          Value<String?> errorMessage = const Value.absent()}) =>
+      LidarrRequest(
+        id: id ?? this.id,
+        youtubeVideoId: youtubeVideoId ?? this.youtubeVideoId,
+        artistName: artistName ?? this.artistName,
+        foreignArtistId: foreignArtistId.present
+            ? foreignArtistId.value
+            : this.foreignArtistId,
+        status: status ?? this.status,
+        requestedAt: requestedAt ?? this.requestedAt,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+        errorMessage:
+            errorMessage.present ? errorMessage.value : this.errorMessage,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('LidarrRequest(')
+          ..write('id: $id, ')
+          ..write('youtubeVideoId: $youtubeVideoId, ')
+          ..write('artistName: $artistName, ')
+          ..write('foreignArtistId: $foreignArtistId, ')
+          ..write('status: $status, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('errorMessage: $errorMessage')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, youtubeVideoId, artistName,
+      foreignArtistId, status, requestedAt, completedAt, errorMessage);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LidarrRequest &&
+          other.id == this.id &&
+          other.youtubeVideoId == this.youtubeVideoId &&
+          other.artistName == this.artistName &&
+          other.foreignArtistId == this.foreignArtistId &&
+          other.status == this.status &&
+          other.requestedAt == this.requestedAt &&
+          other.completedAt == this.completedAt &&
+          other.errorMessage == this.errorMessage);
+}
+
+class LidarrRequestsCompanion extends UpdateCompanion<LidarrRequest> {
+  final Value<int> id;
+  final Value<String> youtubeVideoId;
+  final Value<String> artistName;
+  final Value<String?> foreignArtistId;
+  final Value<String> status;
+  final Value<int> requestedAt;
+  final Value<int?> completedAt;
+  final Value<String?> errorMessage;
+  const LidarrRequestsCompanion({
+    this.id = const Value.absent(),
+    this.youtubeVideoId = const Value.absent(),
+    this.artistName = const Value.absent(),
+    this.foreignArtistId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.requestedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+  });
+  LidarrRequestsCompanion.insert({
+    this.id = const Value.absent(),
+    required String youtubeVideoId,
+    required String artistName,
+    this.foreignArtistId = const Value.absent(),
+    required String status,
+    this.requestedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+  })  : youtubeVideoId = Value(youtubeVideoId),
+        artistName = Value(artistName),
+        status = Value(status);
+  static Insertable<LidarrRequest> custom({
+    Expression<int>? id,
+    Expression<String>? youtubeVideoId,
+    Expression<String>? artistName,
+    Expression<String>? foreignArtistId,
+    Expression<String>? status,
+    Expression<int>? requestedAt,
+    Expression<int>? completedAt,
+    Expression<String>? errorMessage,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (youtubeVideoId != null) 'youtube_video_id': youtubeVideoId,
+      if (artistName != null) 'artist_name': artistName,
+      if (foreignArtistId != null) 'foreign_artist_id': foreignArtistId,
+      if (status != null) 'status': status,
+      if (requestedAt != null) 'requested_at': requestedAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (errorMessage != null) 'error_message': errorMessage,
+    });
+  }
+
+  LidarrRequestsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? youtubeVideoId,
+      Value<String>? artistName,
+      Value<String?>? foreignArtistId,
+      Value<String>? status,
+      Value<int>? requestedAt,
+      Value<int?>? completedAt,
+      Value<String?>? errorMessage}) {
+    return LidarrRequestsCompanion(
+      id: id ?? this.id,
+      youtubeVideoId: youtubeVideoId ?? this.youtubeVideoId,
+      artistName: artistName ?? this.artistName,
+      foreignArtistId: foreignArtistId ?? this.foreignArtistId,
+      status: status ?? this.status,
+      requestedAt: requestedAt ?? this.requestedAt,
+      completedAt: completedAt ?? this.completedAt,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (youtubeVideoId.present) {
+      map['youtube_video_id'] = Variable<String>(youtubeVideoId.value);
+    }
+    if (artistName.present) {
+      map['artist_name'] = Variable<String>(artistName.value);
+    }
+    if (foreignArtistId.present) {
+      map['foreign_artist_id'] = Variable<String>(foreignArtistId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (requestedAt.present) {
+      map['requested_at'] = Variable<int>(requestedAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<int>(completedAt.value);
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LidarrRequestsCompanion(')
+          ..write('id: $id, ')
+          ..write('youtubeVideoId: $youtubeVideoId, ')
+          ..write('artistName: $artistName, ')
+          ..write('foreignArtistId: $foreignArtistId, ')
+          ..write('status: $status, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('errorMessage: $errorMessage')
           ..write(')'))
         .toString();
   }
@@ -5614,7 +7491,6 @@ class DiscoveryInteractionsCompanion
 
 abstract class _$SubtracksDatabase extends GeneratedDatabase {
   _$SubtracksDatabase(QueryExecutor e) : super(e);
-  _$SubtracksDatabaseManager get managers => _$SubtracksDatabaseManager(this);
   late final Queue queue = Queue(this);
   late final Index queueIndex =
       Index('queue_index', 'CREATE INDEX queue_index ON queue ("index")');
@@ -5718,6 +7594,36 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
   late final Index discoveryInteractionsInteractionType = Index(
       'discovery_interactions_interaction_type',
       'CREATE INDEX discovery_interactions_interaction_type ON discovery_interactions (interaction_type)');
+  late final Index discoveryInteractionsTrackSource = Index(
+      'discovery_interactions_track_source',
+      'CREATE INDEX discovery_interactions_track_source ON discovery_interactions (track_source)');
+  late final Index discoveryInteractionsYoutubeVideoId = Index(
+      'discovery_interactions_youtube_video_id',
+      'CREATE INDEX discovery_interactions_youtube_video_id ON discovery_interactions (youtube_video_id)');
+  late final YoutubeTracks youtubeTracks = YoutubeTracks(this);
+  late final Index idxYoutubeTracksExpires = Index('idx_youtube_tracks_expires',
+      'CREATE INDEX idx_youtube_tracks_expires ON youtube_tracks (expires_at)');
+  late final Index idxYoutubeTracksCached = Index('idx_youtube_tracks_cached',
+      'CREATE INDEX idx_youtube_tracks_cached ON youtube_tracks (cached_at)');
+  late final Index idxYoutubeTracksLastAccessed = Index(
+      'idx_youtube_tracks_last_accessed',
+      'CREATE INDEX idx_youtube_tracks_last_accessed ON youtube_tracks (last_accessed)');
+  late final YoutubeDiscoveryItems youtubeDiscoveryItems =
+      YoutubeDiscoveryItems(this);
+  late final Index idxYoutubeDiscoverySession = Index(
+      'idx_youtube_discovery_session',
+      'CREATE INDEX idx_youtube_discovery_session ON youtube_discovery_items (session_id)');
+  late final Index idxYoutubeDiscoveryTrack = Index(
+      'idx_youtube_discovery_track',
+      'CREATE INDEX idx_youtube_discovery_track ON youtube_discovery_items (youtube_track_id)');
+  late final LidarrRequests lidarrRequests = LidarrRequests(this);
+  late final Index idxLidarrRequestsStatus = Index('idx_lidarr_requests_status',
+      'CREATE INDEX idx_lidarr_requests_status ON lidarr_requests (status)');
+  late final Index idxLidarrRequestsVideo = Index('idx_lidarr_requests_video',
+      'CREATE INDEX idx_lidarr_requests_video ON lidarr_requests (youtube_video_id)');
+  late final Index idxLidarrRequestsRequestedAt = Index(
+      'idx_lidarr_requests_requested_at',
+      'CREATE INDEX idx_lidarr_requests_requested_at ON lidarr_requests (requested_at)');
   Selectable<int> sourcesCount() {
     return customSelect('SELECT COUNT(*) AS _c0 FROM sources',
         variables: [],
@@ -6768,6 +8674,182 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         }).asyncMap(songs.mapFromRow);
   }
 
+  Selectable<YoutubeTrack> youTubeTrackById(String id) {
+    return customSelect('SELECT * FROM youtube_tracks WHERE id = ?1',
+        variables: [
+          Variable<String>(id)
+        ],
+        readsFrom: {
+          youtubeTracks,
+        }).asyncMap(youtubeTracks.mapFromRow);
+  }
+
+  Selectable<YoutubeTrack> youTubeTracksExpiringSoon(int expiresBefore) {
+    return customSelect(
+        'SELECT * FROM youtube_tracks WHERE expires_at < ?1 ORDER BY expires_at ASC',
+        variables: [
+          Variable<int>(expiresBefore)
+        ],
+        readsFrom: {
+          youtubeTracks,
+        }).asyncMap(youtubeTracks.mapFromRow);
+  }
+
+  Selectable<YoutubeTrack> youTubeTracksExpired(int currentTime) {
+    return customSelect(
+        'SELECT * FROM youtube_tracks WHERE expires_at < ?1 ORDER BY expires_at ASC',
+        variables: [
+          Variable<int>(currentTime)
+        ],
+        readsFrom: {
+          youtubeTracks,
+        }).asyncMap(youtubeTracks.mapFromRow);
+  }
+
+  Selectable<YoutubeTrack> youTubeTracksByLastAccessed(int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM youtube_tracks WHERE last_accessed IS NOT NULL ORDER BY last_accessed DESC LIMIT ?1 OFFSET ?2',
+        variables: [
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          youtubeTracks,
+        }).asyncMap(youtubeTracks.mapFromRow);
+  }
+
+  Selectable<YoutubeTrack> youTubeTracksByAccessCount(int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM youtube_tracks WHERE access_count > 0 ORDER BY access_count DESC, last_accessed DESC LIMIT ?1 OFFSET ?2',
+        variables: [
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          youtubeTracks,
+        }).asyncMap(youtubeTracks.mapFromRow);
+  }
+
+  Selectable<int> youTubeCacheCount() {
+    return customSelect('SELECT COUNT(*) AS _c0 FROM youtube_tracks',
+        variables: [],
+        readsFrom: {
+          youtubeTracks,
+        }).map((QueryRow row) => row.read<int>('_c0'));
+  }
+
+  Selectable<YouTubeCacheSizeResult> youTubeCacheSize() {
+    return customSelect(
+        'SELECT COUNT(*) AS track_count, SUM(LENGTH(audio_url) + LENGTH(title) + LENGTH(artist) + LENGTH(channel_name)) AS approx_bytes FROM youtube_tracks',
+        variables: [],
+        readsFrom: {
+          youtubeTracks,
+        }).map((QueryRow row) => YouTubeCacheSizeResult(
+          trackCount: row.read<int>('track_count'),
+          approxBytes: row.readNullable<int>('approx_bytes'),
+        ));
+  }
+
+  Selectable<YouTubeTracksForSessionResult> youTubeTracksForSession(
+      int sessionId) {
+    return customSelect(
+        'SELECT yt.*, ydi.position_in_playlist, ydi.discovered_at FROM youtube_tracks AS yt JOIN youtube_discovery_items AS ydi ON yt.id = ydi.youtube_track_id WHERE ydi.session_id = ?1 ORDER BY ydi.position_in_playlist ASC',
+        variables: [
+          Variable<int>(sessionId)
+        ],
+        readsFrom: {
+          youtubeDiscoveryItems,
+          youtubeTracks,
+        }).map((QueryRow row) => YouTubeTracksForSessionResult(
+          id: row.read<String>('id'),
+          title: row.read<String>('title'),
+          artist: row.readNullable<String>('artist'),
+          channelName: row.read<String>('channel_name'),
+          durationSeconds: row.read<int>('duration_seconds'),
+          thumbnailUrl: row.readNullable<String>('thumbnail_url'),
+          audioUrl: row.read<String>('audio_url'),
+          audioBitrate: row.read<int>('audio_bitrate'),
+          audioCodec: row.read<String>('audio_codec'),
+          audioQuality: row.read<String>('audio_quality'),
+          cachedAt: row.read<int>('cached_at'),
+          expiresAt: row.read<int>('expires_at'),
+          accessCount: row.read<int>('access_count'),
+          lastAccessed: row.readNullable<int>('last_accessed'),
+          positionInPlaylist: row.read<int>('position_in_playlist'),
+          discoveredAt: row.read<int>('discovered_at'),
+        ));
+  }
+
+  Selectable<DiscoverySession> discoverySessionsForYouTubeTrack(
+      String youtubeTrackId) {
+    return customSelect(
+        'SELECT DISTINCT ds.* FROM discovery_sessions AS ds JOIN youtube_discovery_items AS ydi ON ds.id = ydi.session_id WHERE ydi.youtube_track_id = ?1 ORDER BY ds.created_at DESC',
+        variables: [
+          Variable<String>(youtubeTrackId)
+        ],
+        readsFrom: {
+          discoverySessions,
+          youtubeDiscoveryItems,
+        }).asyncMap(discoverySessions.mapFromRow);
+  }
+
+  Selectable<LidarrRequest> lidarrRequestByVideoId(String videoId) {
+    return customSelect(
+        'SELECT * FROM lidarr_requests WHERE youtube_video_id = ?1',
+        variables: [
+          Variable<String>(videoId)
+        ],
+        readsFrom: {
+          lidarrRequests,
+        }).asyncMap(lidarrRequests.mapFromRow);
+  }
+
+  Selectable<LidarrRequest> lidarrRequestsByStatus(
+      String status, int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM lidarr_requests WHERE status = ?1 ORDER BY requested_at DESC LIMIT ?2 OFFSET ?3',
+        variables: [
+          Variable<String>(status),
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          lidarrRequests,
+        }).asyncMap(lidarrRequests.mapFromRow);
+  }
+
+  Selectable<LidarrRequest> lidarrRequestsRecent(int limit, int offset) {
+    return customSelect(
+        'SELECT * FROM lidarr_requests ORDER BY requested_at DESC LIMIT ?1 OFFSET ?2',
+        variables: [
+          Variable<int>(limit),
+          Variable<int>(offset)
+        ],
+        readsFrom: {
+          lidarrRequests,
+        }).asyncMap(lidarrRequests.mapFromRow);
+  }
+
+  Selectable<int> lidarrRequestsCount() {
+    return customSelect('SELECT COUNT(*) AS _c0 FROM lidarr_requests',
+        variables: [],
+        readsFrom: {
+          lidarrRequests,
+        }).map((QueryRow row) => row.read<int>('_c0'));
+  }
+
+  Selectable<LidarrRequestsCountByStatusResult> lidarrRequestsCountByStatus() {
+    return customSelect(
+        'SELECT status, COUNT(*) AS count FROM lidarr_requests GROUP BY status',
+        variables: [],
+        readsFrom: {
+          lidarrRequests,
+        }).map((QueryRow row) => LidarrRequestsCountByStatusResult(
+          status: row.read<String>('status'),
+          count: row.read<int>('count'),
+        ));
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6820,7 +8902,20 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         discoveryInteractions,
         discoveryInteractionsSessionId,
         discoveryInteractionsSongId,
-        discoveryInteractionsInteractionType
+        discoveryInteractionsInteractionType,
+        discoveryInteractionsTrackSource,
+        discoveryInteractionsYoutubeVideoId,
+        youtubeTracks,
+        idxYoutubeTracksExpires,
+        idxYoutubeTracksCached,
+        idxYoutubeTracksLastAccessed,
+        youtubeDiscoveryItems,
+        idxYoutubeDiscoverySession,
+        idxYoutubeDiscoveryTrack,
+        lidarrRequests,
+        idxLidarrRequestsStatus,
+        idxLidarrRequestsVideo,
+        idxLidarrRequestsRequestedAt
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -6965,1779 +9060,22 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
               TableUpdate('discovery_interactions', kind: UpdateKind.delete),
             ],
           ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('discovery_sessions',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('youtube_discovery_items', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('youtube_tracks',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('youtube_discovery_items', kind: UpdateKind.delete),
+            ],
+          ),
         ],
       );
-}
-
-typedef $QueueInsertCompanionBuilder = QueueCompanion Function({
-  Value<int> index,
-  required int sourceId,
-  required String id,
-  required QueueContextType context,
-  Value<String?> contextId,
-  Value<bool?> currentTrack,
-});
-typedef $QueueUpdateCompanionBuilder = QueueCompanion Function({
-  Value<int> index,
-  Value<int> sourceId,
-  Value<String> id,
-  Value<QueueContextType> context,
-  Value<String?> contextId,
-  Value<bool?> currentTrack,
-});
-
-class $QueueTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    Queue,
-    QueueData,
-    $QueueFilterComposer,
-    $QueueOrderingComposer,
-    $QueueProcessedTableManager,
-    $QueueInsertCompanionBuilder,
-    $QueueUpdateCompanionBuilder> {
-  $QueueTableManager(_$SubtracksDatabase db, Queue table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer: $QueueFilterComposer(ComposerState(db, table)),
-          orderingComposer: $QueueOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $QueueProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> index = const Value.absent(),
-            Value<int> sourceId = const Value.absent(),
-            Value<String> id = const Value.absent(),
-            Value<QueueContextType> context = const Value.absent(),
-            Value<String?> contextId = const Value.absent(),
-            Value<bool?> currentTrack = const Value.absent(),
-          }) =>
-              QueueCompanion(
-            index: index,
-            sourceId: sourceId,
-            id: id,
-            context: context,
-            contextId: contextId,
-            currentTrack: currentTrack,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> index = const Value.absent(),
-            required int sourceId,
-            required String id,
-            required QueueContextType context,
-            Value<String?> contextId = const Value.absent(),
-            Value<bool?> currentTrack = const Value.absent(),
-          }) =>
-              QueueCompanion.insert(
-            index: index,
-            sourceId: sourceId,
-            id: id,
-            context: context,
-            contextId: contextId,
-            currentTrack: currentTrack,
-          ),
-        ));
-}
-
-class $QueueProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    Queue,
-    QueueData,
-    $QueueFilterComposer,
-    $QueueOrderingComposer,
-    $QueueProcessedTableManager,
-    $QueueInsertCompanionBuilder,
-    $QueueUpdateCompanionBuilder> {
-  $QueueProcessedTableManager(super.$state);
-}
-
-class $QueueFilterComposer extends FilterComposer<_$SubtracksDatabase, Queue> {
-  $QueueFilterComposer(super.$state);
-  ColumnFilters<int> get index => $state.composableBuilder(
-      column: $state.table.index,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<QueueContextType, QueueContextType, String>
-      get context => $state.composableBuilder(
-          column: $state.table.context,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get contextId => $state.composableBuilder(
-      column: $state.table.contextId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<bool> get currentTrack => $state.composableBuilder(
-      column: $state.table.currentTrack,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $QueueOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, Queue> {
-  $QueueOrderingComposer(super.$state);
-  ColumnOrderings<int> get index => $state.composableBuilder(
-      column: $state.table.index,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get context => $state.composableBuilder(
-      column: $state.table.context,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get contextId => $state.composableBuilder(
-      column: $state.table.contextId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<bool> get currentTrack => $state.composableBuilder(
-      column: $state.table.currentTrack,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $LastAudioStateInsertCompanionBuilder = LastAudioStateCompanion
-    Function({
-  Value<int> id,
-  required QueueMode queueMode,
-  Value<IList<int>?> shuffleIndicies,
-  required RepeatMode repeat,
-});
-typedef $LastAudioStateUpdateCompanionBuilder = LastAudioStateCompanion
-    Function({
-  Value<int> id,
-  Value<QueueMode> queueMode,
-  Value<IList<int>?> shuffleIndicies,
-  Value<RepeatMode> repeat,
-});
-
-class $LastAudioStateTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    LastAudioState,
-    LastAudioStateData,
-    $LastAudioStateFilterComposer,
-    $LastAudioStateOrderingComposer,
-    $LastAudioStateProcessedTableManager,
-    $LastAudioStateInsertCompanionBuilder,
-    $LastAudioStateUpdateCompanionBuilder> {
-  $LastAudioStateTableManager(_$SubtracksDatabase db, LastAudioState table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $LastAudioStateFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $LastAudioStateOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $LastAudioStateProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            Value<QueueMode> queueMode = const Value.absent(),
-            Value<IList<int>?> shuffleIndicies = const Value.absent(),
-            Value<RepeatMode> repeat = const Value.absent(),
-          }) =>
-              LastAudioStateCompanion(
-            id: id,
-            queueMode: queueMode,
-            shuffleIndicies: shuffleIndicies,
-            repeat: repeat,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            required QueueMode queueMode,
-            Value<IList<int>?> shuffleIndicies = const Value.absent(),
-            required RepeatMode repeat,
-          }) =>
-              LastAudioStateCompanion.insert(
-            id: id,
-            queueMode: queueMode,
-            shuffleIndicies: shuffleIndicies,
-            repeat: repeat,
-          ),
-        ));
-}
-
-class $LastAudioStateProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    LastAudioState,
-    LastAudioStateData,
-    $LastAudioStateFilterComposer,
-    $LastAudioStateOrderingComposer,
-    $LastAudioStateProcessedTableManager,
-    $LastAudioStateInsertCompanionBuilder,
-    $LastAudioStateUpdateCompanionBuilder> {
-  $LastAudioStateProcessedTableManager(super.$state);
-}
-
-class $LastAudioStateFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, LastAudioState> {
-  $LastAudioStateFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<QueueMode, QueueMode, int> get queueMode =>
-      $state.composableBuilder(
-          column: $state.table.queueMode,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<IList<int>?, IList<int>, String>
-      get shuffleIndicies => $state.composableBuilder(
-          column: $state.table.shuffleIndicies,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<RepeatMode, RepeatMode, int> get repeat =>
-      $state.composableBuilder(
-          column: $state.table.repeat,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-}
-
-class $LastAudioStateOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, LastAudioState> {
-  $LastAudioStateOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get queueMode => $state.composableBuilder(
-      column: $state.table.queueMode,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get shuffleIndicies => $state.composableBuilder(
-      column: $state.table.shuffleIndicies,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get repeat => $state.composableBuilder(
-      column: $state.table.repeat,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $LastBottomNavStateInsertCompanionBuilder = LastBottomNavStateCompanion
-    Function({
-  Value<int> id,
-  required String tab,
-});
-typedef $LastBottomNavStateUpdateCompanionBuilder = LastBottomNavStateCompanion
-    Function({
-  Value<int> id,
-  Value<String> tab,
-});
-
-class $LastBottomNavStateTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    LastBottomNavState,
-    LastBottomNavStateData,
-    $LastBottomNavStateFilterComposer,
-    $LastBottomNavStateOrderingComposer,
-    $LastBottomNavStateProcessedTableManager,
-    $LastBottomNavStateInsertCompanionBuilder,
-    $LastBottomNavStateUpdateCompanionBuilder> {
-  $LastBottomNavStateTableManager(
-      _$SubtracksDatabase db, LastBottomNavState table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $LastBottomNavStateFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $LastBottomNavStateOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $LastBottomNavStateProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            Value<String> tab = const Value.absent(),
-          }) =>
-              LastBottomNavStateCompanion(
-            id: id,
-            tab: tab,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            required String tab,
-          }) =>
-              LastBottomNavStateCompanion.insert(
-            id: id,
-            tab: tab,
-          ),
-        ));
-}
-
-class $LastBottomNavStateProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    LastBottomNavState,
-    LastBottomNavStateData,
-    $LastBottomNavStateFilterComposer,
-    $LastBottomNavStateOrderingComposer,
-    $LastBottomNavStateProcessedTableManager,
-    $LastBottomNavStateInsertCompanionBuilder,
-    $LastBottomNavStateUpdateCompanionBuilder> {
-  $LastBottomNavStateProcessedTableManager(super.$state);
-}
-
-class $LastBottomNavStateFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, LastBottomNavState> {
-  $LastBottomNavStateFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get tab => $state.composableBuilder(
-      column: $state.table.tab,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $LastBottomNavStateOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, LastBottomNavState> {
-  $LastBottomNavStateOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get tab => $state.composableBuilder(
-      column: $state.table.tab,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $LastLibraryStateInsertCompanionBuilder = LastLibraryStateCompanion
-    Function({
-  Value<int> id,
-  required String tab,
-  required ListQuery albumsList,
-  required ListQuery artistsList,
-  required ListQuery playlistsList,
-  required ListQuery songsList,
-});
-typedef $LastLibraryStateUpdateCompanionBuilder = LastLibraryStateCompanion
-    Function({
-  Value<int> id,
-  Value<String> tab,
-  Value<ListQuery> albumsList,
-  Value<ListQuery> artistsList,
-  Value<ListQuery> playlistsList,
-  Value<ListQuery> songsList,
-});
-
-class $LastLibraryStateTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    LastLibraryState,
-    LastLibraryStateData,
-    $LastLibraryStateFilterComposer,
-    $LastLibraryStateOrderingComposer,
-    $LastLibraryStateProcessedTableManager,
-    $LastLibraryStateInsertCompanionBuilder,
-    $LastLibraryStateUpdateCompanionBuilder> {
-  $LastLibraryStateTableManager(_$SubtracksDatabase db, LastLibraryState table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $LastLibraryStateFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $LastLibraryStateOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $LastLibraryStateProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            Value<String> tab = const Value.absent(),
-            Value<ListQuery> albumsList = const Value.absent(),
-            Value<ListQuery> artistsList = const Value.absent(),
-            Value<ListQuery> playlistsList = const Value.absent(),
-            Value<ListQuery> songsList = const Value.absent(),
-          }) =>
-              LastLibraryStateCompanion(
-            id: id,
-            tab: tab,
-            albumsList: albumsList,
-            artistsList: artistsList,
-            playlistsList: playlistsList,
-            songsList: songsList,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            required String tab,
-            required ListQuery albumsList,
-            required ListQuery artistsList,
-            required ListQuery playlistsList,
-            required ListQuery songsList,
-          }) =>
-              LastLibraryStateCompanion.insert(
-            id: id,
-            tab: tab,
-            albumsList: albumsList,
-            artistsList: artistsList,
-            playlistsList: playlistsList,
-            songsList: songsList,
-          ),
-        ));
-}
-
-class $LastLibraryStateProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    LastLibraryState,
-    LastLibraryStateData,
-    $LastLibraryStateFilterComposer,
-    $LastLibraryStateOrderingComposer,
-    $LastLibraryStateProcessedTableManager,
-    $LastLibraryStateInsertCompanionBuilder,
-    $LastLibraryStateUpdateCompanionBuilder> {
-  $LastLibraryStateProcessedTableManager(super.$state);
-}
-
-class $LastLibraryStateFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, LastLibraryState> {
-  $LastLibraryStateFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get tab => $state.composableBuilder(
-      column: $state.table.tab,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String> get albumsList =>
-      $state.composableBuilder(
-          column: $state.table.albumsList,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String>
-      get artistsList => $state.composableBuilder(
-          column: $state.table.artistsList,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String>
-      get playlistsList => $state.composableBuilder(
-          column: $state.table.playlistsList,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<ListQuery, ListQuery, String> get songsList =>
-      $state.composableBuilder(
-          column: $state.table.songsList,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-}
-
-class $LastLibraryStateOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, LastLibraryState> {
-  $LastLibraryStateOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get tab => $state.composableBuilder(
-      column: $state.table.tab,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get albumsList => $state.composableBuilder(
-      column: $state.table.albumsList,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get artistsList => $state.composableBuilder(
-      column: $state.table.artistsList,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get playlistsList => $state.composableBuilder(
-      column: $state.table.playlistsList,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get songsList => $state.composableBuilder(
-      column: $state.table.songsList,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $SourcesInsertCompanionBuilder = SourcesCompanion Function({
-  Value<int> id,
-  required String name,
-  required Uri address,
-  Value<bool?> isActive,
-  Value<DateTime> createdAt,
-});
-typedef $SourcesUpdateCompanionBuilder = SourcesCompanion Function({
-  Value<int> id,
-  Value<String> name,
-  Value<Uri> address,
-  Value<bool?> isActive,
-  Value<DateTime> createdAt,
-});
-
-class $SourcesTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    Sources,
-    Source,
-    $SourcesFilterComposer,
-    $SourcesOrderingComposer,
-    $SourcesProcessedTableManager,
-    $SourcesInsertCompanionBuilder,
-    $SourcesUpdateCompanionBuilder> {
-  $SourcesTableManager(_$SubtracksDatabase db, Sources table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer: $SourcesFilterComposer(ComposerState(db, table)),
-          orderingComposer: $SourcesOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $SourcesProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<Uri> address = const Value.absent(),
-            Value<bool?> isActive = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-          }) =>
-              SourcesCompanion(
-            id: id,
-            name: name,
-            address: address,
-            isActive: isActive,
-            createdAt: createdAt,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-            required Uri address,
-            Value<bool?> isActive = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-          }) =>
-              SourcesCompanion.insert(
-            id: id,
-            name: name,
-            address: address,
-            isActive: isActive,
-            createdAt: createdAt,
-          ),
-        ));
-}
-
-class $SourcesProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    Sources,
-    Source,
-    $SourcesFilterComposer,
-    $SourcesOrderingComposer,
-    $SourcesProcessedTableManager,
-    $SourcesInsertCompanionBuilder,
-    $SourcesUpdateCompanionBuilder> {
-  $SourcesProcessedTableManager(super.$state);
-}
-
-class $SourcesFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, Sources> {
-  $SourcesFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<Uri, Uri, String> get address =>
-      $state.composableBuilder(
-          column: $state.table.address,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnFilters<bool> get isActive => $state.composableBuilder(
-      column: $state.table.isActive,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $SourcesOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, Sources> {
-  $SourcesOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get address => $state.composableBuilder(
-      column: $state.table.address,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<bool> get isActive => $state.composableBuilder(
-      column: $state.table.isActive,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $SubsonicSourcesInsertCompanionBuilder = SubsonicSourcesCompanion
-    Function({
-  Value<int> sourceId,
-  required IList<SubsonicFeature> features,
-  required String username,
-  required String password,
-  Value<bool> useTokenAuth,
-});
-typedef $SubsonicSourcesUpdateCompanionBuilder = SubsonicSourcesCompanion
-    Function({
-  Value<int> sourceId,
-  Value<IList<SubsonicFeature>> features,
-  Value<String> username,
-  Value<String> password,
-  Value<bool> useTokenAuth,
-});
-
-class $SubsonicSourcesTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    SubsonicSources,
-    SubsonicSource,
-    $SubsonicSourcesFilterComposer,
-    $SubsonicSourcesOrderingComposer,
-    $SubsonicSourcesProcessedTableManager,
-    $SubsonicSourcesInsertCompanionBuilder,
-    $SubsonicSourcesUpdateCompanionBuilder> {
-  $SubsonicSourcesTableManager(_$SubtracksDatabase db, SubsonicSources table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $SubsonicSourcesFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $SubsonicSourcesOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $SubsonicSourcesProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> sourceId = const Value.absent(),
-            Value<IList<SubsonicFeature>> features = const Value.absent(),
-            Value<String> username = const Value.absent(),
-            Value<String> password = const Value.absent(),
-            Value<bool> useTokenAuth = const Value.absent(),
-          }) =>
-              SubsonicSourcesCompanion(
-            sourceId: sourceId,
-            features: features,
-            username: username,
-            password: password,
-            useTokenAuth: useTokenAuth,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> sourceId = const Value.absent(),
-            required IList<SubsonicFeature> features,
-            required String username,
-            required String password,
-            Value<bool> useTokenAuth = const Value.absent(),
-          }) =>
-              SubsonicSourcesCompanion.insert(
-            sourceId: sourceId,
-            features: features,
-            username: username,
-            password: password,
-            useTokenAuth: useTokenAuth,
-          ),
-        ));
-}
-
-class $SubsonicSourcesProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    SubsonicSources,
-    SubsonicSource,
-    $SubsonicSourcesFilterComposer,
-    $SubsonicSourcesOrderingComposer,
-    $SubsonicSourcesProcessedTableManager,
-    $SubsonicSourcesInsertCompanionBuilder,
-    $SubsonicSourcesUpdateCompanionBuilder> {
-  $SubsonicSourcesProcessedTableManager(super.$state);
-}
-
-class $SubsonicSourcesFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, SubsonicSources> {
-  $SubsonicSourcesFilterComposer(super.$state);
-  ColumnFilters<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnWithTypeConverterFilters<IList<SubsonicFeature>, IList<SubsonicFeature>,
-          String>
-      get features => $state.composableBuilder(
-          column: $state.table.features,
-          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
-              column,
-              joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get username => $state.composableBuilder(
-      column: $state.table.username,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get password => $state.composableBuilder(
-      column: $state.table.password,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<bool> get useTokenAuth => $state.composableBuilder(
-      column: $state.table.useTokenAuth,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $SubsonicSourcesOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, SubsonicSources> {
-  $SubsonicSourcesOrderingComposer(super.$state);
-  ColumnOrderings<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get features => $state.composableBuilder(
-      column: $state.table.features,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get username => $state.composableBuilder(
-      column: $state.table.username,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get password => $state.composableBuilder(
-      column: $state.table.password,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<bool> get useTokenAuth => $state.composableBuilder(
-      column: $state.table.useTokenAuth,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $ArtistsFtsInsertCompanionBuilder = ArtistsFtsCompanion Function({
-  required String sourceId,
-  required String name,
-  Value<int> rowid,
-});
-typedef $ArtistsFtsUpdateCompanionBuilder = ArtistsFtsCompanion Function({
-  Value<String> sourceId,
-  Value<String> name,
-  Value<int> rowid,
-});
-
-class $ArtistsFtsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    ArtistsFts,
-    ArtistsFt,
-    $ArtistsFtsFilterComposer,
-    $ArtistsFtsOrderingComposer,
-    $ArtistsFtsProcessedTableManager,
-    $ArtistsFtsInsertCompanionBuilder,
-    $ArtistsFtsUpdateCompanionBuilder> {
-  $ArtistsFtsTableManager(_$SubtracksDatabase db, ArtistsFts table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $ArtistsFtsFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $ArtistsFtsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $ArtistsFtsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<String> sourceId = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ArtistsFtsCompanion(
-            sourceId: sourceId,
-            name: name,
-            rowid: rowid,
-          ),
-          getInsertCompanionBuilder: ({
-            required String sourceId,
-            required String name,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ArtistsFtsCompanion.insert(
-            sourceId: sourceId,
-            name: name,
-            rowid: rowid,
-          ),
-        ));
-}
-
-class $ArtistsFtsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    ArtistsFts,
-    ArtistsFt,
-    $ArtistsFtsFilterComposer,
-    $ArtistsFtsOrderingComposer,
-    $ArtistsFtsProcessedTableManager,
-    $ArtistsFtsInsertCompanionBuilder,
-    $ArtistsFtsUpdateCompanionBuilder> {
-  $ArtistsFtsProcessedTableManager(super.$state);
-}
-
-class $ArtistsFtsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, ArtistsFts> {
-  $ArtistsFtsFilterComposer(super.$state);
-  ColumnFilters<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $ArtistsFtsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, ArtistsFts> {
-  $ArtistsFtsOrderingComposer(super.$state);
-  ColumnOrderings<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $AlbumsFtsInsertCompanionBuilder = AlbumsFtsCompanion Function({
-  required String sourceId,
-  required String name,
-  Value<int> rowid,
-});
-typedef $AlbumsFtsUpdateCompanionBuilder = AlbumsFtsCompanion Function({
-  Value<String> sourceId,
-  Value<String> name,
-  Value<int> rowid,
-});
-
-class $AlbumsFtsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    AlbumsFts,
-    AlbumsFt,
-    $AlbumsFtsFilterComposer,
-    $AlbumsFtsOrderingComposer,
-    $AlbumsFtsProcessedTableManager,
-    $AlbumsFtsInsertCompanionBuilder,
-    $AlbumsFtsUpdateCompanionBuilder> {
-  $AlbumsFtsTableManager(_$SubtracksDatabase db, AlbumsFts table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer: $AlbumsFtsFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $AlbumsFtsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $AlbumsFtsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<String> sourceId = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              AlbumsFtsCompanion(
-            sourceId: sourceId,
-            name: name,
-            rowid: rowid,
-          ),
-          getInsertCompanionBuilder: ({
-            required String sourceId,
-            required String name,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              AlbumsFtsCompanion.insert(
-            sourceId: sourceId,
-            name: name,
-            rowid: rowid,
-          ),
-        ));
-}
-
-class $AlbumsFtsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    AlbumsFts,
-    AlbumsFt,
-    $AlbumsFtsFilterComposer,
-    $AlbumsFtsOrderingComposer,
-    $AlbumsFtsProcessedTableManager,
-    $AlbumsFtsInsertCompanionBuilder,
-    $AlbumsFtsUpdateCompanionBuilder> {
-  $AlbumsFtsProcessedTableManager(super.$state);
-}
-
-class $AlbumsFtsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, AlbumsFts> {
-  $AlbumsFtsFilterComposer(super.$state);
-  ColumnFilters<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $AlbumsFtsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, AlbumsFts> {
-  $AlbumsFtsOrderingComposer(super.$state);
-  ColumnOrderings<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $PlaylistSongsInsertCompanionBuilder = PlaylistSongsCompanion Function({
-  required int sourceId,
-  required String playlistId,
-  required String songId,
-  required int position,
-  Value<DateTime> updated,
-  Value<int> rowid,
-});
-typedef $PlaylistSongsUpdateCompanionBuilder = PlaylistSongsCompanion Function({
-  Value<int> sourceId,
-  Value<String> playlistId,
-  Value<String> songId,
-  Value<int> position,
-  Value<DateTime> updated,
-  Value<int> rowid,
-});
-
-class $PlaylistSongsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    PlaylistSongs,
-    PlaylistSong,
-    $PlaylistSongsFilterComposer,
-    $PlaylistSongsOrderingComposer,
-    $PlaylistSongsProcessedTableManager,
-    $PlaylistSongsInsertCompanionBuilder,
-    $PlaylistSongsUpdateCompanionBuilder> {
-  $PlaylistSongsTableManager(_$SubtracksDatabase db, PlaylistSongs table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $PlaylistSongsFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $PlaylistSongsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $PlaylistSongsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> sourceId = const Value.absent(),
-            Value<String> playlistId = const Value.absent(),
-            Value<String> songId = const Value.absent(),
-            Value<int> position = const Value.absent(),
-            Value<DateTime> updated = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              PlaylistSongsCompanion(
-            sourceId: sourceId,
-            playlistId: playlistId,
-            songId: songId,
-            position: position,
-            updated: updated,
-            rowid: rowid,
-          ),
-          getInsertCompanionBuilder: ({
-            required int sourceId,
-            required String playlistId,
-            required String songId,
-            required int position,
-            Value<DateTime> updated = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              PlaylistSongsCompanion.insert(
-            sourceId: sourceId,
-            playlistId: playlistId,
-            songId: songId,
-            position: position,
-            updated: updated,
-            rowid: rowid,
-          ),
-        ));
-}
-
-class $PlaylistSongsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    PlaylistSongs,
-    PlaylistSong,
-    $PlaylistSongsFilterComposer,
-    $PlaylistSongsOrderingComposer,
-    $PlaylistSongsProcessedTableManager,
-    $PlaylistSongsInsertCompanionBuilder,
-    $PlaylistSongsUpdateCompanionBuilder> {
-  $PlaylistSongsProcessedTableManager(super.$state);
-}
-
-class $PlaylistSongsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, PlaylistSongs> {
-  $PlaylistSongsFilterComposer(super.$state);
-  ColumnFilters<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get playlistId => $state.composableBuilder(
-      column: $state.table.playlistId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get songId => $state.composableBuilder(
-      column: $state.table.songId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get position => $state.composableBuilder(
-      column: $state.table.position,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get updated => $state.composableBuilder(
-      column: $state.table.updated,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $PlaylistSongsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, PlaylistSongs> {
-  $PlaylistSongsOrderingComposer(super.$state);
-  ColumnOrderings<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get playlistId => $state.composableBuilder(
-      column: $state.table.playlistId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get songId => $state.composableBuilder(
-      column: $state.table.songId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get position => $state.composableBuilder(
-      column: $state.table.position,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get updated => $state.composableBuilder(
-      column: $state.table.updated,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $PlaylistsFtsInsertCompanionBuilder = PlaylistsFtsCompanion Function({
-  required String sourceId,
-  required String name,
-  Value<int> rowid,
-});
-typedef $PlaylistsFtsUpdateCompanionBuilder = PlaylistsFtsCompanion Function({
-  Value<String> sourceId,
-  Value<String> name,
-  Value<int> rowid,
-});
-
-class $PlaylistsFtsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    PlaylistsFts,
-    PlaylistsFt,
-    $PlaylistsFtsFilterComposer,
-    $PlaylistsFtsOrderingComposer,
-    $PlaylistsFtsProcessedTableManager,
-    $PlaylistsFtsInsertCompanionBuilder,
-    $PlaylistsFtsUpdateCompanionBuilder> {
-  $PlaylistsFtsTableManager(_$SubtracksDatabase db, PlaylistsFts table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $PlaylistsFtsFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $PlaylistsFtsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $PlaylistsFtsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<String> sourceId = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              PlaylistsFtsCompanion(
-            sourceId: sourceId,
-            name: name,
-            rowid: rowid,
-          ),
-          getInsertCompanionBuilder: ({
-            required String sourceId,
-            required String name,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              PlaylistsFtsCompanion.insert(
-            sourceId: sourceId,
-            name: name,
-            rowid: rowid,
-          ),
-        ));
-}
-
-class $PlaylistsFtsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    PlaylistsFts,
-    PlaylistsFt,
-    $PlaylistsFtsFilterComposer,
-    $PlaylistsFtsOrderingComposer,
-    $PlaylistsFtsProcessedTableManager,
-    $PlaylistsFtsInsertCompanionBuilder,
-    $PlaylistsFtsUpdateCompanionBuilder> {
-  $PlaylistsFtsProcessedTableManager(super.$state);
-}
-
-class $PlaylistsFtsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, PlaylistsFts> {
-  $PlaylistsFtsFilterComposer(super.$state);
-  ColumnFilters<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $PlaylistsFtsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, PlaylistsFts> {
-  $PlaylistsFtsOrderingComposer(super.$state);
-  ColumnOrderings<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get name => $state.composableBuilder(
-      column: $state.table.name,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $SongsFtsInsertCompanionBuilder = SongsFtsCompanion Function({
-  required String sourceId,
-  required String title,
-  Value<int> rowid,
-});
-typedef $SongsFtsUpdateCompanionBuilder = SongsFtsCompanion Function({
-  Value<String> sourceId,
-  Value<String> title,
-  Value<int> rowid,
-});
-
-class $SongsFtsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    SongsFts,
-    SongsFt,
-    $SongsFtsFilterComposer,
-    $SongsFtsOrderingComposer,
-    $SongsFtsProcessedTableManager,
-    $SongsFtsInsertCompanionBuilder,
-    $SongsFtsUpdateCompanionBuilder> {
-  $SongsFtsTableManager(_$SubtracksDatabase db, SongsFts table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer: $SongsFtsFilterComposer(ComposerState(db, table)),
-          orderingComposer: $SongsFtsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $SongsFtsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<String> sourceId = const Value.absent(),
-            Value<String> title = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              SongsFtsCompanion(
-            sourceId: sourceId,
-            title: title,
-            rowid: rowid,
-          ),
-          getInsertCompanionBuilder: ({
-            required String sourceId,
-            required String title,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              SongsFtsCompanion.insert(
-            sourceId: sourceId,
-            title: title,
-            rowid: rowid,
-          ),
-        ));
-}
-
-class $SongsFtsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    SongsFts,
-    SongsFt,
-    $SongsFtsFilterComposer,
-    $SongsFtsOrderingComposer,
-    $SongsFtsProcessedTableManager,
-    $SongsFtsInsertCompanionBuilder,
-    $SongsFtsUpdateCompanionBuilder> {
-  $SongsFtsProcessedTableManager(super.$state);
-}
-
-class $SongsFtsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, SongsFts> {
-  $SongsFtsFilterComposer(super.$state);
-  ColumnFilters<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get title => $state.composableBuilder(
-      column: $state.table.title,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $SongsFtsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, SongsFts> {
-  $SongsFtsOrderingComposer(super.$state);
-  ColumnOrderings<String> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get title => $state.composableBuilder(
-      column: $state.table.title,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $DiscoverySessionsInsertCompanionBuilder = DiscoverySessionsCompanion
-    Function({
-  Value<int> id,
-  required String seedSongId,
-  Value<String?> seedArtist,
-  Value<String?> seedGenre,
-  required int sourceId,
-  required String mode,
-  Value<int> playlistSize,
-  Value<String?> stationName,
-  Value<int?> lastPlayedAt,
-  Value<int> playCount,
-  Value<int> isFavorite,
-  Value<int> createdAt,
-});
-typedef $DiscoverySessionsUpdateCompanionBuilder = DiscoverySessionsCompanion
-    Function({
-  Value<int> id,
-  Value<String> seedSongId,
-  Value<String?> seedArtist,
-  Value<String?> seedGenre,
-  Value<int> sourceId,
-  Value<String> mode,
-  Value<int> playlistSize,
-  Value<String?> stationName,
-  Value<int?> lastPlayedAt,
-  Value<int> playCount,
-  Value<int> isFavorite,
-  Value<int> createdAt,
-});
-
-class $DiscoverySessionsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    DiscoverySessions,
-    DiscoverySession,
-    $DiscoverySessionsFilterComposer,
-    $DiscoverySessionsOrderingComposer,
-    $DiscoverySessionsProcessedTableManager,
-    $DiscoverySessionsInsertCompanionBuilder,
-    $DiscoverySessionsUpdateCompanionBuilder> {
-  $DiscoverySessionsTableManager(
-      _$SubtracksDatabase db, DiscoverySessions table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $DiscoverySessionsFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $DiscoverySessionsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $DiscoverySessionsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            Value<String> seedSongId = const Value.absent(),
-            Value<String?> seedArtist = const Value.absent(),
-            Value<String?> seedGenre = const Value.absent(),
-            Value<int> sourceId = const Value.absent(),
-            Value<String> mode = const Value.absent(),
-            Value<int> playlistSize = const Value.absent(),
-            Value<String?> stationName = const Value.absent(),
-            Value<int?> lastPlayedAt = const Value.absent(),
-            Value<int> playCount = const Value.absent(),
-            Value<int> isFavorite = const Value.absent(),
-            Value<int> createdAt = const Value.absent(),
-          }) =>
-              DiscoverySessionsCompanion(
-            id: id,
-            seedSongId: seedSongId,
-            seedArtist: seedArtist,
-            seedGenre: seedGenre,
-            sourceId: sourceId,
-            mode: mode,
-            playlistSize: playlistSize,
-            stationName: stationName,
-            lastPlayedAt: lastPlayedAt,
-            playCount: playCount,
-            isFavorite: isFavorite,
-            createdAt: createdAt,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            required String seedSongId,
-            Value<String?> seedArtist = const Value.absent(),
-            Value<String?> seedGenre = const Value.absent(),
-            required int sourceId,
-            required String mode,
-            Value<int> playlistSize = const Value.absent(),
-            Value<String?> stationName = const Value.absent(),
-            Value<int?> lastPlayedAt = const Value.absent(),
-            Value<int> playCount = const Value.absent(),
-            Value<int> isFavorite = const Value.absent(),
-            Value<int> createdAt = const Value.absent(),
-          }) =>
-              DiscoverySessionsCompanion.insert(
-            id: id,
-            seedSongId: seedSongId,
-            seedArtist: seedArtist,
-            seedGenre: seedGenre,
-            sourceId: sourceId,
-            mode: mode,
-            playlistSize: playlistSize,
-            stationName: stationName,
-            lastPlayedAt: lastPlayedAt,
-            playCount: playCount,
-            isFavorite: isFavorite,
-            createdAt: createdAt,
-          ),
-        ));
-}
-
-class $DiscoverySessionsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    DiscoverySessions,
-    DiscoverySession,
-    $DiscoverySessionsFilterComposer,
-    $DiscoverySessionsOrderingComposer,
-    $DiscoverySessionsProcessedTableManager,
-    $DiscoverySessionsInsertCompanionBuilder,
-    $DiscoverySessionsUpdateCompanionBuilder> {
-  $DiscoverySessionsProcessedTableManager(super.$state);
-}
-
-class $DiscoverySessionsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, DiscoverySessions> {
-  $DiscoverySessionsFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get seedSongId => $state.composableBuilder(
-      column: $state.table.seedSongId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get seedArtist => $state.composableBuilder(
-      column: $state.table.seedArtist,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get seedGenre => $state.composableBuilder(
-      column: $state.table.seedGenre,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get mode => $state.composableBuilder(
-      column: $state.table.mode,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get playlistSize => $state.composableBuilder(
-      column: $state.table.playlistSize,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get stationName => $state.composableBuilder(
-      column: $state.table.stationName,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get lastPlayedAt => $state.composableBuilder(
-      column: $state.table.lastPlayedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get playCount => $state.composableBuilder(
-      column: $state.table.playCount,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get isFavorite => $state.composableBuilder(
-      column: $state.table.isFavorite,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $DiscoverySessionsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, DiscoverySessions> {
-  $DiscoverySessionsOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get seedSongId => $state.composableBuilder(
-      column: $state.table.seedSongId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get seedArtist => $state.composableBuilder(
-      column: $state.table.seedArtist,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get seedGenre => $state.composableBuilder(
-      column: $state.table.seedGenre,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get sourceId => $state.composableBuilder(
-      column: $state.table.sourceId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get mode => $state.composableBuilder(
-      column: $state.table.mode,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get playlistSize => $state.composableBuilder(
-      column: $state.table.playlistSize,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get stationName => $state.composableBuilder(
-      column: $state.table.stationName,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get lastPlayedAt => $state.composableBuilder(
-      column: $state.table.lastPlayedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get playCount => $state.composableBuilder(
-      column: $state.table.playCount,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get isFavorite => $state.composableBuilder(
-      column: $state.table.isFavorite,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $DiscoveryInteractionsInsertCompanionBuilder
-    = DiscoveryInteractionsCompanion Function({
-  Value<int> id,
-  required int sessionId,
-  required String songId,
-  required String interactionType,
-  required int positionInPlaylist,
-  Value<int?> songDurationMs,
-  Value<int?> playDurationMs,
-  Value<int> timestamp,
-});
-typedef $DiscoveryInteractionsUpdateCompanionBuilder
-    = DiscoveryInteractionsCompanion Function({
-  Value<int> id,
-  Value<int> sessionId,
-  Value<String> songId,
-  Value<String> interactionType,
-  Value<int> positionInPlaylist,
-  Value<int?> songDurationMs,
-  Value<int?> playDurationMs,
-  Value<int> timestamp,
-});
-
-class $DiscoveryInteractionsTableManager extends RootTableManager<
-    _$SubtracksDatabase,
-    DiscoveryInteractions,
-    DiscoveryInteraction,
-    $DiscoveryInteractionsFilterComposer,
-    $DiscoveryInteractionsOrderingComposer,
-    $DiscoveryInteractionsProcessedTableManager,
-    $DiscoveryInteractionsInsertCompanionBuilder,
-    $DiscoveryInteractionsUpdateCompanionBuilder> {
-  $DiscoveryInteractionsTableManager(
-      _$SubtracksDatabase db, DiscoveryInteractions table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $DiscoveryInteractionsFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $DiscoveryInteractionsOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $DiscoveryInteractionsProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            Value<int> sessionId = const Value.absent(),
-            Value<String> songId = const Value.absent(),
-            Value<String> interactionType = const Value.absent(),
-            Value<int> positionInPlaylist = const Value.absent(),
-            Value<int?> songDurationMs = const Value.absent(),
-            Value<int?> playDurationMs = const Value.absent(),
-            Value<int> timestamp = const Value.absent(),
-          }) =>
-              DiscoveryInteractionsCompanion(
-            id: id,
-            sessionId: sessionId,
-            songId: songId,
-            interactionType: interactionType,
-            positionInPlaylist: positionInPlaylist,
-            songDurationMs: songDurationMs,
-            playDurationMs: playDurationMs,
-            timestamp: timestamp,
-          ),
-          getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
-            required int sessionId,
-            required String songId,
-            required String interactionType,
-            required int positionInPlaylist,
-            Value<int?> songDurationMs = const Value.absent(),
-            Value<int?> playDurationMs = const Value.absent(),
-            Value<int> timestamp = const Value.absent(),
-          }) =>
-              DiscoveryInteractionsCompanion.insert(
-            id: id,
-            sessionId: sessionId,
-            songId: songId,
-            interactionType: interactionType,
-            positionInPlaylist: positionInPlaylist,
-            songDurationMs: songDurationMs,
-            playDurationMs: playDurationMs,
-            timestamp: timestamp,
-          ),
-        ));
-}
-
-class $DiscoveryInteractionsProcessedTableManager extends ProcessedTableManager<
-    _$SubtracksDatabase,
-    DiscoveryInteractions,
-    DiscoveryInteraction,
-    $DiscoveryInteractionsFilterComposer,
-    $DiscoveryInteractionsOrderingComposer,
-    $DiscoveryInteractionsProcessedTableManager,
-    $DiscoveryInteractionsInsertCompanionBuilder,
-    $DiscoveryInteractionsUpdateCompanionBuilder> {
-  $DiscoveryInteractionsProcessedTableManager(super.$state);
-}
-
-class $DiscoveryInteractionsFilterComposer
-    extends FilterComposer<_$SubtracksDatabase, DiscoveryInteractions> {
-  $DiscoveryInteractionsFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get sessionId => $state.composableBuilder(
-      column: $state.table.sessionId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get songId => $state.composableBuilder(
-      column: $state.table.songId,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get interactionType => $state.composableBuilder(
-      column: $state.table.interactionType,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get positionInPlaylist => $state.composableBuilder(
-      column: $state.table.positionInPlaylist,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get songDurationMs => $state.composableBuilder(
-      column: $state.table.songDurationMs,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get playDurationMs => $state.composableBuilder(
-      column: $state.table.playDurationMs,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get timestamp => $state.composableBuilder(
-      column: $state.table.timestamp,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $DiscoveryInteractionsOrderingComposer
-    extends OrderingComposer<_$SubtracksDatabase, DiscoveryInteractions> {
-  $DiscoveryInteractionsOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get sessionId => $state.composableBuilder(
-      column: $state.table.sessionId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get songId => $state.composableBuilder(
-      column: $state.table.songId,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get interactionType => $state.composableBuilder(
-      column: $state.table.interactionType,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get positionInPlaylist => $state.composableBuilder(
-      column: $state.table.positionInPlaylist,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get songDurationMs => $state.composableBuilder(
-      column: $state.table.songDurationMs,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get playDurationMs => $state.composableBuilder(
-      column: $state.table.playDurationMs,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get timestamp => $state.composableBuilder(
-      column: $state.table.timestamp,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-class _$SubtracksDatabaseManager {
-  final _$SubtracksDatabase _db;
-  _$SubtracksDatabaseManager(this._db);
-  $QueueTableManager get queue => $QueueTableManager(_db, _db.queue);
-  $LastAudioStateTableManager get lastAudioState =>
-      $LastAudioStateTableManager(_db, _db.lastAudioState);
-  $LastBottomNavStateTableManager get lastBottomNavState =>
-      $LastBottomNavStateTableManager(_db, _db.lastBottomNavState);
-  $LastLibraryStateTableManager get lastLibraryState =>
-      $LastLibraryStateTableManager(_db, _db.lastLibraryState);
-  $SourcesTableManager get sources => $SourcesTableManager(_db, _db.sources);
-  $SubsonicSourcesTableManager get subsonicSources =>
-      $SubsonicSourcesTableManager(_db, _db.subsonicSources);
-  $ArtistsFtsTableManager get artistsFts =>
-      $ArtistsFtsTableManager(_db, _db.artistsFts);
-  $AlbumsFtsTableManager get albumsFts =>
-      $AlbumsFtsTableManager(_db, _db.albumsFts);
-  $PlaylistSongsTableManager get playlistSongs =>
-      $PlaylistSongsTableManager(_db, _db.playlistSongs);
-  $PlaylistsFtsTableManager get playlistsFts =>
-      $PlaylistsFtsTableManager(_db, _db.playlistsFts);
-  $SongsFtsTableManager get songsFts =>
-      $SongsFtsTableManager(_db, _db.songsFts);
-  $DiscoverySessionsTableManager get discoverySessions =>
-      $DiscoverySessionsTableManager(_db, _db.discoverySessions);
-  $DiscoveryInteractionsTableManager get discoveryInteractions =>
-      $DiscoveryInteractionsTableManager(_db, _db.discoveryInteractions);
 }
 
 typedef FilterSongsByGenre$predicate = Expression<bool> Function(
@@ -8815,6 +9153,61 @@ class DiscoverySkippedSongsByStationResult {
   DiscoverySkippedSongsByStationResult({
     required this.songId,
     required this.skipCount,
+  });
+}
+
+class YouTubeCacheSizeResult {
+  final int trackCount;
+  final int? approxBytes;
+  YouTubeCacheSizeResult({
+    required this.trackCount,
+    this.approxBytes,
+  });
+}
+
+class YouTubeTracksForSessionResult {
+  final String id;
+  final String title;
+  final String? artist;
+  final String channelName;
+  final int durationSeconds;
+  final String? thumbnailUrl;
+  final String audioUrl;
+  final int audioBitrate;
+  final String audioCodec;
+  final String audioQuality;
+  final int cachedAt;
+  final int expiresAt;
+  final int accessCount;
+  final int? lastAccessed;
+  final int positionInPlaylist;
+  final int discoveredAt;
+  YouTubeTracksForSessionResult({
+    required this.id,
+    required this.title,
+    this.artist,
+    required this.channelName,
+    required this.durationSeconds,
+    this.thumbnailUrl,
+    required this.audioUrl,
+    required this.audioBitrate,
+    required this.audioCodec,
+    required this.audioQuality,
+    required this.cachedAt,
+    required this.expiresAt,
+    required this.accessCount,
+    this.lastAccessed,
+    required this.positionInPlaylist,
+    required this.discoveredAt,
+  });
+}
+
+class LidarrRequestsCountByStatusResult {
+  final String status;
+  final int count;
+  LidarrRequestsCountByStatusResult({
+    required this.status,
+    required this.count,
   });
 }
 

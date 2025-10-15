@@ -52,6 +52,11 @@ CacheService cacheService(CacheServiceRef ref) {
   final placeholderThumbImageUri =
       ref.watch(placeholderThumbImageUriProvider).requireValue;
 
+  // Throw error if no source is configured
+  if (source == null) {
+    throw StateError('No music source configured - cannot access cache service');
+  }
+
   return CacheService(
     imageCache: imageCache,
     source: source,

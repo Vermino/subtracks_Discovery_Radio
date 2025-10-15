@@ -3,10 +3,16 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../database/database.dart';
+import '../../log.dart';
+import '../../models/lidarr_models.dart';
 import '../../models/music.dart';
+import '../../models/settings.dart';
 import '../../services/audio_service.dart';
+import '../../services/lidarr_service.dart';
 import '../../services/rating_service.dart';
+import '../../services/settings_service.dart';
 import '../../state/audio.dart';
+import '../../state/settings.dart';
 
 /// Rating buttons widget for thumbs up/down functionality
 /// Supports both global ratings and station-specific ratings for discovery stations
@@ -105,14 +111,14 @@ class SongRatingButtons extends HookConsumerWidget {
             song: song,
             size: size,
             isActive: currentRating == UserRating.thumbsUp,
-            onTap: () => _handleThumbsUp(ratingService, song),
+            onTap: () => _handleThumbsUp(ratingService, song, context, ref),
           ),
           const SizedBox(width: 8),
           _ThumbsDownButton(
             song: song,
             size: size,
             isActive: currentRating == UserRating.thumbsDown,
-            onTap: () => _handleThumbsDown(ratingService, song),
+            onTap: () => _handleThumbsDown(ratingService, song, context, ref),
           ),
         ],
       );
@@ -127,19 +133,29 @@ class SongRatingButtons extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleThumbsUp(RatingService ratingService, Song song) async {
+  Future<void> _handleThumbsUp(RatingService ratingService, Song song, BuildContext context, WidgetRef ref) async {
     if (song.userRating == UserRating.thumbsUp) {
       await ratingService.clearSongRating(song);
     } else {
       await ratingService.rateSongThumbsUp(song);
+
+      // Show feedback if auto-download triggered
+      if (context.mounted) {
+        await _showAutoDownloadFeedback(context, ref, song);
+      }
     }
   }
 
-  Future<void> _handleThumbsDown(RatingService ratingService, Song song) async {
+  Future<void> _handleThumbsDown(RatingService ratingService, Song song, BuildContext context, WidgetRef ref) async {
     if (song.userRating == UserRating.thumbsDown) {
       await ratingService.clearSongRating(song);
     } else {
       await ratingService.rateSongThumbsDown(song);
+
+      // Show feedback if auto-delete triggered
+      if (context.mounted) {
+        await _showAutoDeleteFeedback(context, ref, song);
+      }
     }
   }
 
@@ -168,6 +184,9 @@ class SongRatingButtons extends HookConsumerWidget {
 
       // Increment global thumbs up counter
       await db.incrementThumbsUpCount(song.sourceId, song.id);
+
+      // Trigger Lidarr download for YouTube tracks
+      await _triggerLidarrDownload(ref, song);
     }
   }
 
@@ -243,6 +262,150 @@ class SongRatingButtons extends HookConsumerWidget {
         await db.removeDiscoveryRating(stationId!, song.id, 'thumbs_down');
         // Note: We don't decrement global counter when removing station-specific rating
         break;
+    }
+  }
+
+  /// Trigger Lidarr download for YouTube tracks
+  Future<void> _triggerLidarrDownload(WidgetRef ref, Song song) async {
+    // Only trigger for YouTube tracks (ID starts with "youtube:")
+    if (!song.id.startsWith('youtube:')) {
+      return;
+    }
+
+    // Extract video ID
+    final videoId = song.id.replaceFirst('youtube:', '');
+
+    // Check if we already requested this track
+    final db = ref.read(databaseProvider);
+    final existingRequest = await db.getLidarrRequestForVideo(videoId);
+    if (existingRequest != null) {
+      log.info('Lidarr: Already requested download for video $videoId (status: ${existingRequest.status})');
+      return;
+    }
+
+    // Get the Lidarr service and request download
+    final lidarrService = ref.read(lidarrServiceProvider.notifier);
+
+    // Fire and forget - don't block the UI
+    lidarrService
+        .requestDownload(
+          youtubeTitle: song.title,
+          youtubeArtist: song.artist ?? 'Unknown Artist',
+          videoId: videoId,
+        )
+        .then((result) {
+          // Show feedback to user based on result
+          result.when(
+            success: (artistName, foreignArtistId, message) {
+              _showSnackbar(ref, 'Added $artistName to Lidarr for download');
+            },
+            alreadyExists: (artistName, message) {
+              _showSnackbar(ref, '$artistName is already in your library');
+            },
+            notFound: (message) {
+              log.warning('Lidarr: $message');
+              // Don't show error snackbar for not found - it's not critical
+            },
+            error: (message, error) {
+              log.severe('Lidarr: Error requesting download - $message');
+              // Don't show error snackbar - we don't want to interrupt the user experience
+            },
+          );
+        })
+        .catchError((e, stackTrace) {
+          log.severe('Lidarr: Unexpected error triggering download', e, stackTrace);
+        });
+  }
+
+  /// Show a snackbar message to the user
+  void _showSnackbar(WidgetRef ref, String message) {
+    // Try to find a ScaffoldMessenger in the context
+    try {
+      final context = ref.context;
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      // If we can't show a snackbar, just log it
+      log.info('Lidarr: $message');
+    }
+  }
+
+  /// Show feedback when auto-download is triggered by thumbs up
+  Future<void> _showAutoDownloadFeedback(BuildContext context, WidgetRef ref, Song song) async {
+    try {
+      final settings = ref.read(settingsServiceProvider);
+
+      // Only show feedback if auto-download is enabled
+      if (!settings.app.thumbsUpAutoDownload) {
+        return;
+      }
+
+      // Only show feedback if song isn't already downloaded
+      if (song.downloadFilePath != null || song.downloadTaskId != null) {
+        return;
+      }
+
+      // Check network mode to determine message
+      final networkMode = await ref.read(networkModeProvider.future);
+      final downloadPref = settings.app.downloadPreference;
+
+      String message;
+      if (downloadPref == 'manual_only') {
+        // Auto-download is enabled but download preference is manual - shouldn't happen but handle it
+        return;
+      } else if (downloadPref == 'wifi_only' && networkMode == NetworkMode.mobile) {
+        message = 'Download queued for WiFi';
+      } else {
+        message = 'Downloading...';
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      log.warning('Error showing auto-download feedback', e);
+    }
+  }
+
+  /// Show feedback when auto-delete is triggered by thumbs down
+  Future<void> _showAutoDeleteFeedback(BuildContext context, WidgetRef ref, Song song) async {
+    try {
+      final settings = ref.read(settingsServiceProvider);
+
+      // Only show feedback if auto-delete is enabled
+      if (!settings.app.thumbsDownAutoDelete) {
+        return;
+      }
+
+      // Only show feedback if song was actually downloaded
+      if (song.downloadFilePath == null) {
+        return;
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('File deleted'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      log.warning('Error showing auto-delete feedback', e);
     }
   }
 }

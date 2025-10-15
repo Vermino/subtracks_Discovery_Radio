@@ -12,6 +12,74 @@ import 'app_router.dart';
 import 'images.dart';
 import 'pages/now_playing_page.dart';
 
+/// SliverAppBar version of the now playing bar that hides on scroll
+class SliverNowPlayingBar extends HookConsumerWidget {
+  const SliverNowPlayingBar({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
+    final noItem = ref.watch(mediaItemProvider).valueOrNull == null;
+
+    if (noItem) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    final widget = SliverAppBar(
+      pinned: false,
+      floating: true,
+      snap: true,
+      toolbarHeight: 74, // 70 for content + 4 for progress bar
+      automaticallyImplyLeading: false,
+      backgroundColor: colors?.darkBackground ?? base.darkBackground,
+      elevation: 3,
+      flexibleSpace: GestureDetector(
+        onTap: () {
+          context.navigateTo(const NowPlayingRoute());
+        },
+        child: Material(
+          color: colors?.darkBackground ?? base.darkBackground,
+          child: const Column(
+            children: [
+              SizedBox(
+                height: 70,
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(10),
+                      child: _ArtImage(),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 4),
+                        child: _TrackInfo(),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(right: 16, top: 2),
+                      child: PlayPauseButton(size: 48),
+                    ),
+                  ],
+                ),
+              ),
+              _ProgressBar(),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Only wrap with dynamic theme if it's different from base
+    if (colors != null && colors != base) {
+      return Theme(data: colors.theme, child: widget);
+    } else {
+      return widget;
+    }
+  }
+}
+
 class NowPlayingBar extends HookConsumerWidget {
   const NowPlayingBar({
     super.key,
@@ -20,6 +88,7 @@ class NowPlayingBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final noItem = ref.watch(mediaItemProvider).valueOrNull == null;
 
     final widget = GestureDetector(
@@ -28,15 +97,15 @@ class NowPlayingBar extends HookConsumerWidget {
       },
       child: Material(
         elevation: 3,
-        color: colors?.darkBackground,
+        color: colors?.darkBackground ?? base.darkBackground,
         // surfaceTintColor: theme?.colorScheme.background,
-        child: Column(
+        child: const Column(
           children: [
             SizedBox(
               height: 70,
               child: Row(
                 mainAxisSize: MainAxisSize.max,
-                children: const [
+                children: [
                   Padding(
                     padding: EdgeInsets.all(10),
                     child: _ArtImage(),
@@ -54,7 +123,7 @@ class NowPlayingBar extends HookConsumerWidget {
                 ],
               ),
             ),
-            const _ProgressBar(),
+            _ProgressBar(),
           ],
         ),
       ),
@@ -64,7 +133,9 @@ class NowPlayingBar extends HookConsumerWidget {
       return Container();
     }
 
-    if (colors != null) {
+    // Only wrap with dynamic theme if it's different from base
+    // The mediaItemThemeProvider already checks enableDynamicColors setting
+    if (colors != null && colors != base) {
       return Theme(data: colors.theme, child: widget);
     } else {
       return widget;
@@ -161,6 +232,9 @@ class PlayPauseButton extends HookConsumerWidget {
     final playing = ref.watch(playingProvider);
     final state = ref.watch(processingStateProvider);
 
+    // Use onSurface for better visibility on dark backgrounds
+    final iconColor = Theme.of(context).colorScheme.onSurface;
+
     Widget icon;
     if (state == AudioProcessingState.loading ||
         state == AudioProcessingState.buffering) {
@@ -173,7 +247,7 @@ class PlayPauseButton extends HookConsumerWidget {
             width: size / 3,
             child: CircularProgressIndicator(
               strokeWidth: size / 16,
-              color: Theme.of(context).colorScheme.background,
+              color: iconColor,
             ),
           ),
         ],
@@ -195,7 +269,7 @@ class PlayPauseButton extends HookConsumerWidget {
         }
       },
       icon: icon,
-      color: Theme.of(context).colorScheme.onBackground,
+      color: iconColor,
     );
   }
 }
@@ -206,17 +280,18 @@ class _ProgressBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
     final position = ref.watch(positionProvider);
     final duration = ref.watch(durationProvider);
 
     return Container(
       height: 4,
-      color: colors?.darkerBackground,
+      color: colors?.darkerBackground ?? base.darkerBackground,
       child: Row(
         children: [
           Flexible(
             flex: position,
-            child: Container(color: colors?.onDarkerBackground),
+            child: Container(color: colors?.onDarkerBackground ?? base.onDarkerBackground),
           ),
           Flexible(flex: duration - position, child: Container()),
         ],

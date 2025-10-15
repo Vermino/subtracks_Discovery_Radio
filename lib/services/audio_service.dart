@@ -15,14 +15,18 @@ import 'package:synchronized/synchronized.dart';
 import '../cache/image_cache.dart';
 import '../database/database.dart';
 import '../log.dart';
+import '../models/hybrid_track.dart';
 import '../models/music.dart';
 import '../models/query.dart';
 import '../models/support.dart';
+import '../models/youtube_models.dart';
 import '../sources/music_source.dart';
 import '../state/settings.dart';
 import 'cache_service.dart';
 import 'discovery_service.dart';
 import 'settings_service.dart';
+import 'youtube_cache_service.dart';
+import 'youtube_discovery_service.dart';
 
 part 'audio_service.g.dart';
 
@@ -94,6 +98,9 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   // Track the current discovery session for interactions
   int? _currentDiscoverySessionId;
 
+  // Track whether auto-append is in progress to prevent duplicate appends
+  bool _isAutoAppending = false;
+
   /// Get the current discovery session ID if playing a discovery station
   int? get currentDiscoverySessionId => _currentDiscoverySessionId;
 
@@ -105,7 +112,13 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   SubtracksDatabase get _db => _ref.read(databaseProvider);
   CacheService get _cache => _ref.read(cacheServiceProvider);
-  MusicSource get _source => _ref.read(musicSourceProvider);
+  MusicSource get _source {
+    final source = _ref.read(musicSourceProvider);
+    if (source == null) {
+      throw StateError('No music source configured - cannot play audio');
+    }
+    return source;
+  }
   int get _sourceId => _ref.read(sourceIdProvider);
 
   AudioControl(this._player, this._ref) {
@@ -137,7 +150,16 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
 
     _player.playbackEventStream.doOnError((e, st) async {
-      log.warning('playbackEventStream', e, st);
+      log.warning('playbackEventStream error', e, st);
+
+      // Check if error is related to YouTube URL expiry
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('403') ||
+          errorString.contains('410') ||
+          errorString.contains('forbidden') ||
+          errorString.contains('gone')) {
+        await _handlePotentialYouTubeUrlExpiry();
+      }
     });
 
     shuffleIndicies.listen((value) {
@@ -156,8 +178,16 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (event == ProcessingState.completed) {
         if (_audioSource.length > 0) {
           log.fine('completed');
-          await stop();
-          await seek(Duration.zero);
+
+          // For radio mode, automatically advance to the next track
+          if (queueMode.value == QueueMode.radio && repeatMode.value != AudioServiceRepeatMode.one) {
+            log.info('Radio mode: auto-advancing to next track');
+            await skipToNext();
+          } else {
+            // For non-radio modes, stop and reset to start
+            await stop();
+            await seek(Duration.zero);
+          }
         }
       }
     });
@@ -202,6 +232,11 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       final queueIndex = _audioSource.sequence[index].tag;
       if (queueIndex != null) {
         await _db.setCurrentTrack(queueIndex);
+
+        // Check if we're playing discovery radio and near end of queue
+        if (_currentDiscoverySessionId != null && queueMode.value == QueueMode.radio) {
+          _checkAndAppendMoreTracks(queueIndex);
+        }
       }
     });
 
@@ -441,6 +476,259 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       log.info('Discovery Radio: Started genre-based radio for $genre with ${playlist.length} songs');
     } catch (e, stackTrace) {
       log.severe('Discovery Radio: Failed to start genre-based radio', e, stackTrace);
+    }
+  }
+
+  /// Play Hybrid Discovery Radio with YouTube integration
+  ///
+  /// This extends Discovery Radio to include YouTube tracks seamlessly
+  /// blended with local tracks based on the configured ratio.
+  Future<void> playHybridDiscoveryRadio({
+    required Song seedSong,
+    DiscoveryMode mode = DiscoveryMode.online,
+    int playlistSize = 50,
+    DiscoveryConfig config = const DiscoveryConfig(
+      youtubeEnabled: true,
+      youtubeRatio: 0.3, // 30% YouTube content by default
+      youtubeQualityFilter: YouTubeQualityFilter.moderate,
+      youtubePreferOfficial: true,
+    ),
+    int? sessionId,
+  }) async {
+    log.info('Starting Hybrid Discovery Radio with INSTANT playback');
+    log.fine('Seed: "${seedSong.title}" by ${seedSong.artist}');
+    log.fine('YouTube enabled: ${config.youtubeEnabled}, ratio: ${config.youtubeRatio}');
+
+    // Store session ID for tracking interactions
+    _currentDiscoverySessionId = sessionId;
+
+    try {
+      // INSTANT PLAYBACK: Start playing the seed song immediately
+      // This ensures the user hears music right away without waiting
+      log.info('Starting INSTANT playback with seed song');
+      await playSongs(
+        mode: QueueMode.radio,
+        context: QueueContextType.discovery,
+        contextId: seedSong.id,
+        query: const ListQuery(),
+        getSongs: (query) => [seedSong],
+        startIndex: 0,
+      );
+
+      log.info('Seed song playing! Now generating full playlist in background...');
+
+      // Generate full playlist in background
+      final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+      // Build hybrid playlist (local + YouTube) asynchronously
+      final playlist = await discoveryService.buildHybridDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: !mode.isOnline,
+        playlistSize: playlistSize,
+        config: config,
+        sessionId: sessionId,
+      );
+
+      if (playlist.isEmpty) {
+        log.warning('Hybrid Discovery: No additional tracks found, continuing with seed only');
+        return;
+      }
+
+      // Remove seed song from playlist if it's in there to avoid duplicates
+      final playlistWithoutSeed = playlist.where((track) {
+        return track.when(
+          local: (song) => song.id != seedSong.id,
+          youtube: (_, __, ___, ____, _____, ______) => true,
+        );
+      }).toList();
+
+      final localCount = playlistWithoutSeed.where((t) => t.isLocal).length;
+      final youtubeCount = playlistWithoutSeed.where((t) => t.isYouTube).length;
+      log.info('Hybrid Discovery: Generated ${playlistWithoutSeed.length} additional tracks '
+          '($localCount local, $youtubeCount YouTube)');
+
+      if (playlistWithoutSeed.isEmpty) {
+        log.warning('No additional tracks after removing seed, continuing with seed only');
+        return;
+      }
+
+      // Convert tracks to songs
+      final additionalSongs = await _convertHybridTracksToSongs(playlistWithoutSeed);
+
+      if (additionalSongs.isEmpty) {
+        log.warning('No playable songs after conversion');
+        return;
+      }
+
+      // Append to existing queue (seed song is already playing)
+      log.info('Appending ${additionalSongs.length} tracks to queue');
+      await _loadQueueSongs(
+        additionalSongs,
+        _queueLength!,
+        QueueContextType.discovery,
+        seedSong.id,
+      );
+
+      log.info('Hybrid Discovery: Full playlist ready! Queue now has $_queueLength tracks');
+    } catch (e, stackTrace) {
+      log.severe('Hybrid Discovery: Error during background generation', e, stackTrace);
+      // If background generation fails, seed song is still playing - acceptable fallback
+    }
+  }
+
+  /// Internal method to play hybrid tracks
+  ///
+  /// Converts HybridTracks to Songs and uses existing playSongs infrastructure
+  Future<void> _playHybridTracks({
+    required List<HybridTrack> tracks,
+    QueueMode mode = QueueMode.user,
+    required QueueContextType context,
+    String? contextId,
+    int? startIndex,
+  }) async {
+    // Convert HybridTracks to Songs for queue
+    final songs = await _convertHybridTracksToSongs(tracks);
+
+    if (songs.isEmpty) {
+      log.warning('No playable songs after HybridTrack conversion');
+      return;
+    }
+
+    log.fine('Converted ${tracks.length} HybridTracks to ${songs.length} playable Songs');
+
+    // Use existing playSongs() method
+    await playSongs(
+      mode: mode,
+      context: context,
+      contextId: contextId,
+      query: const ListQuery(),
+      getSongs: (query) => songs,
+      startIndex: startIndex ?? 0,
+    );
+  }
+
+  /// Convert HybridTracks to Songs for playback
+  ///
+  /// For local tracks: returns the Song as-is (or filters if offline mode + not downloaded)
+  /// For YouTube tracks: creates a temporary Song with the cached stream URL
+  Future<List<Song>> _convertHybridTracksToSongs(List<HybridTrack> tracks) async {
+    final songs = <Song>[];
+    final offlineMode = _ref.read(offlineModeProvider);
+
+    for (final track in tracks) {
+      await track.when(
+        local: (song) async {
+          // In offline mode, only include downloaded songs
+          if (offlineMode && song.downloadFilePath == null) {
+            log.fine('Offline mode: Skipping non-downloaded song: "${song.title}"');
+            return; // Skip this song
+          }
+          songs.add(song);
+        },
+        youtube: (videoId, title, artist, durationSeconds, thumbnailUrl, userRating) async {
+          // In offline mode, skip all YouTube tracks (they can't be offline)
+          if (offlineMode) {
+            log.fine('Offline mode: Skipping YouTube track: "$title"');
+            return; // Skip YouTube tracks in offline mode
+          }
+
+          try {
+            // IMPORTANT: Fetch and cache the YouTube track first before attempting playback
+            // This ensures we have a fresh stream URL available
+            log.fine('Fetching audio stream for playback: $videoId');
+            final cachedTrack = await _fetchAndCacheYouTubeTrack(
+              videoId,
+              title,
+              artist,
+              durationSeconds,
+              thumbnailUrl ?? '',
+            );
+
+            if (cachedTrack != null) {
+              // Create a Song-like object that AudioService can play
+              // We use a special ID prefix 'youtube:' to identify YouTube tracks
+              // The audio URL is stored in the 'album' field (temporary workaround)
+              final youtubeSong = Song(
+                sourceId: _sourceId,
+                id: 'youtube:$videoId',
+                title: title,
+                artist: artist,
+                album: cachedTrack.audioUrl, // Store URL here temporarily
+                duration: Duration(seconds: durationSeconds),
+                userRating: userRating,
+              );
+              songs.add(youtubeSong);
+
+              log.fine('Cached and converted YouTube track: $videoId');
+            } else {
+              log.warning('Failed to cache YouTube track for playback: $videoId');
+            }
+          } catch (e) {
+            log.warning('Error caching/converting YouTube track $videoId: $e');
+          }
+        },
+      );
+    }
+
+    return songs;
+  }
+
+  /// Fetch and cache a YouTube track for playback
+  ///
+  /// This helper method fetches the audio stream from YouTube API and caches it
+  /// Returns the cached track with a fresh stream URL, or null if fetch fails
+  Future<YoutubeTrack?> _fetchAndCacheYouTubeTrack(
+    String videoId,
+    String title,
+    String artist,
+    int durationSeconds,
+    String thumbnailUrl,
+  ) async {
+    try {
+      final youtubeCache = _ref.read(youTubeCacheServiceProvider.notifier);
+      final youtubeService = _ref.read(youTubeDiscoveryServiceProvider.notifier);
+
+      // Check if already cached and valid
+      final existingTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: true);
+      if (existingTrack != null) {
+        log.fine('Using cached track: $videoId');
+        return existingTrack;
+      }
+
+      // Fetch audio stream from API
+      log.fine('Fetching fresh audio stream from API: $videoId');
+      final audioStream = await youtubeService.getAudioStream(videoId);
+
+      if (audioStream == null) {
+        log.warning('Failed to fetch audio stream: $videoId');
+        return null;
+      }
+
+      // Create search result object for caching
+      final searchResult = YouTubeSearchResult(
+        videoId: videoId,
+        title: title,
+        author: artist,
+        lengthSeconds: durationSeconds,
+        thumbnail: thumbnailUrl,
+      );
+
+      // Cache the track
+      await youtubeCache.cacheTrack(searchResult, audioStream);
+
+      // Get the cached track
+      final cachedTrack = await youtubeCache.getTrack(videoId);
+
+      if (cachedTrack == null) {
+        log.warning('Track was cached but not found: $videoId');
+        return null;
+      }
+
+      log.fine('Successfully cached YouTube track: $videoId');
+      return cachedTrack;
+    } catch (e, stackTrace) {
+      log.severe('Error fetching and caching YouTube track: $videoId', e, stackTrace);
+      return null;
     }
   }
 
@@ -745,28 +1033,132 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<List<QueueSourceItem>> _getQueueItems(List<int> indexes) async {
     final slice = await _db.queueInIndicies(indexes).get();
-    final songs =
-        await _db.songsInIds(_sourceId, slice.map((e) => e.id).toList()).get();
-    final songMap = {for (var song in songs) song.id: song};
 
-    final albumIds = songs.map((e) => e.albumId).whereNotNull().toSet();
+    // Separate YouTube and local track IDs
+    final localIds = <String>[];
+    final youtubeIds = <String>[];
+
+    for (final item in slice) {
+      if (item.id.startsWith('youtube:')) {
+        youtubeIds.add(item.id);
+      } else {
+        localIds.add(item.id);
+      }
+    }
+
+    // Fetch local songs from database
+    final localSongs = localIds.isNotEmpty
+        ? await _db.songsInIds(_sourceId, localIds).get()
+        : <Song>[];
+
+    // Reconstruct YouTube songs from cache
+    final youtubeSongs = <Song>[];
+    final youtubeCache = _ref.read(youTubeCacheServiceProvider.notifier);
+
+    for (final youtubeId in youtubeIds) {
+      try {
+        final videoId = youtubeId.replaceFirst('youtube:', '');
+
+        // IMPORTANT: Check if YouTube URL needs refreshing before playback
+        // YouTube stream URLs expire quickly (typically 5-6 hours)
+        // Only refresh if URL is expired or expiring soon
+        log.fine('Fetching YouTube track for playback: $videoId');
+
+        // First try to get from cache without forcing refresh
+        var cachedTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: false);
+
+        // Check if we need to refresh
+        final needsRefresh = cachedTrack == null || _isYouTubeUrlExpired(cachedTrack);
+
+        if (needsRefresh) {
+          log.info('YouTube URL needs refresh for: $videoId');
+          cachedTrack = await youtubeCache.refreshTrackUrl(videoId);
+        } else {
+          log.fine('Using cached YouTube URL for: $videoId (valid for ${_getYouTubeUrlTimeLeft(cachedTrack)} more minutes)');
+        }
+
+        if (cachedTrack != null) {
+          // Reconstruct Song from cached YouTube track with fresh URL
+          final youtubeSong = Song(
+            sourceId: _sourceId,
+            id: youtubeId,
+            title: cachedTrack.title,
+            artist: cachedTrack.artist,
+            album: cachedTrack.audioUrl, // Store fresh URL in album field
+            duration: Duration(seconds: cachedTrack.durationSeconds),
+            userRating: UserRating.unrated,
+          );
+          youtubeSongs.add(youtubeSong);
+
+          // Enhanced logging with expiry information
+          final expiryTime = DateTime.fromMillisecondsSinceEpoch(cachedTrack.expiresAt * 1000);
+          final timeUntilExpiry = expiryTime.difference(DateTime.now());
+          log.info('Fresh URL obtained for video: $videoId (expires in ${timeUntilExpiry.inMinutes} minutes at $expiryTime)');
+          log.fine('Audio URL: ${cachedTrack.audioUrl.substring(0, 100)}...');
+        } else {
+          log.severe('CRITICAL: Failed to refresh YouTube URL for playback: $youtubeId - track will be skipped');
+        }
+      } catch (e) {
+        log.warning('Error refreshing YouTube URL for playback: $youtubeId', e);
+      }
+    }
+
+    // Combine local and YouTube songs
+    final allSongs = [...localSongs, ...youtubeSongs];
+    final songMap = {for (var song in allSongs) song.id: song};
+
+    // Get album art only for local songs
+    final albumIds = localSongs.map((e) => e.albumId).whereNotNull().toSet();
     final albums = await _db.albumsInIds(_sourceId, albumIds.toList()).get();
     final albumArtMap = {
       for (var album in albums) album.id: _mapArtCache(album)
     };
 
+    // Get YouTube thumbnail URLs for YouTube tracks
+    final youtubeArtCache = <String, MediaItemArtCache>{};
+    for (final youtubeId in youtubeIds) {
+      try {
+        final videoId = youtubeId.replaceFirst('youtube:', '');
+        final cachedTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: false);
+        if (cachedTrack != null && cachedTrack.thumbnailUrl != null) {
+          // Create art cache entry for YouTube thumbnail
+          youtubeArtCache[youtubeId] = _mapYouTubeThumbnailArtCache(cachedTrack.thumbnailUrl!);
+        }
+      } catch (e) {
+        log.warning('Error getting thumbnail for YouTube track: $youtubeId', e);
+      }
+    }
+
     final queueItems = slice.map(
-      (item) => _mapSong(
-        songMap[item.id]!,
-        MediaItemData(
-          sourceId: item.sourceId,
-          contextType: item.context,
-          contextId: item.contextId,
-          artCache: albumArtMap[songMap[item.id]!.albumId],
-        ),
-        item,
-      ),
-    );
+      (item) {
+        final song = songMap[item.id];
+        if (song == null) {
+          log.warning('Song not found in map: ${item.id}');
+          return null;
+        }
+
+        // Determine art cache based on song type
+        MediaItemArtCache? artCache;
+        if (song.id.startsWith('youtube:')) {
+          // Use YouTube thumbnail for YouTube tracks
+          artCache = youtubeArtCache[song.id];
+        } else {
+          // Use album art for local tracks
+          artCache = albumArtMap[song.albumId];
+        }
+
+        return _mapSong(
+          song,
+          MediaItemData(
+            sourceId: item.sourceId,
+            contextType: item.context,
+            contextId: item.contextId,
+            artCache: artCache,
+          ),
+          item,
+        );
+      },
+    ).whereNotNull();
 
     return queueItems.toList();
   }
@@ -779,15 +1171,72 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       album: song.album,
       duration: song.duration,
       artUri: data.artCache?.thumbnailArtUri ?? _cache.placeholderThumbImageUri,
-      extras: {},
+      extras: {
+        'isYouTube': song.id.startsWith('youtube:'),
+      },
     );
     item.data = data;
 
+    // Check offline mode setting
+    final offlineMode = _ref.read(offlineModeProvider);
+
+    // Determine audio source based on song type
+    UriAudioSource audioSource;
+
+    if (song.downloadFilePath != null) {
+      // Local downloaded file - always use this if available
+      audioSource = AudioSource.file(song.downloadFilePath!, tag: queueData.index);
+    } else if (offlineMode) {
+      // Offline mode is enabled but song is not downloaded
+      // This shouldn't happen if filtering is working correctly, but we handle it defensively
+      log.warning('Offline mode: Cannot create AudioSource for non-downloaded song: "${song.title}"');
+
+      // Create a silent audio source with extremely short duration
+      // This will effectively skip the song when it tries to play
+      // Using a data URI with minimal audio ensures no network access
+      audioSource = AudioSource.uri(
+        Uri.parse('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
+        tag: queueData.index,
+      );
+    } else if (song.id.startsWith('youtube:')) {
+      // YouTube track - extract URL from album field (temporary storage)
+      // The album field is repurposed to store the YouTube stream URL
+      final youtubeUrl = song.album; // URL stored temporarily in album field
+      if (youtubeUrl != null && youtubeUrl.startsWith('http')) {
+        // Log the URL being used for debugging
+        final videoId = song.id.replaceFirst('youtube:', '');
+        log.info('Creating AudioSource for YouTube video $videoId');
+        log.fine('Stream URL: $youtubeUrl');
+
+        // Add comprehensive headers that Google/YouTube expects
+        // These headers help prevent 403 Forbidden errors
+        audioSource = AudioSource.uri(
+          Uri.parse(youtubeUrl),
+          tag: queueData.index,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'identity',
+            'Origin': 'https://www.youtube.com',
+            'Referer': 'https://www.youtube.com/watch?v=$videoId',
+            'Range': 'bytes=0-',
+          },
+        );
+        log.fine('AudioSource created with headers: Referer=https://www.youtube.com/watch?v=$videoId');
+      } else {
+        // Fallback to Navidrome stream (shouldn't happen)
+        log.warning('YouTube track has no valid stream URL: ${song.id}');
+        audioSource = AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
+      }
+    } else {
+      // Navidrome stream
+      audioSource = AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
+    }
+
     return QueueSourceItem(
       mediaItem: item,
-      audioSource: song.downloadFilePath != null
-          ? AudioSource.file(song.downloadFilePath!, tag: queueData.index)
-          : AudioSource.uri(_source.streamUri(song.id), tag: queueData.index),
+      audioSource: audioSource,
       queueData: queueData,
     );
   }
@@ -800,6 +1249,22 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       fullArtCacheKey: full.cacheKey,
       thumbnailArtUri: thumbnail.uri,
       thumbnailArtCacheKey: thumbnail.cacheKey,
+    );
+  }
+
+  /// Map YouTube thumbnail URL to MediaItemArtCache
+  ///
+  /// YouTube thumbnails are used as both thumbnail and full art
+  MediaItemArtCache _mapYouTubeThumbnailArtCache(String thumbnailUrl) {
+    final uri = Uri.parse(thumbnailUrl);
+    // Use the URL as the cache key (hash it for consistency)
+    final cacheKey = 'youtube_thumb_${thumbnailUrl.hashCode}';
+
+    return MediaItemArtCache(
+      fullArtUri: uri,
+      fullArtCacheKey: cacheKey,
+      thumbnailArtUri: uri,
+      thumbnailArtCacheKey: cacheKey,
     );
   }
 
@@ -835,16 +1300,17 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    if (_player.effectiveIndices == null || _player.effectiveIndices!.isEmpty) {
+    // Validate the index against the full database queue length, not the UI queue
+    if (_queueLength == null || index < 0 || index >= _queueLength!) {
+      log.warning('skipToQueueItem: Invalid index $index (queue length: $_queueLength)');
       return;
     }
 
-    index = _player.effectiveIndices![index];
-    if (index < 0 || index >= queue.value.length) {
-      return;
-    }
+    // Update the current track in the database
+    await _db.setCurrentTrack(index);
 
-    await _player.seek(Duration.zero, index: index);
+    // The currentTrackIndex stream listener will handle syncing the player
+    // No need to manually manipulate the player here
   }
 
   @override
@@ -892,4 +1358,213 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       rethrow;
     }
   }
+
+  /// Handle potential YouTube URL expiry during playback
+  ///
+  /// Checks if the current track is a YouTube track and refreshes its URL if needed
+  Future<void> _handlePotentialYouTubeUrlExpiry() async {
+    try {
+      final currentItem = mediaItem.valueOrNull;
+      if (currentItem == null) return;
+
+      // Check if this is a YouTube track
+      final isYouTube = currentItem.extras?['isYouTube'] == true;
+      if (!isYouTube) return;
+
+      log.info('YouTube URL may be expired, attempting refresh...');
+
+      // Extract video ID from the song ID
+      final videoId = currentItem.id.replaceFirst('youtube:', '');
+
+      // Refresh the URL
+      await _refreshYouTubeUrl(videoId);
+    } catch (e, stackTrace) {
+      log.severe('Error handling YouTube URL expiry', e, stackTrace);
+    }
+  }
+
+  /// Refresh the YouTube URL for a specific video
+  ///
+  /// Fetches a fresh stream URL and reloads the audio source
+  Future<void> _refreshYouTubeUrl(String videoId) async {
+    try {
+      log.info('Refreshing YouTube URL for video: $videoId');
+
+      final youtubeCache = _ref.read(youTubeCacheServiceProvider.notifier);
+
+      // Force refresh the URL
+      final refreshedTrack = await youtubeCache.refreshTrackUrl(videoId);
+
+      if (refreshedTrack == null) {
+        log.warning('Failed to refresh YouTube URL: $videoId');
+        // Skip to next track if refresh fails
+        await skipToNext();
+        return;
+      }
+
+      log.info('YouTube URL refreshed successfully: $videoId');
+
+      // Reload the current track with the new URL
+      await _resyncQueue(true);
+
+      log.info('Audio source reloaded with fresh URL');
+    } catch (e, stackTrace) {
+      log.severe('Failed to refresh YouTube URL: $videoId', e, stackTrace);
+
+      // Skip to next track on persistent error
+      try {
+        await skipToNext();
+      } catch (skipError) {
+        log.severe('Failed to skip to next track', skipError);
+      }
+    }
+  }
+
+  /// Check if YouTube URL is expired or expiring soon (< 5 minutes)
+  bool _isYouTubeUrlExpired(YoutubeTrack track) {
+    final expiryTime = DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
+    final timeLeft = expiryTime.difference(DateTime.now());
+    return timeLeft < const Duration(minutes: 5);
+  }
+
+  /// Get time left before YouTube URL expires (in minutes)
+  int _getYouTubeUrlTimeLeft(YoutubeTrack track) {
+    final expiryTime = DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
+    final timeLeft = expiryTime.difference(DateTime.now());
+    return timeLeft.inMinutes;
+  }
+
+  /// Check if we're near the end of queue and append more tracks if needed
+  ///
+  /// This enables infinite queue functionality for discovery radio stations.
+  /// When the user is 2 tracks away from the end, we generate more tracks in the background.
+  void _checkAndAppendMoreTracks(int currentQueueIndex) async {
+    // Don't append if already in progress
+    if (_isAutoAppending) {
+      log.fine('Auto-append already in progress, skipping');
+      return;
+    }
+
+    // Check if we're near the end (within 2 tracks)
+    if (_queueLength == null) return;
+
+    final tracksUntilEnd = _queueLength! - currentQueueIndex - 1;
+    log.fine('Queue position: $currentQueueIndex / $_queueLength (tracks until end: $tracksUntilEnd)');
+
+    if (tracksUntilEnd <= 2) {
+      log.info('Near end of queue, triggering auto-append');
+      _isAutoAppending = true;
+
+      try {
+        await _appendMoreDiscoveryTracks();
+      } catch (e, stackTrace) {
+        log.severe('Failed to auto-append tracks', e, stackTrace);
+      } finally {
+        _isAutoAppending = false;
+      }
+    }
+  }
+
+  /// Append more tracks to the current discovery radio queue
+  ///
+  /// Generates additional tracks based on the station's configuration and user preferences
+  Future<void> _appendMoreDiscoveryTracks() async {
+    if (_currentDiscoverySessionId == null) {
+      log.warning('Cannot append tracks: no active discovery session');
+      return;
+    }
+
+    try {
+      log.info('Appending more tracks to discovery radio queue...');
+
+      // Get the current station configuration
+      final station = await _db.getDiscoverySessionById(_currentDiscoverySessionId!);
+      if (station == null) {
+        log.warning('Discovery station not found: $_currentDiscoverySessionId');
+        return;
+      }
+
+      // Get the discovery service
+      final discoveryService = _ref.read(discoveryServiceProvider.notifier);
+
+      // Get the seed song for the station
+      final seedSong = await _db.songById(_sourceId, station.seedSongId).getSingleOrNull();
+      if (seedSong == null) {
+        log.warning('Seed song not found for station: ${station.seedSongId}');
+        return;
+      }
+
+      // Determine mode from station settings
+      final mode = station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline;
+
+      // Get YouTube settings from app settings
+      final appSettings = await _db.getAppSettings().getSingle();
+      final youtubeRatio = station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio;
+
+      // Create discovery config based on station settings
+      final config = DiscoveryConfig(
+        maxRecommendations: station.playlistSize,
+        youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
+        youtubeRatio: youtubeRatio,
+        youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+        youtubePreferOfficial: appSettings.youtubePreferOfficial,
+      );
+
+      // Generate more tracks (use half of playlist size for incremental adds)
+      final numTracksToAdd = (station.playlistSize / 2).ceil();
+      log.fine('Generating $numTracksToAdd new tracks for station');
+
+      final newTracks = await discoveryService.buildHybridDiscoveryPlaylist(
+        seedSong,
+        includeOfflineOnly: !mode.isOnline,
+        playlistSize: numTracksToAdd,
+        config: config,
+        sessionId: _currentDiscoverySessionId,
+      );
+
+      if (newTracks.isEmpty) {
+        log.warning('No new tracks generated for append');
+        return;
+      }
+
+      log.info('Generated ${newTracks.length} new tracks, converting and appending to queue');
+
+      // Convert hybrid tracks to songs
+      final newSongs = await _convertHybridTracksToSongs(newTracks);
+
+      if (newSongs.isEmpty) {
+        log.warning('No playable songs after conversion');
+        return;
+      }
+
+      // Append to the queue database
+      await _loadQueueSongs(
+        newSongs,
+        _queueLength!,
+        QueueContextType.discovery,
+        seedSong.id,
+      );
+
+      log.info('Successfully appended ${newSongs.length} tracks to queue (new queue length: $_queueLength)');
+
+    } catch (e, stackTrace) {
+      log.severe('Error appending discovery tracks', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Parse YouTube quality filter from string
+  YouTubeQualityFilter _parseYoutubeQualityFilter(String filter) {
+    switch (filter.toLowerCase()) {
+      case 'strict':
+        return YouTubeQualityFilter.strict;
+      case 'moderate':
+        return YouTubeQualityFilter.moderate;
+      case 'permissive':
+        return YouTubeQualityFilter.permissive;
+      default:
+        return YouTubeQualityFilter.moderate;
+    }
+  }
+
 }

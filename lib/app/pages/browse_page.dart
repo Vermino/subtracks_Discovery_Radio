@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -10,14 +10,17 @@ import '../../database/database.dart';
 import '../../log.dart';
 import '../../models/music.dart';
 import '../../models/query.dart';
+import '../../models/support.dart';
 import '../../services/audio_service.dart';
 import '../../services/cache_service.dart';
 import '../../services/discovery_service.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../app_router.dart';
+import '../buttons.dart';
 import '../images.dart';
 import '../items.dart';
+import 'songs_page.dart';
 
 part 'browse_page.g.dart';
 
@@ -80,6 +83,61 @@ class SavedStations extends _$SavedStations {
   }
 }
 
+@riverpod
+Future<List<Album>> albumsForStation(
+  AlbumsForStationRef ref,
+  int stationId,
+) async {
+  final db = ref.watch(databaseProvider);
+  final sourceId = ref.watch(sourceIdProvider);
+
+  // Get the station
+  final stations = await db.getStationsSortedByRecent(sourceId, limit: 100);
+  final station = stations.cast<DiscoverySession?>().firstWhere(
+    (s) => s?.id == stationId,
+    orElse: () => null,
+  );
+
+  if (station == null) {
+    return [];
+  }
+
+  // Get the seed song to find its album and artist
+  final songs = await db.songsInIds(sourceId, [station.seedSongId]).get();
+  if (songs.isEmpty) {
+    return [];
+  }
+
+  final seedSong = songs.first;
+  final albums = <Album>[];
+
+  // Try to get albums from the seed song's artist
+  if (seedSong.artistId != null && seedSong.artistId!.isNotEmpty) {
+    final artistAlbums = await db
+        .albumsByArtistId(sourceId, seedSong.artistId)
+        .get();
+    albums.addAll(artistAlbums.take(4));
+  }
+
+  // If we don't have enough albums, try getting albums from the seed genre
+  if (albums.length < 4 && station.seedGenre != null && station.seedGenre!.isNotEmpty) {
+    final genreAlbums = await db
+        .albumsByGenre(sourceId, station.seedGenre, 4 - albums.length, 0)
+        .get();
+    albums.addAll(genreAlbums);
+  }
+
+  // If we still don't have enough, add the seed song's album
+  if (albums.length < 4 && seedSong.albumId != null && seedSong.albumId!.isNotEmpty) {
+    final seedAlbum = await db.albumById(sourceId, seedSong.albumId!).getSingleOrNull();
+    if (seedAlbum != null && !albums.any((a) => a.id == seedAlbum.id)) {
+      albums.add(seedAlbum);
+    }
+  }
+
+  return albums.take(4).toList();
+}
+
 class BrowsePage extends HookConsumerWidget {
   const BrowsePage({super.key});
 
@@ -129,7 +187,23 @@ class BrowsePage extends HookConsumerWidget {
         )))
         .valueOrNull;
 
+    final songs = ref.watch(songsListProvider(const ListQuery())).valueOrNull;
+
+    void onPlayRadioPressed() {
+      ref.read(audioControlProvider).playRadio(
+            context: QueueContextType.library,
+            getSongs: (query) => ref
+                .read(databaseProvider)
+                .songsList(ref.read(sourceIdProvider), query)
+                .get(),
+          );
+    }
+
     return Scaffold(
+      floatingActionButton: RadioPlayFab(
+        onPressed:
+            songs != null && songs.isNotEmpty ? onPlayRadioPressed : null,
+      ),
       body: CustomScrollView(
         slivers: [
           const SliverSafeArea(
@@ -554,6 +628,8 @@ class _StationCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final albums = ref.watch(albumsForStationProvider(station.id)).valueOrNull;
+    final cache = ref.watch(cacheServiceProvider);
 
     // Format the last played date
     final lastPlayed = station.lastPlayedAt != null
@@ -567,99 +643,125 @@ class _StationCard extends HookConsumerWidget {
     final stationName = station.stationName ??
         _generateStationName(station.seedArtist, station.seedGenre);
 
-    return Card(
-      surfaceTintColor: Colors.transparent,
-      margin: const EdgeInsets.all(0),
-      child: InkWell(
-        onTap: () => _playStation(context, ref, station),
-        onLongPress: () => _showStationOptions(context, ref, station),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with icon and favorite
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
+    return ImageCard(
+      onTap: () => _playStation(context, ref, station),
+      onLongPress: () => _showStationOptions(context, ref, station),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Album covers with station name overlay
+          Expanded(
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                // Show album covers if available, otherwise show icon
+                if (albums != null && albums.isNotEmpty)
+                  CardClip(
+                    child: MultiImage(
+                      cacheInfo: albums.map((album) => cache.albumArt(album)),
+                    ),
+                  )
+                else
+                  CardClip(
+                    child: Container(
                       color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      station.mode == 'online'
-                          ? Icons.radio_rounded
-                          : Icons.download_rounded,
-                      size: 24,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (station.isFavorite == 1)
-                    Icon(
-                      Icons.star,
-                      size: 20,
-                      color: theme.colorScheme.primary,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Station name
-              Text(
-                stationName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-
-              // Seed info
-              Text(
-                _getSeedInfo(station),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-              const Spacer(),
-
-              // Stats
-              Row(
-                children: [
-                  Icon(
-                    Icons.play_circle_outline,
-                    size: 16,
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${station.playCount}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      lastPlayedStr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      child: Center(
+                        child: Icon(
+                          station.mode == 'online'
+                              ? Icons.radio_rounded
+                              : Icons.download_rounded,
+                          size: 48,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                // Station name overlay
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  right: 8,
+                  child: Material(
+                    type: MaterialType.canvas,
+                    color: theme.colorScheme.secondaryContainer,
+                    elevation: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              stationName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (station.isFavorite == 1)
+                            Icon(
+                              Icons.star,
+                              size: 16,
+                              color: theme.colorScheme.primary,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          // Bottom info section
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Seed info
+                Text(
+                  _getSeedInfo(station),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Stats
+                Row(
+                  children: [
+                    Icon(
+                      Icons.play_circle_outline,
+                      size: 14,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${station.playCount}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        lastPlayedStr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -728,7 +830,7 @@ class _StationCard extends HookConsumerWidget {
       final seedSong = songs.first;
 
       // Start discovery radio (playDiscoveryRadio will clear the queue automatically)
-      await audioControl.playDiscoveryRadio(
+      await audioControl.playHybridDiscoveryRadio(
         seedSong: seedSong,
         mode: station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline,
         playlistSize: station.playlistSize,
@@ -909,7 +1011,7 @@ class _StationOptionsSheet extends HookConsumerWidget {
       final seedSong = songs.first;
 
       // Start discovery radio (playDiscoveryRadio will clear the queue automatically)
-      await audioControl.playDiscoveryRadio(
+      await audioControl.playHybridDiscoveryRadio(
         seedSong: seedSong,
         mode: station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline,
         playlistSize: station.playlistSize,
