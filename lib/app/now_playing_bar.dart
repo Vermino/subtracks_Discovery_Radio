@@ -12,6 +12,74 @@ import 'app_router.dart';
 import 'images.dart';
 import 'pages/now_playing_page.dart';
 
+/// SliverAppBar version of the now playing bar that hides on scroll
+class SliverNowPlayingBar extends HookConsumerWidget {
+  const SliverNowPlayingBar({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
+    final base = ref.watch(baseThemeProvider);
+    final noItem = ref.watch(mediaItemProvider).valueOrNull == null;
+
+    if (noItem) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    final widget = SliverAppBar(
+      pinned: false,
+      floating: true,
+      snap: true,
+      toolbarHeight: 74, // 70 for content + 4 for progress bar
+      automaticallyImplyLeading: false,
+      backgroundColor: colors?.darkBackground ?? base.darkBackground,
+      elevation: 3,
+      flexibleSpace: GestureDetector(
+        onTap: () {
+          context.navigateTo(const NowPlayingRoute());
+        },
+        child: Material(
+          color: colors?.darkBackground ?? base.darkBackground,
+          child: const Column(
+            children: [
+              SizedBox(
+                height: 70,
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(10),
+                      child: _ArtImage(),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 4),
+                        child: _TrackInfo(),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(right: 16, top: 2),
+                      child: PlayPauseButton(size: 48),
+                    ),
+                  ],
+                ),
+              ),
+              _ProgressBar(),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Only wrap with dynamic theme if it's different from base
+    if (colors != null && colors != base) {
+      return Theme(data: colors.theme, child: widget);
+    } else {
+      return widget;
+    }
+  }
+}
+
 class NowPlayingBar extends HookConsumerWidget {
   const NowPlayingBar({
     super.key,

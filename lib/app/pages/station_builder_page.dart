@@ -190,15 +190,18 @@ class StationBuilderPage extends HookConsumerWidget {
     ValueNotifier<int> playlistSize,
     ValueNotifier<bool> isOnlineMode,
   ) {
+    // Capture the page context before showing the dialog
+    final pageContext = context;
+
     showDialog(
       context: context,
-      builder: (context) => _CreateStationDialog(
+      builder: (dialogContext) => _CreateStationDialog(
         seeds: seeds,
         playlistSize: playlistSize,
         isOnlineMode: isOnlineMode,
         onConfirm: (size, isOnline, youtubeRatio) {
-          Navigator.of(context).pop();
-          _createStation(context, ref, seeds, size, isOnline, youtubeRatio);
+          Navigator.of(dialogContext).pop();
+          _createStation(pageContext, ref, seeds, size, isOnline, youtubeRatio);
         },
       ),
     );
