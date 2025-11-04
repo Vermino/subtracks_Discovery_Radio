@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:id3/id3.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:drift/drift.dart' show InsertMode;
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -133,41 +134,48 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     // Try to read ID3 tags for MP3 files
     if (path.extension(filePath).toLowerCase() == '.mp3') {
       try {
-        final mp3Instance = MP3Instance(destinationPath);
-        final tags = mp3Instance.parseTagsSync();
+        final bytes = await File(destinationPath).readAsBytes();
+        final mp3Instance = MP3Instance(bytes);
 
-        if (tags != null) {
-          title = tags['Title']?.trim().isNotEmpty == true
-              ? tags['Title']!
-              : title;
-          artist = tags['Artist']?.trim().isNotEmpty == true
-              ? tags['Artist']!
-              : artist;
-          album = tags['Album']?.trim().isNotEmpty == true
-              ? tags['Album']!
-              : album;
-          genre = tags['Genre']?.trim().isNotEmpty == true
-              ? tags['Genre']
-              : null;
+        if (mp3Instance.parseTagsSync()) {
+          // Extract tags from mp3Instance properties
+          if (mp3Instance.metaTags != null) {
+            final tags = mp3Instance.metaTags!;
 
-          if (tags['Year'] != null) {
-            year = int.tryParse(tags['Year']!);
+            title = tags['Title']?.trim().isNotEmpty == true
+                ? tags['Title']!
+                : title;
+            artist = tags['Artist']?.trim().isNotEmpty == true
+                ? tags['Artist']!
+                : artist;
+            album = tags['Album']?.trim().isNotEmpty == true
+                ? tags['Album']!
+                : album;
+            genre = tags['Genre']?.trim().isNotEmpty == true
+                ? tags['Genre']
+                : null;
+
+            if (tags['Year'] != null) {
+              year = int.tryParse(tags['Year']!);
+            }
+
+            if (tags['Track'] != null) {
+              // Handle track numbers like "1/12" or just "1"
+              final trackStr = tags['Track']!.split('/').first;
+              trackNumber = int.tryParse(trackStr);
+            }
+
+            if (tags['Disc'] != null) {
+              final discStr = tags['Disc']!.split('/').first;
+              discNumber = int.tryParse(discStr);
+            }
           }
 
-          if (tags['Track'] != null) {
-            // Handle track numbers like "1/12" or just "1"
-            final trackStr = tags['Track']!.split('/').first;
-            trackNumber = int.tryParse(trackStr);
-          }
-
-          if (tags['Disc'] != null) {
-            final discStr = tags['Disc']!.split('/').first;
-            discNumber = int.tryParse(discStr);
+          // Get duration from MP3
+          if (mp3Instance.duration != null) {
+            duration = Duration(seconds: mp3Instance.duration!.inSeconds);
           }
         }
-
-        // Get duration from MP3
-        duration = mp3Instance.getDuration();
       } catch (e) {
         print('Failed to extract ID3 tags from $filePath: $e');
       }
@@ -385,22 +393,22 @@ class ImportResult {
 extension SongToCompanion on Song {
   SongsCompanion toCompanion() {
     return SongsCompanion.insert(
-      sourceId: sourceId,
-      id: id,
-      title: title,
-      albumId: drift.Value(albumId),
-      artistId: drift.Value(artistId),
-      artist: drift.Value(artist),
-      album: drift.Value(album),
-      duration: drift.Value(duration),
-      track: drift.Value(track),
-      disc: drift.Value(disc),
-      genre: drift.Value(genre),
-      downloadFilePath: drift.Value(downloadFilePath),
-      starred: drift.Value(starred),
-      userRating: drift.Value(userRating),
-      thumbsUpCount: drift.Value(thumbsUpCount),
-      thumbsDownCount: drift.Value(thumbsDownCount),
+      sourceId: this.sourceId,
+      id: this.id,
+      title: this.title,
+      albumId: drift.Value(this.albumId),
+      artistId: drift.Value(this.artistId),
+      artist: drift.Value(this.artist),
+      album: drift.Value(this.album),
+      duration: drift.Value(this.duration),
+      track: drift.Value(this.track),
+      disc: drift.Value(this.disc),
+      genre: drift.Value(this.genre),
+      downloadFilePath: drift.Value(this.downloadFilePath),
+      starred: drift.Value(this.starred),
+      userRating: drift.Value(this.userRating),
+      thumbsUpCount: drift.Value(this.thumbsUpCount),
+      thumbsDownCount: drift.Value(this.thumbsDownCount),
     );
   }
 }
