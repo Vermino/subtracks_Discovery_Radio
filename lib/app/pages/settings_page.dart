@@ -671,22 +671,23 @@ class _LocalMusicSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _Section(
       children: [
-        const _LocalMusicImportButton(),
+        const _LocalMusicImportFilesButton(),
+        const _LocalMusicImportFolderButton(),
         const _LocalMusicStats(),
       ],
     );
   }
 }
 
-class _LocalMusicImportButton extends HookConsumerWidget {
-  const _LocalMusicImportButton();
+class _LocalMusicImportFilesButton extends HookConsumerWidget {
+  const _LocalMusicImportFilesButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      leading: const Icon(Icons.upload_file),
-      title: const Text('Import from Device'),
-      subtitle: const Text('Add songs from your device storage'),
+      leading: const Icon(Icons.audio_file),
+      title: const Text('Import Files'),
+      subtitle: const Text('Add individual songs from device'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
         // Show loading indicator
@@ -701,6 +702,93 @@ class _LocalMusicImportButton extends HookConsumerWidget {
         try {
           final service = ref.read(localMusicImportServiceProvider.notifier);
           final result = await service.importFromDevice();
+
+          if (!context.mounted) return;
+          Navigator.of(context).pop(); // Dismiss loading
+
+          // Show result
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Import Complete'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(result.message),
+                  if (result.hasErrors) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Errors:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ...result.errors.map(
+                      (error) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '• $error',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } catch (e) {
+          if (!context.mounted) return;
+          Navigator.of(context).pop(); // Dismiss loading
+
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Import Failed'),
+              content: Text('An error occurred: $e'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
+class _LocalMusicImportFolderButton extends HookConsumerWidget {
+  const _LocalMusicImportFolderButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      leading: const Icon(Icons.folder),
+      title: const Text('Import Folder'),
+      subtitle: const Text('Import Artist/Album folders with artwork'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        try {
+          final service = ref.read(localMusicImportServiceProvider.notifier);
+          final result = await service.importFromFolder();
 
           if (!context.mounted) return;
           Navigator.of(context).pop(); // Dismiss loading

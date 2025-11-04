@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:id3/id3.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/drift.dart' show InsertMode;
@@ -10,6 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../database/database.dart';
 import '../models/music.dart';
 import '../state/settings.dart';
+import '../log.dart';
 
 part 'local_music_import_service.g.dart';
 
@@ -102,8 +104,262 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     }
   }
 
+  /// Open folder picker and import music with Artist/Album structure
+  ///
+  /// Expected folder structure:
+  /// ```
+  /// Music/
+  /// ├── Artist Name/
+  /// │   ├── artist.jpg (optional)
+  /// │   ├── Album 1/
+  /// │   │   ├── cover.jpg
+  /// │   │   └── songs...
+  /// │   └── Album 2/
+  /// │       └── songs...
+  /// ```
+  Future<ImportResult> importFromFolder() async {
+    try {
+      // Open folder picker
+      final selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+      if (selectedDirectory == null) {
+        return const ImportResult(
+          success: 0,
+          failed: 0,
+          errors: [],
+        );
+      }
+
+      log.info('Importing from folder: $selectedDirectory');
+
+      final directory = Directory(selectedDirectory);
+      if (!await directory.exists()) {
+        return ImportResult(
+          success: 0,
+          failed: 1,
+          errors: ['Selected directory does not exist'],
+        );
+      }
+
+      final importedSongs = <Song>[];
+      final errors = <String>[];
+
+      // Scan for Artist/Album structure
+      await _scanArtistFolder(directory, importedSongs, errors);
+
+      log.info('Import complete: ${importedSongs.length} songs imported, ${errors.length} errors');
+
+      return ImportResult(
+        success: importedSongs.length,
+        failed: errors.length,
+        errors: errors,
+      );
+    } catch (e, stackTrace) {
+      log.severe('Failed to import from folder', e, stackTrace);
+      return ImportResult(
+        success: 0,
+        failed: 1,
+        errors: ['Failed to open folder picker: $e'],
+      );
+    }
+  }
+
+  /// Scan a directory for artist folders
+  Future<void> _scanArtistFolder(
+    Directory rootDir,
+    List<Song> importedSongs,
+    List<String> errors,
+  ) async {
+    try {
+      // Check if this directory contains audio files directly
+      final audioFiles = await _findAudioFiles(rootDir);
+
+      if (audioFiles.isNotEmpty) {
+        // This directory contains audio files, treat it as an album
+        log.fine('Found ${audioFiles.length} audio files in ${rootDir.path}');
+        await _importAlbumFolder(rootDir, null, importedSongs, errors);
+        return;
+      }
+
+      // Otherwise, scan subdirectories for artist/album structure
+      await for (final entity in rootDir.list()) {
+        if (entity is Directory) {
+          final dirName = path.basename(entity.path);
+
+          // Skip hidden folders and system folders
+          if (dirName.startsWith('.') || dirName.startsWith('_')) {
+            continue;
+          }
+
+          log.fine('Scanning artist folder: $dirName');
+
+          // Check for artist image
+          final artistImage = await _findArtistImage(entity);
+
+          // Scan for album folders within artist folder
+          await for (final albumEntity in entity.list()) {
+            if (albumEntity is Directory) {
+              final albumName = path.basename(albumEntity.path);
+
+              if (albumName.startsWith('.') || albumName.startsWith('_')) {
+                continue;
+              }
+
+              log.fine('  Scanning album folder: $albumName');
+              await _importAlbumFolder(
+                albumEntity,
+                artistImage,
+                importedSongs,
+                errors,
+                artistName: dirName,
+              );
+            }
+          }
+        }
+      }
+    } catch (e, stackTrace) {
+      log.warning('Error scanning artist folder: ${rootDir.path}', e, stackTrace);
+      errors.add('Error scanning ${rootDir.path}: $e');
+    }
+  }
+
+  /// Import all songs from an album folder
+  Future<void> _importAlbumFolder(
+    Directory albumDir,
+    File? artistImage,
+    List<Song> importedSongs,
+    List<String> errors, {
+    String? artistName,
+  }) async {
+    try {
+      // Find album cover
+      final albumCover = await _findAlbumCover(albumDir);
+
+      // Find all audio files
+      final audioFiles = await _findAudioFiles(albumDir);
+
+      if (audioFiles.isEmpty) {
+        log.fine('No audio files found in ${albumDir.path}');
+        return;
+      }
+
+      log.info('Importing ${audioFiles.length} songs from ${path.basename(albumDir.path)}');
+
+      // Import each audio file
+      for (final audioFile in audioFiles) {
+        try {
+          final song = await _importFile(
+            audioFile.path,
+            albumCoverFile: albumCover,
+            artistImageFile: artistImage,
+            albumNameOverride: artistName != null ? path.basename(albumDir.path) : null,
+            artistNameOverride: artistName,
+          );
+
+          if (song != null) {
+            importedSongs.add(song);
+          } else {
+            errors.add('Failed to import ${path.basename(audioFile.path)}');
+          }
+        } catch (e) {
+          log.warning('Error importing ${audioFile.path}', e);
+          errors.add('Error importing ${path.basename(audioFile.path)}: $e');
+        }
+      }
+    } catch (e, stackTrace) {
+      log.warning('Error importing album folder: ${albumDir.path}', e, stackTrace);
+      errors.add('Error importing album ${path.basename(albumDir.path)}: $e');
+    }
+  }
+
+  /// Find audio files in a directory
+  Future<List<File>> _findAudioFiles(Directory dir) async {
+    final audioExtensions = {'.mp3', '.flac', '.ogg', '.opus', '.m4a', '.aac', '.wav'};
+    final audioFiles = <File>[];
+
+    try {
+      await for (final entity in dir.list()) {
+        if (entity is File) {
+          final ext = path.extension(entity.path).toLowerCase();
+          if (audioExtensions.contains(ext)) {
+            audioFiles.add(entity);
+          }
+        }
+      }
+    } catch (e) {
+      log.warning('Error finding audio files in ${dir.path}', e);
+    }
+
+    return audioFiles;
+  }
+
+  /// Find artist image in artist folder
+  Future<File?> _findArtistImage(Directory artistDir) async {
+    final imageNames = ['artist', 'folder', 'artist-image', 'photo'];
+    final imageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+
+    try {
+      await for (final entity in artistDir.list()) {
+        if (entity is File) {
+          final fileName = path.basenameWithoutExtension(entity.path).toLowerCase();
+          final ext = path.extension(entity.path).toLowerCase();
+
+          if (imageNames.contains(fileName) && imageExtensions.contains(ext)) {
+            log.fine('Found artist image: ${entity.path}');
+            return entity;
+          }
+        }
+      }
+    } catch (e) {
+      log.warning('Error finding artist image in ${artistDir.path}', e);
+    }
+
+    return null;
+  }
+
+  /// Find album cover in album folder
+  Future<File?> _findAlbumCover(Directory albumDir) async {
+    final coverNames = ['cover', 'folder', 'albumart', 'album', 'front', 'artwork'];
+    final imageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+
+    try {
+      await for (final entity in albumDir.list()) {
+        if (entity is File) {
+          final fileName = path.basenameWithoutExtension(entity.path).toLowerCase();
+          final ext = path.extension(entity.path).toLowerCase();
+
+          if (coverNames.contains(fileName) && imageExtensions.contains(ext)) {
+            log.fine('Found album cover: ${entity.path}');
+            return entity;
+          }
+        }
+      }
+
+      // If no named cover found, look for any image file
+      await for (final entity in albumDir.list()) {
+        if (entity is File) {
+          final ext = path.extension(entity.path).toLowerCase();
+          if (imageExtensions.contains(ext)) {
+            log.fine('Using image as album cover: ${entity.path}');
+            return entity;
+          }
+        }
+      }
+    } catch (e) {
+      log.warning('Error finding album cover in ${albumDir.path}', e);
+    }
+
+    return null;
+  }
+
   /// Import a single audio file
-  Future<Song?> _importFile(String filePath) async {
+  Future<Song?> _importFile(
+    String filePath, {
+    File? albumCoverFile,
+    File? artistImageFile,
+    String? albumNameOverride,
+    String? artistNameOverride,
+  }) async {
     final file = File(filePath);
     if (!await file.exists()) {
       return null;
@@ -123,13 +379,14 @@ class LocalMusicImportService extends _$LocalMusicImportService {
 
     // Extract metadata from ID3 tags (for MP3) or use filename
     String title = path.basenameWithoutExtension(fileName);
-    String artist = 'Unknown Artist';
-    String album = 'Unknown Album';
+    String artist = artistNameOverride ?? 'Unknown Artist';
+    String album = albumNameOverride ?? 'Unknown Album';
     String? genre;
     int? year;
     int? trackNumber;
     int? discNumber;
     Duration? duration;
+    Uint8List? embeddedAlbumArt;
 
     // Try to read ID3 tags for MP3 files
     if (path.extension(filePath).toLowerCase() == '.mp3') {
@@ -145,12 +402,20 @@ class LocalMusicImportService extends _$LocalMusicImportService {
             title = tags['Title']?.trim().isNotEmpty == true
                 ? tags['Title']!
                 : title;
-            artist = tags['Artist']?.trim().isNotEmpty == true
-                ? tags['Artist']!
-                : artist;
-            album = tags['Album']?.trim().isNotEmpty == true
-                ? tags['Album']!
-                : album;
+
+            // Only use ID3 artist/album if not overridden by folder structure
+            if (artistNameOverride == null) {
+              artist = tags['Artist']?.trim().isNotEmpty == true
+                  ? tags['Artist']!
+                  : artist;
+            }
+
+            if (albumNameOverride == null) {
+              album = tags['Album']?.trim().isNotEmpty == true
+                  ? tags['Album']!
+                  : album;
+            }
+
             genre = tags['Genre']?.trim().isNotEmpty == true
                 ? tags['Genre']
                 : null;
@@ -171,17 +436,37 @@ class LocalMusicImportService extends _$LocalMusicImportService {
             }
           }
 
+          // Extract embedded album art from ID3 tags
+          if (mp3Instance.metaTags?['APIC'] != null) {
+            try {
+              // APIC contains the picture data
+              final apicData = mp3Instance.metaTags!['APIC'];
+              if (apicData is Map && apicData['Picture'] != null) {
+                embeddedAlbumArt = apicData['Picture'] as Uint8List?;
+                log.fine('Extracted embedded album art from MP3');
+              }
+            } catch (e) {
+              log.warning('Failed to extract embedded album art', e);
+            }
+          }
+
           // Note: id3 package doesn't provide duration extraction
           // Duration will remain null for now
         }
       } catch (e) {
-        print('Failed to extract ID3 tags from $filePath: $e');
+        log.warning('Failed to extract ID3 tags from $filePath', e);
       }
     }
 
     // Generate IDs for album and artist
     final albumId = 'local_album_${album.hashCode}';
     final artistId = 'local_artist_${artist.hashCode}';
+
+    // Save artist image if provided
+    String? artistImagePath;
+    if (artistImageFile != null) {
+      artistImagePath = await _saveArtistImage(artistId, artistImageFile);
+    }
 
     // Create or update artist
     await _db.into(_db.artists).insert(
@@ -190,11 +475,20 @@ class LocalMusicImportService extends _$LocalMusicImportService {
             id: artistId,
             name: artist,
             albumCount: 0, // Will be updated by trigger
+            // Note: artistImagePath would need a new column in the artists table
           ),
           mode: InsertMode.insertOrIgnore,
         );
 
-    // Create or update album
+    // Save album cover (prioritize: folder image > embedded art)
+    String? albumCoverPath;
+    if (albumCoverFile != null) {
+      albumCoverPath = await _saveAlbumCover(albumId, albumCoverFile);
+    } else if (embeddedAlbumArt != null) {
+      albumCoverPath = await _saveAlbumCoverFromBytes(albumId, embeddedAlbumArt);
+    }
+
+    // Create or update album with cover art path
     await _db.into(_db.albums).insert(
           AlbumsCompanion.insert(
             sourceId: kLocalMusicSourceId,
@@ -206,6 +500,7 @@ class LocalMusicImportService extends _$LocalMusicImportService {
             artistId: drift.Value(artistId),
             genre: drift.Value(genre),
             year: drift.Value(year),
+            coverArt: drift.Value(albumCoverPath), // Store album cover path
           ),
           mode: InsertMode.insertOrIgnore,
         );
@@ -264,6 +559,84 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     }
 
     return localMusicDir.path;
+  }
+
+  /// Get or create the album art cache directory
+  Future<String> _getAlbumArtDirectory() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final albumArtDir = Directory(path.join(appDir.path, 'album_art'));
+
+    if (!await albumArtDir.exists()) {
+      await albumArtDir.create(recursive: true);
+    }
+
+    return albumArtDir.path;
+  }
+
+  /// Get or create the artist image cache directory
+  Future<String> _getArtistImageDirectory() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final artistImageDir = Directory(path.join(appDir.path, 'artist_images'));
+
+    if (!await artistImageDir.exists()) {
+      await artistImageDir.create(recursive: true);
+    }
+
+    return artistImageDir.path;
+  }
+
+  /// Save album cover from file
+  Future<String?> _saveAlbumCover(String albumId, File coverFile) async {
+    try {
+      final albumArtDir = await _getAlbumArtDirectory();
+      final extension = path.extension(coverFile.path);
+      final fileName = '${albumId}$extension';
+      final destinationPath = path.join(albumArtDir, fileName);
+
+      await coverFile.copy(destinationPath);
+      log.fine('Saved album cover: $destinationPath');
+
+      return destinationPath;
+    } catch (e) {
+      log.warning('Failed to save album cover', e);
+      return null;
+    }
+  }
+
+  /// Save album cover from bytes (embedded art)
+  Future<String?> _saveAlbumCoverFromBytes(String albumId, Uint8List imageBytes) async {
+    try {
+      final albumArtDir = await _getAlbumArtDirectory();
+      final fileName = '$albumId.jpg'; // Assume JPEG for embedded art
+      final destinationPath = path.join(albumArtDir, fileName);
+
+      final file = File(destinationPath);
+      await file.writeAsBytes(imageBytes);
+      log.fine('Saved embedded album cover: $destinationPath');
+
+      return destinationPath;
+    } catch (e) {
+      log.warning('Failed to save embedded album cover', e);
+      return null;
+    }
+  }
+
+  /// Save artist image from file
+  Future<String?> _saveArtistImage(String artistId, File imageFile) async {
+    try {
+      final artistImageDir = await _getArtistImageDirectory();
+      final extension = path.extension(imageFile.path);
+      final fileName = '${artistId}$extension';
+      final destinationPath = path.join(artistImageDir, fileName);
+
+      await imageFile.copy(destinationPath);
+      log.fine('Saved artist image: $destinationPath');
+
+      return destinationPath;
+    } catch (e) {
+      log.warning('Failed to save artist image', e);
+      return null;
+    }
   }
 
   /// Delete a local music file and its database entry
