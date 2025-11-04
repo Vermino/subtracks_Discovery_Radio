@@ -1034,21 +1034,32 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<List<QueueSourceItem>> _getQueueItems(List<int> indexes) async {
     final slice = await _db.queueInIndicies(indexes).get();
 
-    // Separate YouTube and local track IDs
-    final localIds = <String>[];
+    // Separate YouTube, local music (sourceId=0), and regular track IDs
+    final regularIds = <String>[];
+    final localMusicIds = <String>[];
     final youtubeIds = <String>[];
 
     for (final item in slice) {
       if (item.id.startsWith('youtube:')) {
         youtubeIds.add(item.id);
+      } else if (item.id.startsWith('local_')) {
+        // Local music files have sourceId=0
+        localMusicIds.add(item.id);
       } else {
-        localIds.add(item.id);
+        // Regular Navidrome songs
+        regularIds.add(item.id);
       }
     }
 
-    // Fetch local songs from database
-    final localSongs = localIds.isNotEmpty
-        ? await _db.songsInIds(_sourceId, localIds).get()
+    // Fetch regular songs from database with current sourceId
+    final regularSongs = regularIds.isNotEmpty
+        ? await _db.songsInIds(_sourceId, regularIds).get()
+        : <Song>[];
+
+    // Fetch local music songs from database with sourceId=0
+    const localMusicSourceId = 0; // kLocalMusicSourceId from local_music_import_service
+    final localMusicSongs = localMusicIds.isNotEmpty
+        ? await _db.songsInIds(localMusicSourceId, localMusicIds).get()
         : <Song>[];
 
     // Reconstruct YouTube songs from cache
@@ -1103,15 +1114,25 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
     }
 
-    // Combine local and YouTube songs
-    final allSongs = [...localSongs, ...youtubeSongs];
+    // Combine regular, local music, and YouTube songs
+    final allSongs = [...regularSongs, ...localMusicSongs, ...youtubeSongs];
     final songMap = {for (var song in allSongs) song.id: song};
 
-    // Get album art only for local songs
-    final albumIds = localSongs.map((e) => e.albumId).whereNotNull().toSet();
-    final albums = await _db.albumsInIds(_sourceId, albumIds.toList()).get();
+    // Get album art for regular and local music songs
+    final regularAlbumIds = regularSongs.map((e) => e.albumId).whereNotNull().toSet();
+    final localMusicAlbumIds = localMusicSongs.map((e) => e.albumId).whereNotNull().toSet();
+
+    // Fetch albums from both sources
+    final regularAlbums = regularAlbumIds.isNotEmpty
+        ? await _db.albumsInIds(_sourceId, regularAlbumIds.toList()).get()
+        : <Album>[];
+    final localMusicAlbums = localMusicAlbumIds.isNotEmpty
+        ? await _db.albumsInIds(localMusicSourceId, localMusicAlbumIds.toList()).get()
+        : <Album>[];
+
     final albumArtMap = {
-      for (var album in albums) album.id: _mapArtCache(album)
+      for (var album in [...regularAlbums, ...localMusicAlbums])
+        album.id: _mapArtCache(album)
     };
 
     // Get YouTube thumbnail URLs for YouTube tracks
