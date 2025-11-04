@@ -14,6 +14,7 @@ import '../models/music.dart';
 import '../models/query.dart';
 import '../models/settings.dart';
 import '../models/support.dart';
+import '../services/local_music_import_service.dart' show kLocalMusicSourceId;
 import 'converters.dart';
 import 'error_logging_database.dart';
 
@@ -245,7 +246,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
 
   MultiSelectable<Album> albumsListDownloaded(int sourceId, ListQuery opt) {
     return filterAlbumsDownloaded(
-      (_, __) => _filterPredicate('albums', sourceId, opt),
+      (_, __) => _filterPredicateWithLocal('albums', sourceId, opt),
       (_, __) => _filterOrderBy(opt),
       (_, __) => _filterLimit(opt),
     );
@@ -261,7 +262,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
 
   MultiSelectable<Artist> artistsListDownloaded(int sourceId, ListQuery opt) {
     return filterArtistsDownloaded(
-      (_, __, ___) => _filterPredicate('artists', sourceId, opt),
+      (_, __, ___) => _filterPredicateWithLocal('artists', sourceId, opt),
       (_, __, ___) => _filterOrderBy(opt),
       (_, __, ___) => _filterLimit(opt),
     );
@@ -278,7 +279,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   MultiSelectable<Playlist> playlistsListDownloaded(
       int sourceId, ListQuery opt) {
     return filterPlaylistsDownloaded(
-      (_, __, ___) => _filterPredicate('playlists', sourceId, opt),
+      (_, __, ___) => _filterPredicateWithLocal('playlists', sourceId, opt),
       (_, __, ___) => _filterOrderBy(opt),
       (_, __, ___) => _filterLimit(opt),
     );
@@ -294,7 +295,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
 
   MultiSelectable<Song> songsListDownloaded(int sourceId, ListQuery opt) {
     return filterSongsDownloaded(
-      (_) => _filterPredicate('songs', sourceId, opt),
+      (_) => _filterPredicateWithLocal('songs', sourceId, opt),
       (_) => _filterOrderBy(opt),
       (_) => _filterLimit(opt),
     );
@@ -303,6 +304,15 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   Expression<bool> _filterPredicate(String table, int sourceId, ListQuery opt) {
     return opt.filters.map((filter) => buildFilter<bool>(filter)).fold(
           CustomExpression('$table.source_id = $sourceId'),
+          (previousValue, element) => previousValue & element,
+        );
+  }
+
+  /// Filter predicate that includes both the specified source and local music (sourceId = kLocalMusicSourceId)
+  /// Used for offline mode to show downloaded content from active source + local uploads
+  Expression<bool> _filterPredicateWithLocal(String table, int sourceId, ListQuery opt) {
+    return opt.filters.map((filter) => buildFilter<bool>(filter)).fold(
+          CustomExpression('($table.source_id = $sourceId OR $table.source_id = $kLocalMusicSourceId)'),
           (previousValue, element) => previousValue & element,
         );
   }
