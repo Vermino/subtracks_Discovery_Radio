@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter_media_metadata/flutter_media_metadata.dart';
+import 'package:id3/id3.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
@@ -108,16 +108,6 @@ class LocalMusicImportService extends _$LocalMusicImportService {
       return null;
     }
 
-    // Extract metadata from audio file
-    final retriever = MetadataRetriever();
-    Metadata? metadata;
-    try {
-      metadata = await retriever.fromFile(file);
-    } catch (e) {
-      // If metadata extraction fails, use filename
-      print('Failed to extract metadata from $filePath: $e');
-    }
-
     // Generate unique ID for this local song
     final fileName = path.basename(filePath);
     final songId = 'local_${DateTime.now().millisecondsSinceEpoch}_${fileName.hashCode}';
@@ -130,33 +120,69 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     // Copy file to app storage
     await file.copy(destinationPath);
 
-    // Extract metadata
-    final title = metadata?.trackName?.trim().isNotEmpty == true
-        ? metadata!.trackName!
-        : path.basenameWithoutExtension(fileName);
-    final artist = metadata?.trackArtistNames?.isNotEmpty == true
-        ? metadata!.trackArtistNames!.first
-        : 'Unknown Artist';
-    final album = metadata?.albumName?.trim().isNotEmpty == true
-        ? metadata!.albumName!
-        : 'Unknown Album';
-    final genre = metadata?.genre?.trim().isNotEmpty == true
-        ? metadata!.genre
-        : null;
-    final year = metadata?.year;
-    final trackNumber = metadata?.trackNumber;
-    final discNumber = metadata?.discNumber;
+    // Extract metadata from ID3 tags (for MP3) or use filename
+    String title = path.basenameWithoutExtension(fileName);
+    String artist = 'Unknown Artist';
+    String album = 'Unknown Album';
+    String? genre;
+    int? year;
+    int? trackNumber;
+    int? discNumber;
+    Duration? duration;
+
+    // Try to read ID3 tags for MP3 files
+    if (path.extension(filePath).toLowerCase() == '.mp3') {
+      try {
+        final mp3Instance = MP3Instance(destinationPath);
+        final tags = mp3Instance.parseTagsSync();
+
+        if (tags != null) {
+          title = tags['Title']?.trim().isNotEmpty == true
+              ? tags['Title']!
+              : title;
+          artist = tags['Artist']?.trim().isNotEmpty == true
+              ? tags['Artist']!
+              : artist;
+          album = tags['Album']?.trim().isNotEmpty == true
+              ? tags['Album']!
+              : album;
+          genre = tags['Genre']?.trim().isNotEmpty == true
+              ? tags['Genre']
+              : null;
+
+          if (tags['Year'] != null) {
+            year = int.tryParse(tags['Year']!);
+          }
+
+          if (tags['Track'] != null) {
+            // Handle track numbers like "1/12" or just "1"
+            final trackStr = tags['Track']!.split('/').first;
+            trackNumber = int.tryParse(trackStr);
+          }
+
+          if (tags['Disc'] != null) {
+            final discStr = tags['Disc']!.split('/').first;
+            discNumber = int.tryParse(discStr);
+          }
+        }
+
+        // Get duration from MP3
+        duration = mp3Instance.getDuration();
+      } catch (e) {
+        print('Failed to extract ID3 tags from $filePath: $e');
+      }
+    }
 
     // Generate IDs for album and artist
     final albumId = 'local_album_${album.hashCode}';
-    final artistId = 'local_artist_${artist?.hashCode ?? 0}';
+    final artistId = 'local_artist_${artist.hashCode}';
 
     // Create or update artist
     await _db.into(_db.artists).insert(
           ArtistsCompanion.insert(
             sourceId: kLocalMusicSourceId,
             id: artistId,
-            name: artist ?? 'Unknown Artist',
+            name: artist,
             albumCount: 0, // Will be updated by trigger
           ),
           mode: InsertMode.insertOrIgnore,
@@ -197,11 +223,7 @@ class LocalMusicImportService extends _$LocalMusicImportService {
           );
     }
 
-    // Create song entry with duration from metadata
-    final duration = metadata?.trackDuration != null
-        ? Duration(milliseconds: metadata!.trackDuration!)
-        : null;
-
+    // Create song entry
     final song = Song(
       sourceId: kLocalMusicSourceId,
       id: songId,
