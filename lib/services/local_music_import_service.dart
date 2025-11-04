@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:audiotagger/audiotagger.dart';
-import 'package:audiotagger/models/tag.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
@@ -20,12 +19,11 @@ const int kLocalMusicSourceId = 0;
 @Riverpod(keepAlive: true)
 class LocalMusicImportService extends _$LocalMusicImportService {
   late final SubtracksDatabase _db;
-  late final Audiotagger _tagger;
+  final _tagger = Audiotagger();
 
   @override
   Future<void> build() async {
     _db = ref.read(databaseProvider);
-    _tagger = Audiotagger();
 
     // Ensure local music source exists in database
     await _ensureLocalMusicSource();
@@ -112,9 +110,9 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     }
 
     // Extract metadata from audio file
-    Tag? tag;
+    Map<String, dynamic>? tagMap;
     try {
-      tag = await _tagger.readTags(path: filePath);
+      tagMap = await _tagger.readTagsAsMap(path: filePath);
     } catch (e) {
       // If metadata extraction fails, use filename
       print('Failed to extract metadata from $filePath: $e');
@@ -132,16 +130,26 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     // Copy file to app storage
     await file.copy(destinationPath);
 
-    // Extract metadata
-    final title = tag?.title?.trim().isNotEmpty == true
-        ? tag!.title!
+    // Extract metadata from tag map
+    final title = tagMap?['title']?.toString().trim().isNotEmpty == true
+        ? tagMap!['title'].toString()
         : path.basenameWithoutExtension(fileName);
-    final artist = tag?.artist?.trim().isNotEmpty == true ? tag!.artist : 'Unknown Artist';
-    final album = tag?.album?.trim().isNotEmpty == true ? tag!.album : 'Unknown Album';
-    final genre = tag?.genre?.trim().isNotEmpty == true ? tag!.genre : null;
-    final year = tag?.year != null ? int.tryParse(tag!.year!) : null;
-    final trackNumber = tag?.trackNumber != null ? int.tryParse(tag!.trackNumber!) : null;
-    final discNumber = tag?.discNumber != null ? int.tryParse(tag!.discNumber!) : null;
+    final artist = tagMap?['artist']?.toString().trim().isNotEmpty == true
+        ? tagMap!['artist'].toString()
+        : 'Unknown Artist';
+    final album = tagMap?['album']?.toString().trim().isNotEmpty == true
+        ? tagMap!['album'].toString()
+        : 'Unknown Album';
+    final genre = tagMap?['genre']?.toString().trim().isNotEmpty == true
+        ? tagMap!['genre'].toString()
+        : null;
+    final year = tagMap?['year'] != null ? int.tryParse(tagMap!['year'].toString()) : null;
+    final trackNumber = tagMap?['trackNumber'] != null
+        ? int.tryParse(tagMap!['trackNumber'].toString())
+        : null;
+    final discNumber = tagMap?['discNumber'] != null
+        ? int.tryParse(tagMap!['discNumber'].toString())
+        : null;
 
     // Generate IDs for album and artist
     final albumId = 'local_album_${album.hashCode}';
@@ -194,6 +202,23 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     }
 
     // Create song entry
+    Duration? duration;
+    if (tagMap?['duration'] != null) {
+      try {
+        final durationValue = tagMap!['duration'];
+        if (durationValue is num) {
+          duration = Duration(milliseconds: (durationValue * 1000).toInt());
+        } else if (durationValue is String) {
+          final parsed = double.tryParse(durationValue);
+          if (parsed != null) {
+            duration = Duration(milliseconds: (parsed * 1000).toInt());
+          }
+        }
+      } catch (e) {
+        print('Failed to parse duration: $e');
+      }
+    }
+
     final song = Song(
       sourceId: kLocalMusicSourceId,
       id: songId,
@@ -206,9 +231,7 @@ class LocalMusicImportService extends _$LocalMusicImportService {
       track: trackNumber,
       disc: discNumber,
       downloadFilePath: destinationPath,
-      duration: tag?.duration != null
-          ? Duration(milliseconds: (tag!.duration! * 1000).toInt())
-          : null,
+      duration: duration,
     );
 
     // Save song to database
