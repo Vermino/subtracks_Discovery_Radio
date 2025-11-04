@@ -171,10 +171,8 @@ class LocalMusicImportService extends _$LocalMusicImportService {
             }
           }
 
-          // Get duration from MP3
-          if (mp3Instance.duration != null) {
-            duration = Duration(seconds: mp3Instance.duration!.inSeconds);
-          }
+          // Note: id3 package doesn't provide duration extraction
+          // Duration will remain null for now
         }
       } catch (e) {
         print('Failed to extract ID3 tags from $filePath: $e');
