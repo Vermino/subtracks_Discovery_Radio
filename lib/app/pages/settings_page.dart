@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../log.dart';
 import '../../models/support.dart';
+import '../../services/local_music_import_service.dart';
 import '../../services/settings_service.dart';
 import '../../state/init.dart';
 import '../../state/settings.dart';
@@ -42,6 +43,8 @@ class SettingsPage extends HookConsumerWidget {
           const _Network(),
           const _SectionHeader('Download Settings'),
           const _DownloadSettings(),
+          const _SectionHeader('Local Music'),
+          const _LocalMusicSection(),
           const _SectionHeader('Discovery'),
           const _Section(
             children: [
@@ -657,6 +660,144 @@ class _ThumbsDownAutoDelete extends HookConsumerWidget {
             .read(settingsServiceProvider.notifier)
             .setThumbsDownAutoDelete(value);
       },
+    );
+  }
+}
+
+class _LocalMusicSection extends HookConsumerWidget {
+  const _LocalMusicSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _Section(
+      children: [
+        const _LocalMusicImportButton(),
+        const _LocalMusicStats(),
+      ],
+    );
+  }
+}
+
+class _LocalMusicImportButton extends HookConsumerWidget {
+  const _LocalMusicImportButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      leading: const Icon(Icons.upload_file),
+      title: const Text('Import from Device'),
+      subtitle: const Text('Add songs from your device storage'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        try {
+          final service = ref.read(localMusicImportServiceProvider.notifier);
+          final result = await service.importFromDevice();
+
+          if (!context.mounted) return;
+          Navigator.of(context).pop(); // Dismiss loading
+
+          // Show result
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Import Complete'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(result.message),
+                  if (result.hasErrors) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Errors:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ...result.errors.map(
+                      (error) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '• $error',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } catch (e) {
+          if (!context.mounted) return;
+          Navigator.of(context).pop(); // Dismiss loading
+
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Import Failed'),
+              content: Text('An error occurred: $e'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
+class _LocalMusicStats extends HookConsumerWidget {
+  const _LocalMusicStats();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localMusicService = ref.watch(localMusicImportServiceProvider);
+
+    return localMusicService.when(
+      data: (_) {
+        return FutureBuilder<int>(
+          future: ref
+              .read(localMusicImportServiceProvider.notifier)
+              .getLocalSongsCount(),
+          builder: (context, snapshot) {
+            final count = snapshot.data ?? 0;
+            return ListTile(
+              leading: const Icon(Icons.music_note),
+              title: const Text('Local Songs'),
+              subtitle: Text('$count ${count == 1 ? 'song' : 'songs'} imported'),
+            );
+          },
+        );
+      },
+      loading: () => const ListTile(
+        leading: Icon(Icons.music_note),
+        title: Text('Local Songs'),
+        subtitle: Text('Loading...'),
+      ),
+      error: (error, stack) => ListTile(
+        leading: const Icon(Icons.error),
+        title: const Text('Local Songs'),
+        subtitle: Text('Error: $error'),
+      ),
     );
   }
 }
