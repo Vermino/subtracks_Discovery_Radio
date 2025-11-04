@@ -688,7 +688,7 @@ class _LocalMusicImportFilesButton extends HookConsumerWidget {
     return ListTile(
       leading: const Icon(Icons.audio_file),
       title: const Text('Import Files'),
-      subtitle: const Text('Add individual songs from device'),
+      subtitle: const Text('Select multiple songs from any location'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
         // Show loading indicator
@@ -775,7 +775,7 @@ class _LocalMusicImportFolderButton extends HookConsumerWidget {
     return ListTile(
       leading: const Icon(Icons.folder),
       title: const Text('Import Folder'),
-      subtitle: const Text('Import Artist/Album folders with artwork'),
+      subtitle: const Text('Batch import from Artist/Album folders (may not work on all devices)'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
         // Show loading indicator
