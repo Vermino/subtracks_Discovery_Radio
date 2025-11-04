@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:audiotagger/audiotagger.dart';
+import 'package:flutter_media_metadata/flutter_media_metadata.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
@@ -19,7 +19,6 @@ const int kLocalMusicSourceId = 0;
 @Riverpod(keepAlive: true)
 class LocalMusicImportService extends _$LocalMusicImportService {
   late final SubtracksDatabase _db;
-  final _tagger = Audiotagger();
 
   @override
   Future<void> build() async {
@@ -110,9 +109,10 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     }
 
     // Extract metadata from audio file
-    Map<String, dynamic>? tagMap;
+    final retriever = MetadataRetriever();
+    Metadata? metadata;
     try {
-      tagMap = await _tagger.readTagsAsMap(path: filePath);
+      metadata = await retriever.fromFile(file);
     } catch (e) {
       // If metadata extraction fails, use filename
       print('Failed to extract metadata from $filePath: $e');
@@ -130,26 +130,22 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     // Copy file to app storage
     await file.copy(destinationPath);
 
-    // Extract metadata from tag map
-    final title = tagMap?['title']?.toString().trim().isNotEmpty == true
-        ? tagMap!['title'].toString()
+    // Extract metadata
+    final title = metadata?.trackName?.trim().isNotEmpty == true
+        ? metadata!.trackName!
         : path.basenameWithoutExtension(fileName);
-    final artist = tagMap?['artist']?.toString().trim().isNotEmpty == true
-        ? tagMap!['artist'].toString()
+    final artist = metadata?.trackArtistNames?.isNotEmpty == true
+        ? metadata!.trackArtistNames!.first
         : 'Unknown Artist';
-    final album = tagMap?['album']?.toString().trim().isNotEmpty == true
-        ? tagMap!['album'].toString()
+    final album = metadata?.albumName?.trim().isNotEmpty == true
+        ? metadata!.albumName!
         : 'Unknown Album';
-    final genre = tagMap?['genre']?.toString().trim().isNotEmpty == true
-        ? tagMap!['genre'].toString()
+    final genre = metadata?.genre?.trim().isNotEmpty == true
+        ? metadata!.genre
         : null;
-    final year = tagMap?['year'] != null ? int.tryParse(tagMap!['year'].toString()) : null;
-    final trackNumber = tagMap?['trackNumber'] != null
-        ? int.tryParse(tagMap!['trackNumber'].toString())
-        : null;
-    final discNumber = tagMap?['discNumber'] != null
-        ? int.tryParse(tagMap!['discNumber'].toString())
-        : null;
+    final year = metadata?.year;
+    final trackNumber = metadata?.trackNumber;
+    final discNumber = metadata?.discNumber;
 
     // Generate IDs for album and artist
     final albumId = 'local_album_${album.hashCode}';
@@ -201,23 +197,10 @@ class LocalMusicImportService extends _$LocalMusicImportService {
           );
     }
 
-    // Create song entry
-    Duration? duration;
-    if (tagMap?['duration'] != null) {
-      try {
-        final durationValue = tagMap!['duration'];
-        if (durationValue is num) {
-          duration = Duration(milliseconds: (durationValue * 1000).toInt());
-        } else if (durationValue is String) {
-          final parsed = double.tryParse(durationValue);
-          if (parsed != null) {
-            duration = Duration(milliseconds: (parsed * 1000).toInt());
-          }
-        }
-      } catch (e) {
-        print('Failed to parse duration: $e');
-      }
-    }
+    // Create song entry with duration from metadata
+    final duration = metadata?.trackDuration != null
+        ? Duration(milliseconds: metadata!.trackDuration!)
+        : null;
 
     final song = Song(
       sourceId: kLocalMusicSourceId,
