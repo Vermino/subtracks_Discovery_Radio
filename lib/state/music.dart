@@ -18,11 +18,36 @@ Stream<Artist> artist(ArtistRef ref, String id) {
 }
 
 @riverpod
-Stream<Album> album(AlbumRef ref, String id) {
+Stream<Album> album(AlbumRef ref, String id) async* {
   final db = ref.watch(databaseProvider);
-  final sourceId = ref.watch(sourceIdProvider);
 
-  return db.albumById(sourceId, id).watchSingle();
+  // First try local music (sourceId = 0) for local albums
+  final localAlbum = await db.albumById(0, id).getSingleOrNull();
+  if (localAlbum != null) {
+    yield localAlbum;
+    // Watch for changes to local album
+    yield* db.albumById(0, id).watchSingle();
+    return;
+  }
+
+  // Fall back to active source for server albums
+  final sourceId = ref.watch(sourceIdProvider);
+  yield* db.albumById(sourceId, id).watchSingle();
+}
+
+/// Helper to get an album's sourceId from the database
+/// This is needed because local albums have sourceId = 0, not the active source
+Future<int> _getAlbumSourceId(AlbumSongsListRef ref, String albumId) async {
+  final db = ref.read(databaseProvider);
+
+  // First try local music (sourceId = 0)
+  final localAlbum = await db.albumById(0, albumId).getSingleOrNull();
+  if (localAlbum != null) {
+    return 0;
+  }
+
+  // Fall back to active source
+  return ref.read(sourceIdProvider);
 }
 
 @riverpod
@@ -60,9 +85,11 @@ Future<List<Song>> albumSongsList(
   AlbumSongsListRef ref,
   String id,
   ListQuery opt,
-) {
+) async {
   final db = ref.watch(databaseProvider);
-  final sourceId = ref.watch(sourceIdProvider);
+
+  // Get the correct sourceId (handles both server and local albums)
+  final sourceId = await _getAlbumSourceId(ref, id);
 
   return db.albumSongsList(SourceId(sourceId: sourceId, id: id), opt).get();
 }
