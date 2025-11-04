@@ -759,6 +759,80 @@ class LocalMusicImportService extends _$LocalMusicImportService {
       return false;
     }
   }
+
+  /// Delete an entire local album and all its songs from Subtracks
+  ///
+  /// NOTE: This does NOT delete files from device storage
+  Future<bool> deleteLocalAlbum(String albumId) async {
+    try {
+      log.info('Deleting local album: $albumId');
+
+      // Delete all songs in this album
+      await (_db.delete(_db.songs)
+            ..where((tbl) =>
+                tbl.sourceId.equals(kLocalMusicSourceId) &
+                tbl.albumId.equals(albumId)))
+          .go();
+
+      // Delete the album
+      await (_db.delete(_db.albums)
+            ..where((tbl) =>
+                tbl.sourceId.equals(kLocalMusicSourceId) &
+                tbl.id.equals(albumId)))
+          .go();
+
+      log.info('Local album deleted successfully');
+      return true;
+    } catch (e, stackTrace) {
+      log.severe('Failed to delete local album', e, stackTrace);
+      return false;
+    }
+  }
+
+  /// Delete an entire local artist and all their albums/songs from Subtracks
+  ///
+  /// NOTE: This does NOT delete files from device storage
+  Future<bool> deleteLocalArtist(String artistId) async {
+    try {
+      log.info('Deleting local artist: $artistId');
+
+      // Get all albums by this artist
+      final albums = await (_db.select(_db.albums)
+            ..where((tbl) =>
+                tbl.sourceId.equals(kLocalMusicSourceId) &
+                tbl.artistId.equals(artistId)))
+          .get();
+
+      // Delete all songs in these albums
+      for (final album in albums) {
+        await (_db.delete(_db.songs)
+              ..where((tbl) =>
+                  tbl.sourceId.equals(kLocalMusicSourceId) &
+                  tbl.albumId.equals(album.id)))
+            .go();
+      }
+
+      // Delete all albums by this artist
+      await (_db.delete(_db.albums)
+            ..where((tbl) =>
+                tbl.sourceId.equals(kLocalMusicSourceId) &
+                tbl.artistId.equals(artistId)))
+          .go();
+
+      // Delete the artist
+      await (_db.delete(_db.artists)
+            ..where((tbl) =>
+                tbl.sourceId.equals(kLocalMusicSourceId) &
+                tbl.id.equals(artistId)))
+          .go();
+
+      log.info('Local artist deleted successfully');
+      return true;
+    } catch (e, stackTrace) {
+      log.severe('Failed to delete local artist', e, stackTrace);
+      return false;
+    }
+  }
 }
 
 /// Result of an import operation
