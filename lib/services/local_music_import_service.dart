@@ -365,17 +365,15 @@ class LocalMusicImportService extends _$LocalMusicImportService {
       return null;
     }
 
-    // Generate unique ID for this local song
+    // Generate unique ID for this local song based on file path
+    // Use absolute path hash to ensure same file always gets same ID
+    final absolutePath = file.absolute.path;
     final fileName = path.basename(filePath);
-    final songId = 'local_${DateTime.now().millisecondsSinceEpoch}_${fileName.hashCode}';
+    final songId = 'local_${absolutePath.hashCode.abs()}_${fileName.hashCode.abs()}';
 
-    // Get local music directory
-    final localMusicDir = await _getLocalMusicDirectory();
-    final newFileName = '${songId}${path.extension(filePath)}';
-    final destinationPath = path.join(localMusicDir, newFileName);
-
-    // Copy file to app storage
-    await file.copy(destinationPath);
+    // Use original file path - do NOT copy to app storage
+    // This saves storage space and keeps files in their original location
+    final destinationPath = absolutePath;
 
     // Extract metadata from ID3 tags (for MP3) or use filename
     String title = path.basenameWithoutExtension(fileName);
@@ -391,7 +389,7 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     // Try to read ID3 tags for MP3 files
     if (path.extension(filePath).toLowerCase() == '.mp3') {
       try {
-        final bytes = await File(destinationPath).readAsBytes();
+        final bytes = await file.readAsBytes();
         final mp3Instance = MP3Instance(bytes);
 
         if (mp3Instance.parseTagsSync()) {
@@ -639,20 +637,18 @@ class LocalMusicImportService extends _$LocalMusicImportService {
     }
   }
 
-  /// Delete a local music file and its database entry
+  /// Remove a local music song from Subtracks database
+  ///
+  /// NOTE: This does NOT delete the original file from device storage,
+  /// it only removes the song from Subtracks' database.
   Future<bool> deleteLocalSong(Song song) async {
     if (song.sourceId != kLocalMusicSourceId) {
       return false;
     }
 
     try {
-      // Delete the file if it exists
-      if (song.downloadFilePath != null) {
-        final file = File(song.downloadFilePath!);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      }
+      // Do NOT delete the original file - we only reference it, don't own it
+      // The file stays in its original location on the device
 
       // Remove from database
       await (_db.delete(_db.songs)
@@ -731,6 +727,37 @@ class LocalMusicImportService extends _$LocalMusicImportService {
         .getSingle();
 
     return count.read(_db.songs.id.count()) ?? 0;
+  }
+
+  /// Clear all local music from Subtracks database
+  ///
+  /// NOTE: This does NOT delete files from device storage,
+  /// it only removes all local music entries from Subtracks' database.
+  Future<bool> clearLocalLibrary() async {
+    try {
+      log.info('Clearing local music library from database');
+
+      // Delete all local songs
+      await (_db.delete(_db.songs)
+            ..where((tbl) => tbl.sourceId.equals(kLocalMusicSourceId)))
+          .go();
+
+      // Delete all local albums
+      await (_db.delete(_db.albums)
+            ..where((tbl) => tbl.sourceId.equals(kLocalMusicSourceId)))
+          .go();
+
+      // Delete all local artists
+      await (_db.delete(_db.artists)
+            ..where((tbl) => tbl.sourceId.equals(kLocalMusicSourceId)))
+          .go();
+
+      log.info('Local music library cleared successfully');
+      return true;
+    } catch (e, stackTrace) {
+      log.severe('Failed to clear local music library', e, stackTrace);
+      return false;
+    }
   }
 }
 

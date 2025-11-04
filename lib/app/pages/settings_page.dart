@@ -674,6 +674,7 @@ class _LocalMusicSection extends HookConsumerWidget {
         const _LocalMusicImportFilesButton(),
         const _LocalMusicImportFolderButton(),
         const _LocalMusicStats(),
+        const _ClearLocalLibraryButton(),
       ],
     );
   }
@@ -886,6 +887,102 @@ class _LocalMusicStats extends HookConsumerWidget {
         title: const Text('Local Songs'),
         subtitle: Text('Error: $error'),
       ),
+    );
+  }
+}
+
+class _ClearLocalLibraryButton extends HookConsumerWidget {
+  const _ClearLocalLibraryButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      leading: const Icon(Icons.delete_outline, color: Colors.red),
+      title: const Text('Clear Local Library'),
+      subtitle: const Text('Remove all local music (files stay on device)'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        // Show confirmation dialog
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Clear Local Library?'),
+            content: const Text(
+              'This will remove all local music from Subtracks.\n\n'
+              'Your original music files will NOT be deleted from your device - '
+              'they will remain in their original location.\n\n'
+              'You can re-import them anytime.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Clear Library'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed != true) return;
+        if (!context.mounted) return;
+
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        try {
+          final service = ref.read(localMusicImportServiceProvider.notifier);
+          final success = await service.clearLocalLibrary();
+
+          if (!context.mounted) return;
+          Navigator.of(context).pop(); // Dismiss loading
+
+          // Show result
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(success ? 'Library Cleared' : 'Error'),
+              content: Text(
+                success
+                    ? 'All local music has been removed from Subtracks.\n\nYour files remain in their original location on your device.'
+                    : 'Failed to clear local library. Please try again.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } catch (e) {
+          if (!context.mounted) return;
+          Navigator.of(context).pop(); // Dismiss loading
+
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Error'),
+              content: Text('An error occurred: $e'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
 }
