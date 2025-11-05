@@ -691,23 +691,25 @@ class _LocalMusicImportFilesButton extends HookConsumerWidget {
       subtitle: const Text('Select multiple songs from any location'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
-        // Show loading indicator
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
+        // Show snackbar instead of blocking dialog
+        if (!context.mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Importing files... This may take a moment.'),
+            duration: Duration(seconds: 2),
           ),
         );
 
         try {
           final service = ref.read(localMusicImportServiceProvider.notifier);
+
+          // Run import - this may take time but won't block UI
           final result = await service.importFromDevice();
 
           if (!context.mounted) return;
-          Navigator.of(context).pop(); // Dismiss loading
 
-          // Show result
+          // Show result dialog
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -746,7 +748,6 @@ class _LocalMusicImportFilesButton extends HookConsumerWidget {
           );
         } catch (e) {
           if (!context.mounted) return;
-          Navigator.of(context).pop(); // Dismiss loading
 
           showDialog(
             context: context,
@@ -778,23 +779,25 @@ class _LocalMusicImportFolderButton extends HookConsumerWidget {
       subtitle: const Text('Batch import from Artist/Album folders (may not work on all devices)'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
-        // Show loading indicator
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
+        // Show snackbar instead of blocking dialog
+        if (!context.mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Importing folder... This may take a while.'),
+            duration: Duration(seconds: 2),
           ),
         );
 
         try {
           final service = ref.read(localMusicImportServiceProvider.notifier);
+
+          // Run import - this may take time but won't block UI
           final result = await service.importFromFolder();
 
           if (!context.mounted) return;
-          Navigator.of(context).pop(); // Dismiss loading
 
-          // Show result
+          // Show result dialog
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -833,7 +836,6 @@ class _LocalMusicImportFolderButton extends HookConsumerWidget {
           );
         } catch (e) {
           if (!context.mounted) return;
-          Navigator.of(context).pop(); // Dismiss loading
 
           showDialog(
             context: context,

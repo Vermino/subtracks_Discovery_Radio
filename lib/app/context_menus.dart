@@ -13,6 +13,7 @@ import '../models/music.dart';
 import '../services/audio_service.dart';
 import '../services/cache_service.dart';
 import '../services/discovery_service.dart';
+import '../services/local_music_import_service.dart';
 import '../services/settings_service.dart';
 import '../state/theme.dart';
 import 'app_router.dart';
@@ -103,6 +104,7 @@ class AlbumContextMenu extends HookConsumerWidget {
         if (album.artistId != null) _ViewArtist(id: album.artistId!),
         for (var action in downloadActions)
           _DownloadAction(key: ValueKey(action.type), downloadAction: action),
+        if (album.sourceId == 0) _DeleteLocalAlbum(album: album),
       ],
     );
   }
@@ -127,6 +129,7 @@ class SongContextMenu extends HookConsumerWidget {
         if (song.artistId != null) _ViewArtist(id: song.artistId!),
         if (song.albumId != null) _ViewAlbum(id: song.albumId!),
         // const _DownloadAction(),
+        if (song.sourceId == 0) _DeleteLocalSong(song: song),
       ],
     );
   }
@@ -149,6 +152,7 @@ class ArtistContextMenu extends HookConsumerWidget {
         _PlayArtistRadio(artist: artist),
         const _Star(),
         // const _Download(),
+        if (artist.sourceId == 0) _DeleteLocalArtist(artist: artist),
       ],
     );
   }
@@ -523,6 +527,174 @@ class _MenuItem extends StatelessWidget {
         child: icon,
       ),
       onTap: onTap,
+    );
+  }
+}
+
+class _DeleteLocalSong extends HookConsumerWidget {
+  final Song song;
+
+  const _DeleteLocalSong({
+    required this.song,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MenuItem(
+      title: 'Remove from Subtracks',
+      icon: const Icon(Icons.delete_outline, color: Colors.red),
+      onTap: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Remove Song'),
+            content: Text(
+              'Remove "${song.title}" from Subtracks?\n\nThe original file will remain on your device.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Remove', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true && context.mounted) {
+          final service = ref.read(localMusicImportServiceProvider.notifier);
+          final success = await service.deleteLocalSong(song.id);
+
+          if (context.mounted) {
+            Navigator.of(context).pop(); // Close context menu
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success
+                      ? 'Song removed from Subtracks'
+                      : 'Failed to remove song',
+                ),
+              ),
+            );
+          }
+        }
+      },
+    );
+  }
+}
+
+class _DeleteLocalAlbum extends HookConsumerWidget {
+  final Album album;
+
+  const _DeleteLocalAlbum({
+    required this.album,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MenuItem(
+      title: 'Remove from Subtracks',
+      icon: const Icon(Icons.delete_outline, color: Colors.red),
+      onTap: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Remove Album'),
+            content: Text(
+              'Remove "${album.name}" and all its songs from Subtracks?\n\nThe original files will remain on your device.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Remove', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true && context.mounted) {
+          final service = ref.read(localMusicImportServiceProvider.notifier);
+          final success = await service.deleteLocalAlbum(album.id);
+
+          if (context.mounted) {
+            Navigator.of(context).pop(); // Close context menu
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success
+                      ? 'Album removed from Subtracks'
+                      : 'Failed to remove album',
+                ),
+              ),
+            );
+          }
+        }
+      },
+    );
+  }
+}
+
+class _DeleteLocalArtist extends HookConsumerWidget {
+  final Artist artist;
+
+  const _DeleteLocalArtist({
+    required this.artist,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MenuItem(
+      title: 'Remove from Subtracks',
+      icon: const Icon(Icons.delete_outline, color: Colors.red),
+      onTap: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Remove Artist'),
+            content: Text(
+              'Remove "${artist.name}" and all their albums and songs from Subtracks?\n\nThe original files will remain on your device.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Remove', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true && context.mounted) {
+          final service = ref.read(localMusicImportServiceProvider.notifier);
+          final success = await service.deleteLocalArtist(artist.id);
+
+          if (context.mounted) {
+            Navigator.of(context).pop(); // Close context menu
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success
+                      ? 'Artist removed from Subtracks'
+                      : 'Failed to remove artist',
+                ),
+              ),
+            );
+          }
+        }
+      },
     );
   }
 }
