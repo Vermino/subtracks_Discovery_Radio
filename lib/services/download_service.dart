@@ -217,6 +217,32 @@ class DownloadService extends _$DownloadService {
     });
   }
 
+  Future<void> deleteSong(Song song) async {
+    if (song.downloadFilePath == null) {
+      return;
+    }
+
+    final db = ref.read(databaseProvider);
+    await _tryDeleteFile(song.downloadFilePath!);
+    await db.deleteSongDownloadFile(song.sourceId, song.id);
+  }
+
+  Future<void> deleteArtist(Artist artist) async {
+    return _deleteList(artist, () async {
+      final db = ref.read(databaseProvider);
+      final songs = await db.filterSongsDownloaded(
+        (tbl) => tbl.artistId.equals(artist.id) & tbl.sourceId.equals(artist.sourceId),
+        (tbl) => OrderBy([]),
+        (tbl) => Limit(null, null),
+      ).get();
+
+      for (var song in songs) {
+        await _tryDeleteFile(song.downloadFilePath!);
+        await db.deleteSongDownloadFile(song.sourceId, song.id);
+      }
+    });
+  }
+
   Future<void> deleteAll(int sourceId) async {
     final db = ref.read(databaseProvider);
 

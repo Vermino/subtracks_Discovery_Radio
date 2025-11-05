@@ -13,9 +13,12 @@ import '../models/music.dart';
 import '../services/audio_service.dart';
 import '../services/cache_service.dart';
 import '../services/discovery_service.dart';
+import '../services/download_service.dart';
 import '../services/settings_service.dart';
+import '../state/music.dart';
 import '../state/theme.dart';
 import 'app_router.dart';
+import 'dialogs.dart';
 import 'hooks/use_download_actions.dart';
 import 'images.dart';
 
@@ -126,7 +129,7 @@ class SongContextMenu extends HookConsumerWidget {
         const _Star(),
         if (song.artistId != null) _ViewArtist(id: song.artistId!),
         if (song.albumId != null) _ViewAlbum(id: song.albumId!),
-        // const _DownloadAction(),
+        _DeleteLocalSong(song: song),
       ],
     );
   }
@@ -148,7 +151,7 @@ class ArtistContextMenu extends HookConsumerWidget {
         const SizedBox(height: 8),
         _PlayArtistRadio(artist: artist),
         const _Star(),
-        // const _Download(),
+        _DeleteLocalArtist(artist: artist),
       ],
     );
   }
@@ -497,6 +500,122 @@ class _PlayAlbumRadio extends HookConsumerWidget {
               youtubePreferOfficial: settings.app.youtubePreferOfficial,
             ),
           );
+        }
+      },
+    );
+  }
+}
+
+class _DeleteLocalSong extends HookConsumerWidget {
+  final Song song;
+
+  const _DeleteLocalSong({
+    required this.song,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Only show if song is downloaded
+    if (song.downloadFilePath == null) {
+      return const SizedBox.shrink();
+    }
+
+    final l = AppLocalizations.of(context);
+    return _MenuItem(
+      title: l.actionsDownloadDelete,
+      icon: const Icon(Icons.delete_forever_rounded),
+      onTap: () async {
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (context) => const DeleteDialog(),
+        );
+        if (ok == true) {
+          final downloadService = ref.read(downloadServiceProvider.notifier);
+          await downloadService.deleteSong(song);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+    );
+  }
+}
+
+class _DeleteLocalAlbum extends HookConsumerWidget {
+  final Album album;
+
+  const _DeleteLocalAlbum({
+    required this.album,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(albumDownloadStatusProvider(album.id)).valueOrNull;
+
+    // Only show if album has downloaded songs
+    if (status == null || status.downloaded == 0) {
+      return const SizedBox.shrink();
+    }
+
+    final l = AppLocalizations.of(context);
+    return _MenuItem(
+      title: l.actionsDownloadDelete,
+      icon: const Icon(Icons.delete_forever_rounded),
+      onTap: () async {
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (context) => const DeleteDialog(),
+        );
+        if (ok == true) {
+          final downloadService = ref.read(downloadServiceProvider.notifier);
+          await downloadService.deleteAlbum(album);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+    );
+  }
+}
+
+class _DeleteLocalArtist extends HookConsumerWidget {
+  final Artist artist;
+
+  const _DeleteLocalArtist({
+    required this.artist,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final db = ref.watch(databaseProvider);
+    final hasDownloadedSongs = ref.watch(
+      db.filterSongsDownloaded(
+        (tbl) => tbl.artistId.equals(artist.id) & tbl.sourceId.equals(artist.sourceId),
+        (tbl) => OrderBy([]),
+        (tbl) => Limit(1, null),
+      ).watchSingle().select((data) => data != null),
+    );
+
+    // Only show if artist has downloaded songs
+    if (!hasDownloadedSongs.valueOrNull ?? true) {
+      return const SizedBox.shrink();
+    }
+
+    final l = AppLocalizations.of(context);
+    return _MenuItem(
+      title: l.actionsDownloadDelete,
+      icon: const Icon(Icons.delete_forever_rounded),
+      onTap: () async {
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (context) => const DeleteDialog(),
+        );
+        if (ok == true) {
+          final downloadService = ref.read(downloadServiceProvider.notifier);
+          await downloadService.deleteArtist(artist);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
     );
