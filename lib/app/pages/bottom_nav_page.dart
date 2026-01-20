@@ -169,7 +169,6 @@ class _BottomNavBar extends HookConsumerWidget {
           labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
           selectedIndex: tabsRouter.activeIndex,
           onDestinationSelected: (index) {
-            // TODO: replace this with a proper first-time setup flow
             final hasActiveSource = ref.read(settingsServiceProvider.select(
               (value) => value.activeSource != null,
             ));

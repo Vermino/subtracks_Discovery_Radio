@@ -43,17 +43,23 @@ class LastPath extends _$LastPath {
   }
 
   Future<void> init() async {
+    final hasActiveSource = ref.read(settingsServiceProvider.select(
+      (value) => value.activeSource != null,
+    ));
+
+    if (!hasActiveSource) {
+      state = '/setup';
+      return;
+    }
+
     final db = ref.read(databaseProvider);
     final lastBottomNav = await db.getLastBottomNavState().getSingleOrNull();
     final lastLibrary = await db.getLastLibraryState().getSingleOrNull();
 
-    if (lastBottomNav == null || lastLibrary == null) return;
-
-    // TODO: replace this with a proper first-time setup flow
-    final hasActiveSource = ref.read(settingsServiceProvider.select(
-      (value) => value.activeSource != null,
-    ));
-    if (!hasActiveSource) return;
+    if (lastBottomNav == null || lastLibrary == null) {
+      state = '/';
+      return;
+    }
 
     state = lastBottomNav.tab == 'library'
         ? '/library/${lastLibrary.tab}'

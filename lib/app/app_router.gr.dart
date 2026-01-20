@@ -220,6 +220,28 @@ class _$AppRouter extends RootStackRouter {
         barrierDismissible: false,
       );
     },
+    SetupRoute.name: (routeData) {
+      return CustomPage<dynamic>(
+        routeData: routeData,
+        child: const SetupPage(),
+        transitionsBuilder: kCustomTransitionBuilder,
+        durationInMilliseconds: kCustomTransitionDuration,
+        reverseDurationInMilliseconds: kCustomTransitionDuration,
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    SetupSourceRoute.name: (routeData) {
+      return CustomPage<dynamic>(
+        routeData: routeData,
+        child: const SourcePage(),
+        transitionsBuilder: kCustomTransitionBuilder,
+        durationInMilliseconds: kCustomTransitionDuration,
+        reverseDurationInMilliseconds: kCustomTransitionDuration,
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -384,6 +406,14 @@ class _$AppRouter extends RootStackRouter {
         RouteConfig(
           QueueRoute.name,
           path: '/queue',
+        ),
+        RouteConfig(
+          SetupRoute.name,
+          path: '/setup',
+        ),
+        RouteConfig(
+          SetupSourceRoute.name,
+          path: '/setup/source',
         ),
       ];
 }
@@ -772,4 +802,28 @@ class SourceRouteArgs {
   String toString() {
     return 'SourceRouteArgs{key: $key, id: $id}';
   }
+}
+
+/// generated route for
+/// [SetupPage]
+class SetupRoute extends PageRouteInfo<void> {
+  const SetupRoute()
+      : super(
+          SetupRoute.name,
+          path: '/setup',
+        );
+
+  static const String name = 'SetupRoute';
+}
+
+/// generated route for
+/// [SourcePage]
+class SetupSourceRoute extends PageRouteInfo<void> {
+  const SetupSourceRoute()
+      : super(
+          SetupSourceRoute.name,
+          path: '/setup/source',
+        );
+
+  static const String name = 'SetupSourceRoute';
 }
