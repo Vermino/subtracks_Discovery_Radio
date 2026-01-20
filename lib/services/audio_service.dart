@@ -1052,10 +1052,10 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         : <Song>[];
 
     // Reconstruct YouTube songs from cache
-    final youtubeSongs = <Song>[];
     final youtubeCache = _ref.read(youTubeCacheServiceProvider.notifier);
 
-    for (final youtubeId in youtubeIds) {
+    // Parallelize fetches/refreshes for better performance
+    final youtubeSongFutures = youtubeIds.map((youtubeId) async {
       try {
         final videoId = youtubeId.replaceFirst('youtube:', '');
 
@@ -1065,16 +1065,19 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         log.fine('Fetching YouTube track for playback: $videoId');
 
         // First try to get from cache without forcing refresh
-        var cachedTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: false);
+        var cachedTrack =
+            await youtubeCache.getTrack(videoId, refreshIfExpired: false);
 
         // Check if we need to refresh
-        final needsRefresh = cachedTrack == null || _isYouTubeUrlExpired(cachedTrack);
+        final needsRefresh =
+            cachedTrack == null || _isYouTubeUrlExpired(cachedTrack);
 
         if (needsRefresh) {
           log.info('YouTube URL needs refresh for: $videoId');
           cachedTrack = await youtubeCache.refreshTrackUrl(videoId);
         } else {
-          log.fine('Using cached YouTube URL for: $videoId (valid for ${_getYouTubeUrlTimeLeft(cachedTrack)} more minutes)');
+          log.fine(
+              'Using cached YouTube URL for: $videoId (valid for ${_getYouTubeUrlTimeLeft(cachedTrack)} more minutes)');
         }
 
         if (cachedTrack != null) {
@@ -1088,20 +1091,29 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
             duration: Duration(seconds: cachedTrack.durationSeconds),
             userRating: UserRating.unrated,
           );
-          youtubeSongs.add(youtubeSong);
 
           // Enhanced logging with expiry information
-          final expiryTime = DateTime.fromMillisecondsSinceEpoch(cachedTrack.expiresAt * 1000);
+          final expiryTime =
+              DateTime.fromMillisecondsSinceEpoch(cachedTrack.expiresAt * 1000);
           final timeUntilExpiry = expiryTime.difference(DateTime.now());
-          log.info('Fresh URL obtained for video: $videoId (expires in ${timeUntilExpiry.inMinutes} minutes at $expiryTime)');
+          log.info(
+              'Fresh URL obtained for video: $videoId (expires in ${timeUntilExpiry.inMinutes} minutes at $expiryTime)');
           log.fine('Audio URL: ${cachedTrack.audioUrl.substring(0, 100)}...');
+
+          return youtubeSong;
         } else {
-          log.severe('CRITICAL: Failed to refresh YouTube URL for playback: $youtubeId - track will be skipped');
+          log.severe(
+              'CRITICAL: Failed to refresh YouTube URL for playback: $youtubeId - track will be skipped');
+          return null;
         }
       } catch (e) {
         log.warning('Error refreshing YouTube URL for playback: $youtubeId', e);
+        return null;
       }
-    }
+    });
+
+    final youtubeSongs =
+        (await Future.wait(youtubeSongFutures)).whereNotNull().toList();
 
     // Combine local and YouTube songs
     final allSongs = [...localSongs, ...youtubeSongs];
