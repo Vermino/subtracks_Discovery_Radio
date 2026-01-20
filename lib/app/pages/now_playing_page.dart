@@ -592,7 +592,7 @@ class _SaveStationButton extends HookConsumerWidget {
           action: SnackBarAction(
             label: 'View',
             onPressed: () {
-              // TODO: Navigate to stations list
+              context.navigateTo(const BrowseRouter(children: [BrowseRoute()]));
             },
           ),
         ),
