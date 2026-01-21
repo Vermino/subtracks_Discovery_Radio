@@ -89,24 +89,6 @@ class SettingsService extends _$SettingsService {
     await init();
   }
 
-  Future<void> addTestSource(String prefix) async {
-    final env = ref.read(envProvider).requireValue;
-
-    await createSource(
-      SourcesCompanion.insert(
-        name: env['${prefix}_SERVER_NAME']!,
-        address: Uri.parse(env['${prefix}_SERVER_URL']!),
-      ),
-      SubsonicSourcesCompanion.insert(
-        features: IList(),
-        username: env['${prefix}_SERVER_USERNAME']!,
-        password: env['${prefix}_SERVER_PASSWORD']!,
-        useTokenAuth: const Value(true),
-      ),
-    );
-
-    await init();
-  }
 
   Future<void> setMaxBitrateWifi(int bitrate) async {
     await _db.updateSettings(
