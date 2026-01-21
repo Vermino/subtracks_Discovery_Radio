@@ -713,22 +713,6 @@ class _Sources extends HookConsumerWidget {
             ),
           ],
         ),
-        // TODO: remove
-        if (kDebugMode)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              OutlinedButton.icon(
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Add TEST'),
-                onPressed: () {
-                  ref
-                      .read(settingsServiceProvider.notifier)
-                      .addTestSource('TEST');
-                },
-              ),
-            ],
-          ),
       ],
     );
   }
