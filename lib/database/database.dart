@@ -1199,25 +1199,37 @@ JoinedSelectStatement<T, R> listQueryJoined<T extends HasResultSet, R>(
   return query;
 }
 
-CustomExpression<T> buildFilter<T extends Object>(
+Expression<T> buildFilter<T extends Object>(
   FilterWith filter,
 ) {
   return filter.when(
-    equals: (column, value, invert) => CustomExpression<T>(
-      '$column ${invert ? '<>' : '='} \'$value\'',
-    ),
-    greaterThan: (column, value, orEquals) => CustomExpression<T>(
-      '$column ${orEquals ? '>=' : '>'} $value',
-    ),
-    isNull: (column, invert) => CustomExpression<T>(
-      '$column ${invert ? 'IS NOT' : 'IS'} NULL',
-    ),
-    betweenInt: (column, from, to) => CustomExpression<T>(
-      '$column BETWEEN $from AND $to',
-    ),
-    isIn: (column, invert, values) => CustomExpression<T>(
-      '$column ${invert ? 'NOT IN' : 'IN'} (${values.join(',')})',
-    ),
+    equals: (column, value, invert) {
+      final expr = CustomExpression<String>(column).equals(value);
+      return (invert ? expr.not() : expr) as Expression<T>;
+    },
+    greaterThan: (column, value, orEquals) {
+      final expr = orEquals
+          ? CustomExpression<String>(column)
+              .isBiggerOrEqual(Variable(value))
+          : CustomExpression<String>(column)
+              .isBiggerThan(Variable(value));
+      return expr as Expression<T>;
+    },
+    isNull: (column, invert) {
+      final expr = CustomExpression<T>(column);
+      return (invert ? expr.isNotNull() : expr.isNull()) as Expression<T>;
+    },
+    betweenInt: (column, from, to) {
+      final expr = CustomExpression<int>(column).isBetween(
+        Variable<int>(from),
+        Variable<int>(to),
+      );
+      return expr as Expression<T>;
+    },
+    isIn: (column, invert, values) {
+      final expr = CustomExpression<String>(column).isIn(values);
+      return (invert ? expr.not() : expr) as Expression<T>;
+    },
   );
 }
 
