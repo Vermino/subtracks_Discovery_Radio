@@ -337,6 +337,7 @@ class _SongSubtitle extends HookConsumerWidget {
         child: Icon(
           Icons.download_done_rounded,
           size: 20,
+          semanticLabel: 'Downloaded',
         ),
       );
     } else if (downloadTaskId != null || download != null) {
@@ -422,6 +423,7 @@ class _SongTitle extends HookConsumerWidget {
               Icons.play_arrow_rounded,
               size: 18,
               color: theme.colorScheme.primary,
+              semanticLabel: 'Now playing',
             ),
           ),
         Expanded(
