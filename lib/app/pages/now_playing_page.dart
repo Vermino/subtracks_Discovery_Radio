@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:text_scroll/text_scroll.dart';
 
+import 'package:subtracks/l10n/app_localizations.dart';
 import '../../cache/image_cache.dart';
 import '../../database/database.dart';
 import '../../models/music.dart';
@@ -428,6 +429,7 @@ class ShuffleButton extends HookConsumerWidget {
       padding: EdgeInsets.zero,
       iconSize: 30,
       onPressed: queueMode == QueueMode.radio ? null : action,
+      tooltip: AppLocalizations.of(context).controlsShuffle,
     );
   }
 }
