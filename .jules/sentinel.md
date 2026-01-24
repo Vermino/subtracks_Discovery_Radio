@@ -1,0 +1,4 @@
+## 2024-10-24 - Secrets in Assets
+**Vulnerability:** The application was configured to bundle `.env` files in the application assets via `pubspec.yaml`, and `flutter_dotenv` was used to load them. This means any local `.env` file containing secrets would be included in the release build, exposing secrets to anyone who inspects the APK/IPA.
+**Learning:** Never bundle `.env` files or other configuration files that might contain secrets in the client-side application assets. `flutter_dotenv` encourages this pattern if not used carefully (e.g. only for development with a .gitignored .env, but even then, build artifacts might leak it).
+**Prevention:** Use build-time configuration (like `--dart-define`) for public keys/endpoints, and never ship private keys in the client app. Removed `flutter_dotenv` and hardcoded public demo credentials instead.

@@ -21,7 +21,6 @@ dependencies:
   fast_immutable_collections: ^9.0.0
   path: ^1.8.2
   path_provider: ^2.0.12
-  flutter_dotenv: ^5.0.2 # TODO: remove before release
   collection: ^1.17.1
   intl: any
   flutter_hooks: ^0.18.5+1
@@ -79,5 +78,4 @@ flutter:
   generate: true
 
   assets:
-    - .env
     - assets/
