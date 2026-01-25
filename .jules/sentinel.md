@@ -1,0 +1,4 @@
+## 2026-01-24 - Credential Leak in Debug Logs
+**Vulnerability:** Debug logs (`_printDebug`) were explicitly configured with `redact: false`, causing sensitive credentials (passwords, tokens, salts) to be printed to the console in plain text during development. Additionally, the redaction logic conditionally skipped all redaction if the username parameter (`u`) was missing, creating a bypass risk.
+**Learning:** Default configurations for "debug" modes often disable security controls for convenience, but this creates a risk of accidental exposure (e.g., screen sharing, issue reporting). Redaction logic should never depend on the presence of a single parameter to trigger; it must be defensive and attempt redaction on all sensitive patterns independently.
+**Prevention:** Always enable redaction by default, even in debug builds. Ensure redaction regexes are robust and do not have conditional dependencies on other parts of the input.
