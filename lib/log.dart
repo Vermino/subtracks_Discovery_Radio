@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -110,7 +111,7 @@ String _format(
   }
 
   if (redact) {
-    message = _redactUrl(message);
+    message = redactUrl(message);
   }
 
   if (event.stackTrace != null) {
@@ -122,11 +123,8 @@ String _format(
       : message;
 }
 
-String _redactUrl(String message) {
-  if (!_queryReplace('u').hasMatch(message)) {
-    return message;
-  }
-
+@visibleForTesting
+String redactUrl(String message) {
   message = _redactParam(message, 'u');
   message = _redactParam(message, 'p');
   message = _redactParam(message, 's');
@@ -171,7 +169,7 @@ Future<void> _printFile(String event, String logDir) async {
 
 void _printDebug(LogRecord event) {
   // ignore: avoid_print
-  print(_format(event, color: true, time: false, level: false, redact: false));
+  print(_format(event, color: true, time: false, level: false, redact: true));
 }
 
 Future<void> _printRelease(LogRecord event, String logDir) async {
