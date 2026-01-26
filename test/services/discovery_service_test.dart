@@ -1,7 +1,5 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 import 'package:subtracks/database/database.dart';
 import 'package:subtracks/models/music.dart';
 import 'package:subtracks/models/query.dart';
@@ -69,7 +67,7 @@ void main() {
           artist: 'Test Artist',
         );
 
-        const weightedSong = WeightedSong(
+        final weightedSong = WeightedSong(
           song: song,
           score: 0.85,
           scoreBreakdown: {
@@ -92,7 +90,7 @@ void main() {
           artist: 'Test Artist',
         );
 
-        const weightedSong = WeightedSong(
+        final weightedSong = WeightedSong(
           song: song,
           score: 0.85,
           scoreBreakdown: {},

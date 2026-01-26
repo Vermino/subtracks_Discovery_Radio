@@ -7,7 +7,6 @@ import '../database/database.dart';
 import '../http/client.dart';
 import '../models/settings.dart';
 import '../sources/subsonic/client.dart';
-import '../state/init.dart';
 import 'download_service.dart';
 
 part 'settings_service.g.dart';
@@ -90,17 +89,22 @@ class SettingsService extends _$SettingsService {
   }
 
   Future<void> addTestSource(String prefix) async {
-    final env = ref.read(envProvider).requireValue;
+    // Hardcoded credentials for the public Subsonic Demo server.
+    // Formerly loaded from .env which was insecurely bundled in assets.
+    const name = 'Subsonic Demo';
+    const url = 'http://demo.subsonic.org';
+    const username = 'guest';
+    const password = 'guest';
 
     await createSource(
       SourcesCompanion.insert(
-        name: env['${prefix}_SERVER_NAME']!,
-        address: Uri.parse(env['${prefix}_SERVER_URL']!),
+        name: name,
+        address: Uri.parse(url),
       ),
       SubsonicSourcesCompanion.insert(
         features: IList(),
-        username: env['${prefix}_SERVER_USERNAME']!,
-        password: env['${prefix}_SERVER_PASSWORD']!,
+        username: username,
+        password: password,
         useTokenAuth: const Value(true),
       ),
     );

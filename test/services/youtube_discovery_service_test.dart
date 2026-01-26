@@ -220,7 +220,7 @@ void main() {
 
   group('YouTubeConfig', () {
     test('has correct configuration values', () {
-      expect(YouTubeConfig.invidiousBaseUrl, 'http://192.168.0.214:3000');
+      expect(YouTubeConfig.invidiousBaseUrl, 'https://youtube.404oak.com');
       expect(YouTubeConfig.maxSearchResults, 20);
       expect(YouTubeConfig.minAudioBitrate, 96000);
       expect(YouTubeConfig.maxRetries, 3);

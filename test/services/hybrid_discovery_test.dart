@@ -214,7 +214,7 @@ void main() {
       final service = _MockDiscoveryService();
 
       final localSongs = List.generate(
-        7,
+        10,
         (i) => Song(
           sourceId: 1,
           id: 'song$i',
@@ -248,7 +248,7 @@ void main() {
       final service = _MockDiscoveryService();
 
       final localSongs = List.generate(
-        5,
+        10,
         (i) => Song(
           sourceId: 1,
           id: 'song$i',
@@ -282,7 +282,7 @@ void main() {
       final service = _MockDiscoveryService();
 
       final localSongs = List.generate(
-        7,
+        10,
         (i) => Song(
           sourceId: 1,
           id: 'song$i',
