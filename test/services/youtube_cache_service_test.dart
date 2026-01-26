@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -429,6 +429,16 @@ void main() {
     });
 
     test('should link YouTube tracks to discovery sessions', () async {
+      // Create a source for the session
+      await database.into(database.sources).insert(
+        SourcesCompanion.insert(
+          id: const Value(1),
+          name: 'Test Source',
+          address: Uri.parse('http://example.com'),
+          createdAt: Value(DateTime.now()),
+        ),
+      );
+
       // Create a discovery session
       final sessionId = await database.createDiscoverySession(
         sourceId: 1,
