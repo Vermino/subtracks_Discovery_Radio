@@ -180,6 +180,12 @@ abstract class AppLocalizations {
   /// **'Unstar'**
   String get actionsUnstar;
 
+  /// No description provided for @controlsRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Start radio'**
+  String get controlsRadio;
+
   /// No description provided for @controlsShuffle.
   ///
   /// In en, this message translates to:

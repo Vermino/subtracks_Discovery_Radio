@@ -33,6 +33,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get actionsUnstar => '移除收藏';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:subtracks/l10n/app_localizations.dart';
+
+import '../l10n/app_localizations.dart';
 
 class ShuffleFab extends StatelessWidget {
   final void Function()? onPressed;
@@ -16,7 +17,7 @@ class ShuffleFab extends StatelessWidget {
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
-      tooltip: l.actionsCancel,
+      tooltip: l.controlsShuffle,
       child: const Icon(Icons.shuffle_rounded),
     );
   }
@@ -32,9 +33,12 @@ class RadioPlayFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
+      tooltip: l.controlsRadio,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -72,10 +76,12 @@ class DiscoveryRadioFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
-      tooltip: 'Discovery Radio',
+      tooltip: l.controlsRadio,
       child: Stack(
         clipBehavior: Clip.none,
         children: [

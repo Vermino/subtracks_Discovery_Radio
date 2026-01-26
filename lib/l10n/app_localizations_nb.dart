@@ -33,6 +33,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get actionsUnstar => 'Fjern stjernemerking';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

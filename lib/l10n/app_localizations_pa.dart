@@ -33,6 +33,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get actionsUnstar => 'ਤਾਰਾ ਹਟਾਓ';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override
