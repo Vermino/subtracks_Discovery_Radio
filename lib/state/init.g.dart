@@ -6,20 +6,6 @@ part of 'init.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$envHash() => r'183e2c6c10c5a9d3dfcaffca0f1723cd85d67a5c';
-
-/// See also [env].
-@ProviderFor(env)
-final envProvider = FutureProvider<Map<String, String>>.internal(
-  env,
-  name: r'envProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$envHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef EnvRef = FutureProviderRef<Map<String, String>>;
 String _$routerHash() => r'3f52af31948ac5942fe4167f84785572458eeacc';
 
 /// See also [router].
@@ -80,7 +66,7 @@ final packageInfoProvider = FutureProvider<PackageInfo>.internal(
 );
 
 typedef PackageInfoRef = FutureProviderRef<PackageInfo>;
-String _$initHash() => r'10e2945eb65f51e6a904a3811fa88e63771e5b19';
+String _$initHash() => r'b8ec17ce497af755d8918b3e3defc563efc961c4';
 
 /// See also [init].
 @ProviderFor(init)
