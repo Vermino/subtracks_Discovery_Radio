@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,12 +16,6 @@ import 'audio.dart';
 import 'settings.dart';
 
 part 'init.g.dart';
-
-@Riverpod(keepAlive: true)
-FutureOr<Map<String, String>> env(EnvRef ref) async {
-  await dotenv.load();
-  return dotenv.env;
-}
 
 @Riverpod(keepAlive: true)
 AppRouter router(RouterRef ref) {
@@ -59,7 +52,6 @@ FutureOr<PackageInfo> packageInfo(PackageInfoRef ref) async {
 @Riverpod(keepAlive: true)
 FutureOr<void> init(InitRef ref) async {
   ref.watch(routerProvider);
-  await ref.watch(envProvider.future);
   await ref.read(packageInfoProvider.future);
   await ref.watch(placeholderImageUriProvider.future);
   await ref.watch(placeholderThumbImageUriProvider.future);

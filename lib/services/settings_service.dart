@@ -90,17 +90,21 @@ class SettingsService extends _$SettingsService {
   }
 
   Future<void> addTestSource(String prefix) async {
-    final env = ref.read(envProvider).requireValue;
+    // defaults for 'TEST'
+    const name = 'Subsonic Demo';
+    const address = 'http://demo.subsonic.org';
+    const username = 'guest';
+    const password = 'guest';
 
     await createSource(
       SourcesCompanion.insert(
-        name: env['${prefix}_SERVER_NAME']!,
-        address: Uri.parse(env['${prefix}_SERVER_URL']!),
+        name: name,
+        address: Uri.parse(address),
       ),
       SubsonicSourcesCompanion.insert(
         features: IList(),
-        username: env['${prefix}_SERVER_USERNAME']!,
-        password: env['${prefix}_SERVER_PASSWORD']!,
+        username: username,
+        password: password,
         useTokenAuth: const Value(true),
       ),
     );

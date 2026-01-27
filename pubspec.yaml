@@ -21,7 +21,6 @@ dependencies:
   fast_immutable_collections: ^9.0.0
   path: ^1.8.2
   path_provider: ^2.0.12
-  flutter_dotenv: ^5.0.2 # TODO: remove before release
   collection: ^1.17.1
   intl: any
   flutter_hooks: ^0.18.5+1
@@ -66,6 +65,8 @@ dependency_overrides:
   palette_generator: 0.3.3+2
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^2.0.0
   build_runner: 
   riverpod_generator: ^2.1.4
@@ -79,5 +80,4 @@ flutter:
   generate: true
 
   assets:
-    - .env
     - assets/
