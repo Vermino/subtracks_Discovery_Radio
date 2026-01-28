@@ -81,7 +81,8 @@ class YouTubeSettingsSection extends HookConsumerWidget {
             secondary: const Icon(Icons.verified),
             value: settings.app.youtubePreferOfficial,
             title: const Text('Prefer Official Channels'),
-            subtitle: const Text('Prioritize VEVO and official artist channels'),
+            subtitle:
+                const Text('Prioritize VEVO and official artist channels'),
             onChanged: (value) {
               ref
                   .read(settingsServiceProvider.notifier)
@@ -106,4 +107,3 @@ class YouTubeSettingsSection extends HookConsumerWidget {
     }
   }
 }
-

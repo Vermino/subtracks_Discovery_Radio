@@ -181,7 +181,8 @@ class YouTubeCacheService extends _$YouTubeCacheService {
       if (lastRefresh != null) {
         final timeSinceRefresh = DateTime.now().difference(lastRefresh);
         if (timeSinceRefresh < _refreshCooldown) {
-          log.fine('Skipping refresh for $videoId (refreshed ${timeSinceRefresh.inSeconds}s ago)');
+          log.fine(
+              'Skipping refresh for $videoId (refreshed ${timeSinceRefresh.inSeconds}s ago)');
           // Return cached track instead
           return await getTrack(videoId, refreshIfExpired: false);
         }
@@ -409,7 +410,10 @@ class YouTubeCacheService extends _$YouTubeCacheService {
   /// Update access tracking in database (async, non-blocking)
   void _updateAccessTracking(String videoId) {
     // Fire and forget - don't wait for completion
-    ref.read(databaseProvider).updateYouTubeTrackAccess(videoId).catchError((e) {
+    ref
+        .read(databaseProvider)
+        .updateYouTubeTrackAccess(videoId)
+        .catchError((e) {
       log.warning('Failed to update access tracking for: $videoId', e);
     });
   }

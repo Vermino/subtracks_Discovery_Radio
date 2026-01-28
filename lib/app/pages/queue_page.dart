@@ -58,46 +58,49 @@ Stream<List<MediaItem>> fullQueue(FullQueueRef ref) async* {
     }
 
     // Create MediaItems in queue order
-    final mediaItems = queueItems.map((queueItem) {
-      final id = queueItem.id;
+    final mediaItems = queueItems
+        .map((queueItem) {
+          final id = queueItem.id;
 
-      // Check if it's a YouTube track
-      if (id.startsWith('youtube:')) {
-        final youtubeTrack = youtubeTracks[id];
-        if (youtubeTrack == null) return null;
+          // Check if it's a YouTube track
+          if (id.startsWith('youtube:')) {
+            final youtubeTrack = youtubeTracks[id];
+            if (youtubeTrack == null) return null;
 
-        return MediaItem(
-          id: id,
-          title: youtubeTrack.title,
-          artist: youtubeTrack.artist ?? youtubeTrack.channelName,
-          album: 'YouTube',
-          duration: Duration(seconds: youtubeTrack.durationSeconds),
-          extras: {
-            'isYouTube': true,
-          },
-        );
-      } else {
-        // Local song
-        Song? song;
-        try {
-          song = localSongs.firstWhere((s) => s.id == id);
-        } catch (e) {
-          // Song not found in database
-          return null;
-        }
+            return MediaItem(
+              id: id,
+              title: youtubeTrack.title,
+              artist: youtubeTrack.artist ?? youtubeTrack.channelName,
+              album: 'YouTube',
+              duration: Duration(seconds: youtubeTrack.durationSeconds),
+              extras: {
+                'isYouTube': true,
+              },
+            );
+          } else {
+            // Local song
+            Song? song;
+            try {
+              song = localSongs.firstWhere((s) => s.id == id);
+            } catch (e) {
+              // Song not found in database
+              return null;
+            }
 
-        return MediaItem(
-          id: song.id,
-          title: song.title,
-          artist: song.artist,
-          album: song.album,
-          duration: song.duration,
-          extras: {
-            'isYouTube': false,
-          },
-        );
-      }
-    }).whereNotNull().toList();
+            return MediaItem(
+              id: song.id,
+              title: song.title,
+              artist: song.artist,
+              album: song.album,
+              duration: song.duration,
+              extras: {
+                'isYouTube': false,
+              },
+            );
+          }
+        })
+        .whereNotNull()
+        .toList();
 
     yield mediaItems;
   }
@@ -237,7 +240,8 @@ class _QueueListTile extends HookConsumerWidget {
                     : isYouTube
                         ? Center(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.red.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(4),

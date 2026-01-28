@@ -234,7 +234,8 @@ class LidarrDownloadIndicator extends ConsumerWidget {
           case 'failed':
             icon = Icons.error_outline;
             color = Colors.red;
-            tooltip = 'Download failed: ${request.errorMessage ?? "Unknown error"}';
+            tooltip =
+                'Download failed: ${request.errorMessage ?? "Unknown error"}';
             break;
           default:
             return const SizedBox.shrink();

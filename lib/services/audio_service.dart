@@ -119,6 +119,7 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
     return source;
   }
+
   int get _sourceId => _ref.read(sourceIdProvider);
 
   AudioControl(this._player, this._ref) {
@@ -180,7 +181,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
           log.fine('completed');
 
           // For radio mode, automatically advance to the next track
-          if (queueMode.value == QueueMode.radio && repeatMode.value != AudioServiceRepeatMode.one) {
+          if (queueMode.value == QueueMode.radio &&
+              repeatMode.value != AudioServiceRepeatMode.one) {
             log.info('Radio mode: auto-advancing to next track');
             await skipToNext();
           } else {
@@ -234,7 +236,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         await _db.setCurrentTrack(queueIndex);
 
         // Check if we're playing discovery radio and near end of queue
-        if (_currentDiscoverySessionId != null && queueMode.value == QueueMode.radio) {
+        if (_currentDiscoverySessionId != null &&
+            queueMode.value == QueueMode.radio) {
           _checkAndAppendMoreTracks(queueIndex);
         }
       }
@@ -332,7 +335,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         ),
         // Exclude thumbs down songs entirely - users don't want to hear them
         filters: IList([
-          FilterWith.equals(column: 'user_rating', value: 'thumbsDown', invert: true),
+          FilterWith.equals(
+              column: 'user_rating', value: 'thumbsDown', invert: true),
         ]),
       ),
       getSongs: getSongs,
@@ -347,7 +351,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     int playlistSize = 50,
     int? sessionId,
   }) async {
-    log.info('Starting Discovery Radio with seed: "${seedSong.title}" by ${seedSong.artist}');
+    log.info(
+        'Starting Discovery Radio with seed: "${seedSong.title}" by ${seedSong.artist}');
 
     final discoveryService = _ref.read(discoveryServiceProvider.notifier);
 
@@ -369,7 +374,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         return;
       }
 
-      log.info('Discovery Radio: Generated playlist with ${playlist.length} songs');
+      log.info(
+          'Discovery Radio: Generated playlist with ${playlist.length} songs');
 
       // Update session metadata before starting playback
       if (_currentDiscoverySessionId != null) {
@@ -437,9 +443,11 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         startIndex: 0,
       );
 
-      log.info('Discovery Radio: Started artist-based radio for $artistId with ${playlist.length} songs');
+      log.info(
+          'Discovery Radio: Started artist-based radio for $artistId with ${playlist.length} songs');
     } catch (e, stackTrace) {
-      log.severe('Discovery Radio: Failed to start artist-based radio', e, stackTrace);
+      log.severe(
+          'Discovery Radio: Failed to start artist-based radio', e, stackTrace);
     }
   }
 
@@ -473,9 +481,11 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         startIndex: 0,
       );
 
-      log.info('Discovery Radio: Started genre-based radio for $genre with ${playlist.length} songs');
+      log.info(
+          'Discovery Radio: Started genre-based radio for $genre with ${playlist.length} songs');
     } catch (e, stackTrace) {
-      log.severe('Discovery Radio: Failed to start genre-based radio', e, stackTrace);
+      log.severe(
+          'Discovery Radio: Failed to start genre-based radio', e, stackTrace);
     }
   }
 
@@ -497,7 +507,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   }) async {
     log.info('Starting Hybrid Discovery Radio with INSTANT playback');
     log.fine('Seed: "${seedSong.title}" by ${seedSong.artist}');
-    log.fine('YouTube enabled: ${config.youtubeEnabled}, ratio: ${config.youtubeRatio}');
+    log.fine(
+        'YouTube enabled: ${config.youtubeEnabled}, ratio: ${config.youtubeRatio}');
 
     // Store session ID for tracking interactions
     _currentDiscoverySessionId = sessionId;
@@ -515,7 +526,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         startIndex: 0,
       );
 
-      log.info('Seed song playing! Now generating full playlist in background...');
+      log.info(
+          'Seed song playing! Now generating full playlist in background...');
 
       // Generate full playlist in background
       final discoveryService = _ref.read(discoveryServiceProvider.notifier);
@@ -530,7 +542,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
 
       if (playlist.isEmpty) {
-        log.warning('Hybrid Discovery: No additional tracks found, continuing with seed only');
+        log.warning(
+            'Hybrid Discovery: No additional tracks found, continuing with seed only');
         return;
       }
 
@@ -544,16 +557,19 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final localCount = playlistWithoutSeed.where((t) => t.isLocal).length;
       final youtubeCount = playlistWithoutSeed.where((t) => t.isYouTube).length;
-      log.info('Hybrid Discovery: Generated ${playlistWithoutSeed.length} additional tracks '
+      log.info(
+          'Hybrid Discovery: Generated ${playlistWithoutSeed.length} additional tracks '
           '($localCount local, $youtubeCount YouTube)');
 
       if (playlistWithoutSeed.isEmpty) {
-        log.warning('No additional tracks after removing seed, continuing with seed only');
+        log.warning(
+            'No additional tracks after removing seed, continuing with seed only');
         return;
       }
 
       // Convert tracks to songs
-      final additionalSongs = await _convertHybridTracksToSongs(playlistWithoutSeed);
+      final additionalSongs =
+          await _convertHybridTracksToSongs(playlistWithoutSeed);
 
       if (additionalSongs.isEmpty) {
         log.warning('No playable songs after conversion');
@@ -569,9 +585,11 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         seedSong.id,
       );
 
-      log.info('Hybrid Discovery: Full playlist ready! Queue now has $_queueLength tracks');
+      log.info(
+          'Hybrid Discovery: Full playlist ready! Queue now has $_queueLength tracks');
     } catch (e, stackTrace) {
-      log.severe('Hybrid Discovery: Error during background generation', e, stackTrace);
+      log.severe('Hybrid Discovery: Error during background generation', e,
+          stackTrace);
       // If background generation fails, seed song is still playing - acceptable fallback
     }
   }
@@ -594,7 +612,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       return;
     }
 
-    log.fine('Converted ${tracks.length} HybridTracks to ${songs.length} playable Songs');
+    log.fine(
+        'Converted ${tracks.length} HybridTracks to ${songs.length} playable Songs');
 
     // Use existing playSongs() method
     await playSongs(
@@ -611,7 +630,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   ///
   /// For local tracks: returns the Song as-is (or filters if offline mode + not downloaded)
   /// For YouTube tracks: creates a temporary Song with the cached stream URL
-  Future<List<Song>> _convertHybridTracksToSongs(List<HybridTrack> tracks) async {
+  Future<List<Song>> _convertHybridTracksToSongs(
+      List<HybridTrack> tracks) async {
     final songs = <Song>[];
     final offlineMode = _ref.read(offlineModeProvider);
 
@@ -620,12 +640,14 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         local: (song) async {
           // In offline mode, only include downloaded songs
           if (offlineMode && song.downloadFilePath == null) {
-            log.fine('Offline mode: Skipping non-downloaded song: "${song.title}"');
+            log.fine(
+                'Offline mode: Skipping non-downloaded song: "${song.title}"');
             return; // Skip this song
           }
           songs.add(song);
         },
-        youtube: (videoId, title, artist, durationSeconds, thumbnailUrl, userRating) async {
+        youtube: (videoId, title, artist, durationSeconds, thumbnailUrl,
+            userRating) async {
           // In offline mode, skip all YouTube tracks (they can't be offline)
           if (offlineMode) {
             log.fine('Offline mode: Skipping YouTube track: "$title"');
@@ -661,7 +683,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
               log.fine('Cached and converted YouTube track: $videoId');
             } else {
-              log.warning('Failed to cache YouTube track for playback: $videoId');
+              log.warning(
+                  'Failed to cache YouTube track for playback: $videoId');
             }
           } catch (e) {
             log.warning('Error caching/converting YouTube track $videoId: $e');
@@ -686,10 +709,12 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   ) async {
     try {
       final youtubeCache = _ref.read(youTubeCacheServiceProvider.notifier);
-      final youtubeService = _ref.read(youTubeDiscoveryServiceProvider.notifier);
+      final youtubeService =
+          _ref.read(youTubeDiscoveryServiceProvider.notifier);
 
       // Check if already cached and valid
-      final existingTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: true);
+      final existingTrack =
+          await youtubeCache.getTrack(videoId, refreshIfExpired: true);
       if (existingTrack != null) {
         log.fine('Using cached track: $videoId');
         return existingTrack;
@@ -727,7 +752,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       log.fine('Successfully cached YouTube track: $videoId');
       return cachedTrack;
     } catch (e, stackTrace) {
-      log.severe('Error fetching and caching YouTube track: $videoId', e, stackTrace);
+      log.severe(
+          'Error fetching and caching YouTube track: $videoId', e, stackTrace);
       return null;
     }
   }
@@ -749,7 +775,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     query = query.copyWith(
       filters: IList([
         ...query.filters,
-        FilterWith.equals(column: 'user_rating', value: 'thumbsDown', invert: true),
+        FilterWith.equals(
+            column: 'user_rating', value: 'thumbsDown', invert: true),
       ]),
     );
 
@@ -1065,16 +1092,19 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         log.fine('Fetching YouTube track for playback: $videoId');
 
         // First try to get from cache without forcing refresh
-        var cachedTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: false);
+        var cachedTrack =
+            await youtubeCache.getTrack(videoId, refreshIfExpired: false);
 
         // Check if we need to refresh
-        final needsRefresh = cachedTrack == null || _isYouTubeUrlExpired(cachedTrack);
+        final needsRefresh =
+            cachedTrack == null || _isYouTubeUrlExpired(cachedTrack);
 
         if (needsRefresh) {
           log.info('YouTube URL needs refresh for: $videoId');
           cachedTrack = await youtubeCache.refreshTrackUrl(videoId);
         } else {
-          log.fine('Using cached YouTube URL for: $videoId (valid for ${_getYouTubeUrlTimeLeft(cachedTrack)} more minutes)');
+          log.fine(
+              'Using cached YouTube URL for: $videoId (valid for ${_getYouTubeUrlTimeLeft(cachedTrack)} more minutes)');
         }
 
         if (cachedTrack != null) {
@@ -1091,12 +1121,15 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
           youtubeSongs.add(youtubeSong);
 
           // Enhanced logging with expiry information
-          final expiryTime = DateTime.fromMillisecondsSinceEpoch(cachedTrack.expiresAt * 1000);
+          final expiryTime =
+              DateTime.fromMillisecondsSinceEpoch(cachedTrack.expiresAt * 1000);
           final timeUntilExpiry = expiryTime.difference(DateTime.now());
-          log.info('Fresh URL obtained for video: $videoId (expires in ${timeUntilExpiry.inMinutes} minutes at $expiryTime)');
+          log.info(
+              'Fresh URL obtained for video: $videoId (expires in ${timeUntilExpiry.inMinutes} minutes at $expiryTime)');
           log.fine('Audio URL: ${cachedTrack.audioUrl.substring(0, 100)}...');
         } else {
-          log.severe('CRITICAL: Failed to refresh YouTube URL for playback: $youtubeId - track will be skipped');
+          log.severe(
+              'CRITICAL: Failed to refresh YouTube URL for playback: $youtubeId - track will be skipped');
         }
       } catch (e) {
         log.warning('Error refreshing YouTube URL for playback: $youtubeId', e);
@@ -1119,10 +1152,12 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     for (final youtubeId in youtubeIds) {
       try {
         final videoId = youtubeId.replaceFirst('youtube:', '');
-        final cachedTrack = await youtubeCache.getTrack(videoId, refreshIfExpired: false);
+        final cachedTrack =
+            await youtubeCache.getTrack(videoId, refreshIfExpired: false);
         if (cachedTrack != null && cachedTrack.thumbnailUrl != null) {
           // Create art cache entry for YouTube thumbnail
-          youtubeArtCache[youtubeId] = _mapYouTubeThumbnailArtCache(cachedTrack.thumbnailUrl!);
+          youtubeArtCache[youtubeId] =
+              _mapYouTubeThumbnailArtCache(cachedTrack.thumbnailUrl!);
         }
       } catch (e) {
         log.warning('Error getting thumbnail for YouTube track: $youtubeId', e);
@@ -1185,17 +1220,20 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (song.downloadFilePath != null) {
       // Local downloaded file - always use this if available
-      audioSource = AudioSource.file(song.downloadFilePath!, tag: queueData.index);
+      audioSource =
+          AudioSource.file(song.downloadFilePath!, tag: queueData.index);
     } else if (offlineMode) {
       // Offline mode is enabled but song is not downloaded
       // This shouldn't happen if filtering is working correctly, but we handle it defensively
-      log.warning('Offline mode: Cannot create AudioSource for non-downloaded song: "${song.title}"');
+      log.warning(
+          'Offline mode: Cannot create AudioSource for non-downloaded song: "${song.title}"');
 
       // Create a silent audio source with extremely short duration
       // This will effectively skip the song when it tries to play
       // Using a data URI with minimal audio ensures no network access
       audioSource = AudioSource.uri(
-        Uri.parse('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
+        Uri.parse(
+            'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
         tag: queueData.index,
       );
     } else if (song.id.startsWith('youtube:')) {
@@ -1214,7 +1252,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
           Uri.parse(youtubeUrl),
           tag: queueData.index,
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': '*/*',
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept-Encoding': 'identity',
@@ -1223,15 +1262,18 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
             'Range': 'bytes=0-',
           },
         );
-        log.fine('AudioSource created with headers: Referer=https://www.youtube.com/watch?v=$videoId');
+        log.fine(
+            'AudioSource created with headers: Referer=https://www.youtube.com/watch?v=$videoId');
       } else {
         // Fallback to Navidrome stream (shouldn't happen)
         log.warning('YouTube track has no valid stream URL: ${song.id}');
-        audioSource = AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
+        audioSource =
+            AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
       }
     } else {
       // Navidrome stream
-      audioSource = AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
+      audioSource =
+          AudioSource.uri(_source.streamUri(song.id), tag: queueData.index);
     }
 
     return QueueSourceItem(
@@ -1302,7 +1344,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> skipToQueueItem(int index) async {
     // Validate the index against the full database queue length, not the UI queue
     if (_queueLength == null || index < 0 || index >= _queueLength!) {
-      log.warning('skipToQueueItem: Invalid index $index (queue length: $_queueLength)');
+      log.warning(
+          'skipToQueueItem: Invalid index $index (queue length: $_queueLength)');
       return;
     }
 
@@ -1352,7 +1395,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     try {
       await _db.updateStationName(_currentDiscoverySessionId!, stationName);
-      log.info('Discovery station saved: "$stationName" (session ID: $_currentDiscoverySessionId)');
+      log.info(
+          'Discovery station saved: "$stationName" (session ID: $_currentDiscoverySessionId)');
     } catch (e, stackTrace) {
       log.severe('Failed to save discovery station', e, stackTrace);
       rethrow;
@@ -1422,14 +1466,16 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   /// Check if YouTube URL is expired or expiring soon (< 5 minutes)
   bool _isYouTubeUrlExpired(YoutubeTrack track) {
-    final expiryTime = DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
+    final expiryTime =
+        DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
     final timeLeft = expiryTime.difference(DateTime.now());
     return timeLeft < const Duration(minutes: 5);
   }
 
   /// Get time left before YouTube URL expires (in minutes)
   int _getYouTubeUrlTimeLeft(YoutubeTrack track) {
-    final expiryTime = DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
+    final expiryTime =
+        DateTime.fromMillisecondsSinceEpoch(track.expiresAt * 1000);
     final timeLeft = expiryTime.difference(DateTime.now());
     return timeLeft.inMinutes;
   }
@@ -1449,7 +1495,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (_queueLength == null) return;
 
     final tracksUntilEnd = _queueLength! - currentQueueIndex - 1;
-    log.fine('Queue position: $currentQueueIndex / $_queueLength (tracks until end: $tracksUntilEnd)');
+    log.fine(
+        'Queue position: $currentQueueIndex / $_queueLength (tracks until end: $tracksUntilEnd)');
 
     if (tracksUntilEnd <= 2) {
       log.info('Near end of queue, triggering auto-append');
@@ -1478,7 +1525,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       log.info('Appending more tracks to discovery radio queue...');
 
       // Get the current station configuration
-      final station = await _db.getDiscoverySessionById(_currentDiscoverySessionId!);
+      final station =
+          await _db.getDiscoverySessionById(_currentDiscoverySessionId!);
       if (station == null) {
         log.warning('Discovery station not found: $_currentDiscoverySessionId');
         return;
@@ -1488,25 +1536,30 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
       final discoveryService = _ref.read(discoveryServiceProvider.notifier);
 
       // Get the seed song for the station
-      final seedSong = await _db.songById(_sourceId, station.seedSongId).getSingleOrNull();
+      final seedSong =
+          await _db.songById(_sourceId, station.seedSongId).getSingleOrNull();
       if (seedSong == null) {
         log.warning('Seed song not found for station: ${station.seedSongId}');
         return;
       }
 
       // Determine mode from station settings
-      final mode = station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline;
+      final mode = station.mode == 'online'
+          ? DiscoveryMode.online
+          : DiscoveryMode.offline;
 
       // Get YouTube settings from app settings
       final appSettings = await _db.getAppSettings().getSingle();
-      final youtubeRatio = station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio;
+      final youtubeRatio =
+          station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio;
 
       // Create discovery config based on station settings
       final config = DiscoveryConfig(
         maxRecommendations: station.playlistSize,
         youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
         youtubeRatio: youtubeRatio,
-        youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+        youtubeQualityFilter:
+            _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
         youtubePreferOfficial: appSettings.youtubePreferOfficial,
       );
 
@@ -1527,7 +1580,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         return;
       }
 
-      log.info('Generated ${newTracks.length} new tracks, converting and appending to queue');
+      log.info(
+          'Generated ${newTracks.length} new tracks, converting and appending to queue');
 
       // Convert hybrid tracks to songs
       final newSongs = await _convertHybridTracksToSongs(newTracks);
@@ -1545,8 +1599,8 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         seedSong.id,
       );
 
-      log.info('Successfully appended ${newSongs.length} tracks to queue (new queue length: $_queueLength)');
-
+      log.info(
+          'Successfully appended ${newSongs.length} tracks to queue (new queue length: $_queueLength)');
     } catch (e, stackTrace) {
       log.severe('Error appending discovery tracks', e, stackTrace);
       rethrow;
@@ -1566,5 +1620,4 @@ class AudioControl extends BaseAudioHandler with QueueHandler, SeekHandler {
         return YouTubeQualityFilter.moderate;
     }
   }
-
 }

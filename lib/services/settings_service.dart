@@ -46,9 +46,8 @@ class SettingsService extends _$SettingsService {
         features: IList(),
         username: subsonic.username.value,
         password: subsonic.password.value,
-        useTokenAuth: subsonic.useTokenAuth.present
-            ? subsonic.useTokenAuth.value
-            : true,
+        useTokenAuth:
+            subsonic.useTokenAuth.present ? subsonic.useTokenAuth.value : true,
         isActive: true,
         createdAt: DateTime.now(),
       ),
@@ -173,10 +172,12 @@ class SettingsService extends _$SettingsService {
 
   Future<void> setCustomSeedColor(int? color) async {
     await _db.updateSettings(
-      state.app.copyWith(
-        themePreset: 'custom',
-        customSeedColor: color,
-      ).toCompanion(),
+      state.app
+          .copyWith(
+            themePreset: 'custom',
+            customSeedColor: color,
+          )
+          .toCompanion(),
     );
     await init();
   }

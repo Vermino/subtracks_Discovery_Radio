@@ -33,6 +33,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionsUnstar => 'Zrušit hodnocení';
 
   @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
+
+  @override
+  String get controlsRadio => 'Radio';
+
+  @override
   String get controlsShuffle => 'Náhodně';
 
   @override

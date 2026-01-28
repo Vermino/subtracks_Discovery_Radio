@@ -477,11 +477,13 @@ class _PlayAlbumRadio extends HookConsumerWidget {
         Navigator.of(context).pop(); // Close context menu
 
         // Get first song from album as seed
-        final songs = await db.filterSongs(
-          (tbl) => tbl.albumId.equals(album.id),
-          (tbl) => OrderBy([OrderingTerm(expression: tbl.track)]),
-          (tbl) => Limit(1, null),
-        ).get();
+        final songs = await db
+            .filterSongs(
+              (tbl) => tbl.albumId.equals(album.id),
+              (tbl) => OrderBy([OrderingTerm(expression: tbl.track)]),
+              (tbl) => Limit(1, null),
+            )
+            .get();
 
         if (songs.isNotEmpty) {
           // Use hybrid discovery with YouTube integration if enabled

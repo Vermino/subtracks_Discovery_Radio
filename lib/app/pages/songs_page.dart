@@ -260,21 +260,21 @@ class GenreSongsPage extends HookConsumerWidget {
 
     final play = useCallback(
       ({int? index, bool? shuffle}) => audio.playSongs(
-            query: query,
-            getSongs: getSongs,
-            startIndex: index,
-            context: QueueContextType.genre,
-            contextId: genre,
-            shuffle: shuffle,
-          ),
+        query: query,
+        getSongs: getSongs,
+        startIndex: index,
+        context: QueueContextType.genre,
+        contextId: genre,
+        shuffle: shuffle,
+      ),
       [genre, query, getSongs],
     );
 
     final playDiscoveryRadio = useCallback(
       () => audio.playDiscoveryRadioByGenre(
-            genre: genre,
-            mode: DiscoveryMode.online,
-          ),
+        genre: genre,
+        mode: DiscoveryMode.online,
+      ),
       [genre],
     );
 

@@ -26,7 +26,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
   @override
   void build() {
     _httpClient = http.Client();
-    log.info('YouTubeDiscoveryService initialized with base URL: ${YouTubeConfig.invidiousBaseUrl}');
+    log.info(
+        'YouTubeDiscoveryService initialized with base URL: ${YouTubeConfig.invidiousBaseUrl}');
   }
 
   /// Search for music videos on YouTube
@@ -58,7 +59,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
       });
 
       final response = await _makeRequest(uri);
-      final List<dynamic> jsonList = json.decode(response.body) as List<dynamic>;
+      final List<dynamic> jsonList =
+          json.decode(response.body) as List<dynamic>;
 
       log.fine('Search returned ${jsonList.length} raw results');
 
@@ -128,12 +130,14 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
       );
 
       final response = await _makeRequest(uri);
-      final Map<String, dynamic> jsonData = json.decode(response.body) as Map<String, dynamic>;
+      final Map<String, dynamic> jsonData =
+          json.decode(response.body) as Map<String, dynamic>;
 
       final videoResponse = InvidiousVideoResponse.fromJson(jsonData);
       final videoInfo = videoResponse.toVideoInfo();
 
-      log.fine('Video has ${videoInfo.adaptiveFormats.length} audio formats available');
+      log.fine(
+          'Video has ${videoInfo.adaptiveFormats.length} audio formats available');
 
       // Extract best audio stream
       final audioStream = _extractBestAudioStream(videoInfo);
@@ -156,7 +160,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
     } on YouTubeServiceException {
       rethrow;
     } catch (e, stackTrace) {
-      log.severe('Error getting audio stream for video: $videoId', e, stackTrace);
+      log.severe(
+          'Error getting audio stream for video: $videoId', e, stackTrace);
       throw YouTubeServiceException(
         'Failed to get audio stream',
         originalError: e,
@@ -228,9 +233,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
       await _enforceRateLimit();
 
       final uri = Uri.parse('${YouTubeConfig.invidiousBaseUrl}/api/v1/stats');
-      final response = await _httpClient
-          .get(uri)
-          .timeout(const Duration(seconds: 5));
+      final response =
+          await _httpClient.get(uri).timeout(const Duration(seconds: 5));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -247,9 +251,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
     try {
       log.fine('Making request to: $uri');
 
-      final response = await _httpClient
-          .get(uri)
-          .timeout(YouTubeConfig.requestTimeout);
+      final response =
+          await _httpClient.get(uri).timeout(YouTubeConfig.requestTimeout);
 
       // Handle error status codes
       if (response.statusCode == 404) {
@@ -286,7 +289,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
       return response;
     } on TimeoutException {
       if (retryCount < YouTubeConfig.maxRetries) {
-        log.warning('Request timeout, retrying (${retryCount + 1}/${YouTubeConfig.maxRetries})');
+        log.warning(
+            'Request timeout, retrying (${retryCount + 1}/${YouTubeConfig.maxRetries})');
         await Future.delayed(YouTubeConfig.retryDelay * (retryCount + 1));
         return _makeRequest(uri, retryCount: retryCount + 1);
       }
@@ -294,15 +298,19 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
         'Request timeout after ${YouTubeConfig.maxRetries} retries',
       );
     } on InvidiousApiException catch (e) {
-      if (e.statusCode != null && e.statusCode! >= 500 && retryCount < YouTubeConfig.maxRetries) {
-        log.warning('Server error, retrying (${retryCount + 1}/${YouTubeConfig.maxRetries})');
+      if (e.statusCode != null &&
+          e.statusCode! >= 500 &&
+          retryCount < YouTubeConfig.maxRetries) {
+        log.warning(
+            'Server error, retrying (${retryCount + 1}/${YouTubeConfig.maxRetries})');
         await Future.delayed(YouTubeConfig.retryDelay * (retryCount + 1));
         return _makeRequest(uri, retryCount: retryCount + 1);
       }
       rethrow;
     } catch (e, stackTrace) {
       if (retryCount < YouTubeConfig.maxRetries) {
-        log.warning('Request failed, retrying (${retryCount + 1}/${YouTubeConfig.maxRetries}): $e');
+        log.warning(
+            'Request failed, retrying (${retryCount + 1}/${YouTubeConfig.maxRetries}): $e');
         await Future.delayed(YouTubeConfig.retryDelay * (retryCount + 1));
         return _makeRequest(uri, retryCount: retryCount + 1);
       }
@@ -326,7 +334,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
     // Check if we've hit the rate limit
     if (_requestTimestamps.length >= YouTubeConfig.rateLimitPerSecond) {
       final oldestTimestamp = _requestTimestamps.first;
-      final delay = const Duration(seconds: 1) - now.difference(oldestTimestamp);
+      final delay =
+          const Duration(seconds: 1) - now.difference(oldestTimestamp);
 
       if (delay.inMilliseconds > 0) {
         log.fine('Rate limit reached, waiting ${delay.inMilliseconds}ms');
@@ -490,16 +499,28 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
     } else if (authorLower.contains('vevo')) {
       score += 0.3; // VEVO official channels
     } else if (titleLower.contains('official audio') ||
-               titleLower.contains('official video') ||
-               titleLower.contains('official music video')) {
+        titleLower.contains('official video') ||
+        titleLower.contains('official music video')) {
       score += 0.2;
     }
 
     // Negative indicators
     final lowQualityKeywords = [
-      'cover', 'acoustic', 'live', 'karaoke', 'remix',
-      'lyrics', 'slowed', 'sped up', '8d audio', 'bass boosted',
-      'nightcore', 'mashup', 'reaction', 'tutorial', 'how to',
+      'cover',
+      'acoustic',
+      'live',
+      'karaoke',
+      'remix',
+      'lyrics',
+      'slowed',
+      'sped up',
+      '8d audio',
+      'bass boosted',
+      'nightcore',
+      'mashup',
+      'reaction',
+      'tutorial',
+      'how to',
     ];
 
     for (final keyword in lowQualityKeywords) {

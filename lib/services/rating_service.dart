@@ -97,7 +97,8 @@ class RatingService extends _$RatingService {
       return;
     }
 
-    log.info('Updating rating for song ${song.id} (${song.title}): ${oldRating.name} -> ${newRating.name}');
+    log.info(
+        'Updating rating for song ${song.id} (${song.title}): ${oldRating.name} -> ${newRating.name}');
 
     await _db.transaction(() async {
       // Update the rating field
@@ -167,12 +168,15 @@ class RatingService extends _$RatingService {
   }
 
   /// Get most loved songs (sorted by thumbs_up_count)
-  Future<List<Song>> getMostLovedSongs(int sourceId, {int limit = 50, int offset = 0}) async {
+  Future<List<Song>> getMostLovedSongs(int sourceId,
+      {int limit = 50, int offset = 0}) async {
     return await _db.getMostLovedSongs(sourceId, limit: limit, offset: offset);
   }
 
   /// Get most disliked songs (sorted by thumbs_down_count)
-  Future<List<Song>> getMostDislikedSongs(int sourceId, {int limit = 50, int offset = 0}) async {
-    return await _db.getMostDislikedSongs(sourceId, limit: limit, offset: offset);
+  Future<List<Song>> getMostDislikedSongs(int sourceId,
+      {int limit = 50, int offset = 0}) async {
+    return await _db.getMostDislikedSongs(sourceId,
+        limit: limit, offset: offset);
   }
 }

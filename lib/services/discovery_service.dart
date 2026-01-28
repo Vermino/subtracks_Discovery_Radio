@@ -17,6 +17,7 @@ part 'discovery_service.g.dart';
 enum DiscoveryMode {
   /// Recommend from all available songs (online and downloaded)
   online(isOnline: true),
+
   /// Recommend only from downloaded songs
   offline(isOnline: false);
 
@@ -28,8 +29,10 @@ enum DiscoveryMode {
 enum YouTubeQualityFilter {
   /// Very strict: only official channels, VEVO, topic channels
   strict,
+
   /// Moderate: allow some high-quality user uploads
   moderate,
+
   /// Permissive: allow most music content
   permissive,
 }
@@ -59,7 +62,8 @@ class DiscoveryConfig {
     this.avoidRecentlyPlayed = true,
     this.recentPlayedWindow = const Duration(hours: 2),
     // YouTube settings - disabled by default due to unreliable Invidious instances
-    this.youtubeEnabled = false, // Set to true in user settings if Invidious works
+    this.youtubeEnabled =
+        false, // Set to true in user settings if Invidious works
     this.youtubeRatio = 0.3, // 30% YouTube content
     this.youtubeQualityFilter = YouTubeQualityFilter.strict,
     this.youtubePreferOfficial = true,
@@ -68,9 +72,9 @@ class DiscoveryConfig {
   /// Ensure all weights sum to 1.0
   DiscoveryConfig get normalized {
     final totalWeight = artistSimilarityWeight +
-                      genreSimilarityWeight +
-                      userPreferenceWeight +
-                      metadataCorrelationWeight;
+        genreSimilarityWeight +
+        userPreferenceWeight +
+        metadataCorrelationWeight;
 
     if (totalWeight == 0) return this;
 
@@ -105,16 +109,20 @@ class DiscoveryConfig {
   }) {
     return DiscoveryConfig(
       maxRecommendations: maxRecommendations ?? this.maxRecommendations,
-      artistSimilarityWeight: artistSimilarityWeight ?? this.artistSimilarityWeight,
-      genreSimilarityWeight: genreSimilarityWeight ?? this.genreSimilarityWeight,
+      artistSimilarityWeight:
+          artistSimilarityWeight ?? this.artistSimilarityWeight,
+      genreSimilarityWeight:
+          genreSimilarityWeight ?? this.genreSimilarityWeight,
       userPreferenceWeight: userPreferenceWeight ?? this.userPreferenceWeight,
-      metadataCorrelationWeight: metadataCorrelationWeight ?? this.metadataCorrelationWeight,
+      metadataCorrelationWeight:
+          metadataCorrelationWeight ?? this.metadataCorrelationWeight,
       avoidRecentlyPlayed: avoidRecentlyPlayed ?? this.avoidRecentlyPlayed,
       recentPlayedWindow: recentPlayedWindow ?? this.recentPlayedWindow,
       youtubeEnabled: youtubeEnabled ?? this.youtubeEnabled,
       youtubeRatio: youtubeRatio ?? this.youtubeRatio,
       youtubeQualityFilter: youtubeQualityFilter ?? this.youtubeQualityFilter,
-      youtubePreferOfficial: youtubePreferOfficial ?? this.youtubePreferOfficial,
+      youtubePreferOfficial:
+          youtubePreferOfficial ?? this.youtubePreferOfficial,
     );
   }
 }
@@ -132,7 +140,8 @@ class WeightedSong {
   });
 
   @override
-  String toString() => 'WeightedSong(${song.title} by ${song.artist}, score: ${score.toStringAsFixed(3)})';
+  String toString() =>
+      'WeightedSong(${song.title} by ${song.artist}, score: ${score.toStringAsFixed(3)})';
 }
 
 @Riverpod(keepAlive: true)
@@ -162,7 +171,8 @@ class DiscoveryService extends _$DiscoveryService {
     int? sessionId,
   }) async {
     try {
-      log.info('Generating ${limit} similar songs for "${seedSong.title}" by ${seedSong.artist}');
+      log.info(
+          'Generating ${limit} similar songs for "${seedSong.title}" by ${seedSong.artist}');
 
       final normalizedConfig = config.normalized;
       final candidates = <WeightedSong>[];
@@ -175,42 +185,53 @@ class DiscoveryService extends _$DiscoveryService {
       if (sessionId != null) {
         thumbsUpSongIds = await _db.getThumbsUpSongsForStation(sessionId);
         thumbsDownSongIds = await _db.getThumbsDownSongsForStation(sessionId);
-        frequentlySkippedSongIds = await _db.getFrequentlySkippedSongsForStation(sessionId);
+        frequentlySkippedSongIds =
+            await _db.getFrequentlySkippedSongsForStation(sessionId);
 
-        log.fine('Station personalization: ${thumbsUpSongIds.length} thumbs up, ${thumbsDownSongIds.length} thumbs down, ${frequentlySkippedSongIds.length} frequently skipped');
+        log.fine(
+            'Station personalization: ${thumbsUpSongIds.length} thumbs up, ${thumbsDownSongIds.length} thumbs down, ${frequentlySkippedSongIds.length} frequently skipped');
       }
 
       // Get base song pool (filtered by discovery mode)
       final allSongs = await _getSongPool(seedSong.sourceId, mode);
 
       // Remove the seed song from candidates
-      final filteredSongs = allSongs.where((song) => song.id != seedSong.id).toList();
+      final filteredSongs =
+          allSongs.where((song) => song.id != seedSong.id).toList();
 
       // Get full song objects for thumbs up songs to use in similarity calculations
-      final thumbsUpSongs = filteredSongs.where((song) => thumbsUpSongIds.contains(song.id)).toList();
+      final thumbsUpSongs = filteredSongs
+          .where((song) => thumbsUpSongIds.contains(song.id))
+          .toList();
 
-      log.fine('Found ${filteredSongs.length} candidate songs for recommendations');
+      log.fine(
+          'Found ${filteredSongs.length} candidate songs for recommendations');
 
       // Apply different recommendation strategies
       for (final song in filteredSongs) {
         // STATION-SPECIFIC FILTERING: Exclude thumbs down and frequently skipped songs
-        if (thumbsDownSongIds.contains(song.id) || frequentlySkippedSongIds.contains(song.id)) {
+        if (thumbsDownSongIds.contains(song.id) ||
+            frequentlySkippedSongIds.contains(song.id)) {
           continue; // Skip this song entirely
         }
 
         final scores = <String, double>{};
 
         // Artist similarity scoring
-        scores['artist'] = await _calculateArtistSimilarity(seedSong, song) * normalizedConfig.artistSimilarityWeight;
+        scores['artist'] = await _calculateArtistSimilarity(seedSong, song) *
+            normalizedConfig.artistSimilarityWeight;
 
         // Genre similarity scoring
-        scores['genre'] = await _calculateGenreSimilarity(seedSong, song) * normalizedConfig.genreSimilarityWeight;
+        scores['genre'] = await _calculateGenreSimilarity(seedSong, song) *
+            normalizedConfig.genreSimilarityWeight;
 
         // User preference scoring (global rating)
-        scores['preference'] = _calculateUserPreference(song) * normalizedConfig.userPreferenceWeight;
+        scores['preference'] = _calculateUserPreference(song) *
+            normalizedConfig.userPreferenceWeight;
 
         // Metadata correlation scoring
-        scores['metadata'] = _calculateMetadataCorrelation(seedSong, song) * normalizedConfig.metadataCorrelationWeight;
+        scores['metadata'] = _calculateMetadataCorrelation(seedSong, song) *
+            normalizedConfig.metadataCorrelationWeight;
 
         // STATION-SPECIFIC PERSONALIZATION: Boost songs similar to thumbs up songs
         double stationBoost = 0.0;
@@ -218,7 +239,8 @@ class DiscoveryService extends _$DiscoveryService {
           double maxSimilarity = 0.0;
           for (final likedSong in thumbsUpSongs) {
             final similarity = await _calculateSongSimilarity(likedSong, song);
-            maxSimilarity = maxSimilarity > similarity ? maxSimilarity : similarity;
+            maxSimilarity =
+                maxSimilarity > similarity ? maxSimilarity : similarity;
           }
           // Apply boost based on similarity to liked songs (up to 50% boost)
           stationBoost = maxSimilarity * 0.5;
@@ -242,7 +264,8 @@ class DiscoveryService extends _$DiscoveryService {
       // Apply smart sampling to balance quality with diversity
       final recommendations = _applySmartSampling(candidates, limit);
 
-      log.info('Generated ${recommendations.length} recommendations from ${candidates.length} candidates');
+      log.info(
+          'Generated ${recommendations.length} recommendations from ${candidates.length} candidates');
 
       return recommendations.map((w) => w.song).toList();
     } catch (e, stackTrace) {
@@ -260,14 +283,20 @@ class DiscoveryService extends _$DiscoveryService {
   }) async {
     try {
       // Get all songs by this artist first
-      final artistSongs = await _db.filterSongs(
-        (tbl) => tbl.sourceId.equals(sourceId) &
-                 tbl.artistId.equals(artistId) &
-                 tbl.userRating.equalsValue(UserRating.thumbsDown).not() &
-                 (mode.isOnline ? const Constant(true) : tbl.downloadFilePath.isNotNull()),
-        (tbl) => OrderBy([OrderingTerm(expression: const CustomExpression('RANDOM()'))]),
-        (tbl) => Limit(5, null),
-      ).get();
+      final artistSongs = await _db
+          .filterSongs(
+            (tbl) =>
+                tbl.sourceId.equals(sourceId) &
+                tbl.artistId.equals(artistId) &
+                tbl.userRating.equalsValue(UserRating.thumbsDown).not() &
+                (mode.isOnline
+                    ? const Constant(true)
+                    : tbl.downloadFilePath.isNotNull()),
+            (tbl) => OrderBy(
+                [OrderingTerm(expression: const CustomExpression('RANDOM()'))]),
+            (tbl) => Limit(5, null),
+          )
+          .get();
 
       if (artistSongs.isEmpty) return [];
 
@@ -303,14 +332,20 @@ class DiscoveryService extends _$DiscoveryService {
   }) async {
     try {
       // Get songs from the same genre first
-      final genreSongs = await _db.filterSongs(
-        (tbl) => tbl.sourceId.equals(sourceId) &
-                 tbl.genre.equals(genre) &
-                 tbl.userRating.equalsValue(UserRating.thumbsDown).not() &
-                 (mode.isOnline ? const Constant(true) : tbl.downloadFilePath.isNotNull()),
-        (tbl) => OrderBy([OrderingTerm(expression: const CustomExpression('RANDOM()'))]),
-        (tbl) => Limit(10, null),
-      ).get();
+      final genreSongs = await _db
+          .filterSongs(
+            (tbl) =>
+                tbl.sourceId.equals(sourceId) &
+                tbl.genre.equals(genre) &
+                tbl.userRating.equalsValue(UserRating.thumbsDown).not() &
+                (mode.isOnline
+                    ? const Constant(true)
+                    : tbl.downloadFilePath.isNotNull()),
+            (tbl) => OrderBy(
+                [OrderingTerm(expression: const CustomExpression('RANDOM()'))]),
+            (tbl) => Limit(10, null),
+          )
+          .get();
 
       if (genreSongs.isEmpty) return [];
 
@@ -375,7 +410,8 @@ class DiscoveryService extends _$DiscoveryService {
     // This prevents the "0 candidates" issue when creating offline stations
     final mode = DiscoveryMode.online;
 
-    log.info('Building discovery playlist: ${includeOfflineOnly ? "offline station (full library recommendations)" : "online"} mode, sessionId: $sessionId');
+    log.info(
+        'Building discovery playlist: ${includeOfflineOnly ? "offline station (full library recommendations)" : "online"} mode, sessionId: $sessionId');
 
     try {
       // Use provided sessionId or create a new one
@@ -405,13 +441,16 @@ class DiscoveryService extends _$DiscoveryService {
       // Ensure the seed song is first in the playlist
       final playlist = [seedSong, ...recommendations];
 
-      log.info('Built discovery playlist with ${playlist.length} songs (including seed)');
+      log.info(
+          'Built discovery playlist with ${playlist.length} songs (including seed)');
 
       // Log download status for offline stations
       if (includeOfflineOnly) {
-        final downloadedCount = playlist.where((s) => s.downloadFilePath != null).length;
+        final downloadedCount =
+            playlist.where((s) => s.downloadFilePath != null).length;
         final needDownloadCount = playlist.length - downloadedCount;
-        log.info('Offline station: $downloadedCount already downloaded, $needDownloadCount need downloading');
+        log.info(
+            'Offline station: $downloadedCount already downloaded, $needDownloadCount need downloading');
       }
 
       return playlist;
@@ -440,7 +479,8 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Record that a song was skipped in the current discovery session
-  Future<void> recordSongSkipped(Song song, int positionInPlaylist, {int? playDurationMs}) async {
+  Future<void> recordSongSkipped(Song song, int positionInPlaylist,
+      {int? playDurationMs}) async {
     if (_currentSessionId == null) return;
 
     try {
@@ -458,7 +498,8 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Record that a song was completed in the current discovery session
-  Future<void> recordSongCompleted(Song song, int positionInPlaylist, int playDurationMs) async {
+  Future<void> recordSongCompleted(
+      Song song, int positionInPlaylist, int playDurationMs) async {
     if (_currentSessionId == null) return;
 
     try {
@@ -476,10 +517,12 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Record that a song was rated in the current discovery session
-  Future<void> recordSongRated(Song song, int positionInPlaylist, UserRating rating) async {
+  Future<void> recordSongRated(
+      Song song, int positionInPlaylist, UserRating rating) async {
     if (_currentSessionId == null) return;
 
-    final interactionType = rating == UserRating.thumbsUp ? 'thumbs_up' : 'thumbs_down';
+    final interactionType =
+        rating == UserRating.thumbsUp ? 'thumbs_up' : 'thumbs_down';
 
     try {
       await _db.recordDiscoveryInteraction(
@@ -503,7 +546,8 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Get discovery analytics for improving recommendations
-  Future<Map<String, dynamic>> getDiscoveryAnalytics(int sourceId, {Duration? period}) async {
+  Future<Map<String, dynamic>> getDiscoveryAnalytics(int sourceId,
+      {Duration? period}) async {
     final since = period != null
         ? DateTime.now().subtract(period)
         : DateTime.now().subtract(const Duration(days: 30));
@@ -512,7 +556,8 @@ class DiscoveryService extends _$DiscoveryService {
       // Temporarily disabled - database analytics methods not yet implemented
       // TODO: Implement analytics when discovery session tracking is ready
 
-      log.fine('Discovery analytics requested for sourceId: $sourceId since: $since');
+      log.fine(
+          'Discovery analytics requested for sourceId: $sourceId since: $since');
 
       return {
         'total_sessions': 0,
@@ -545,26 +590,33 @@ class DiscoveryService extends _$DiscoveryService {
   Future<List<Song>> _getSongPool(int sourceId, DiscoveryMode mode) async {
     if (mode.isOnline) {
       // Get all songs except thumbs down
-      return _db.filterSongs(
-        (tbl) => tbl.sourceId.equals(sourceId) &
-                 tbl.userRating.equalsValue(UserRating.thumbsDown).not(),
-        (tbl) => OrderBy([]), // No specific ordering needed
-        (tbl) => Limit(100000, null), // Effectively no limit
-      ).get();
+      return _db
+          .filterSongs(
+            (tbl) =>
+                tbl.sourceId.equals(sourceId) &
+                tbl.userRating.equalsValue(UserRating.thumbsDown).not(),
+            (tbl) => OrderBy([]), // No specific ordering needed
+            (tbl) => Limit(100000, null), // Effectively no limit
+          )
+          .get();
     } else {
       // Get only downloaded songs except thumbs down
-      return _db.filterSongs(
-        (tbl) => tbl.sourceId.equals(sourceId) &
-                 tbl.userRating.equalsValue(UserRating.thumbsDown).not() &
-                 tbl.downloadFilePath.isNotNull(),
-        (tbl) => OrderBy([]),
-        (tbl) => Limit(100000, null), // Effectively no limit
-      ).get();
+      return _db
+          .filterSongs(
+            (tbl) =>
+                tbl.sourceId.equals(sourceId) &
+                tbl.userRating.equalsValue(UserRating.thumbsDown).not() &
+                tbl.downloadFilePath.isNotNull(),
+            (tbl) => OrderBy([]),
+            (tbl) => Limit(100000, null), // Effectively no limit
+          )
+          .get();
     }
   }
 
   /// Calculate similarity between two songs based on their artists
-  Future<double> _calculateArtistSimilarity(Song seedSong, Song candidateSong) async {
+  Future<double> _calculateArtistSimilarity(
+      Song seedSong, Song candidateSong) async {
     // Same artist = highest similarity
     if (seedSong.artistId == candidateSong.artistId) return 1.0;
 
@@ -573,20 +625,28 @@ class DiscoveryService extends _$DiscoveryService {
 
     // Check cache first
     if (_artistSimilarityCache.containsKey(seedSong.artistId!) &&
-        _artistSimilarityCache[seedSong.artistId!]!.containsKey(candidateSong.artistId!)) {
-      return _artistSimilarityCache[seedSong.artistId!]![candidateSong.artistId!]!;
+        _artistSimilarityCache[seedSong.artistId!]!
+            .containsKey(candidateSong.artistId!)) {
+      return _artistSimilarityCache[seedSong.artistId!]![
+          candidateSong.artistId!]!;
     }
 
     double similarity = 0.0;
 
     try {
       // Get albums for both artists to calculate overlap
-      final seedArtistAlbums = await _db.albumsByArtistId(seedSong.sourceId, seedSong.artistId!).get();
-      final candidateArtistAlbums = await _db.albumsByArtistId(candidateSong.sourceId, candidateSong.artistId!).get();
+      final seedArtistAlbums = await _db
+          .albumsByArtistId(seedSong.sourceId, seedSong.artistId!)
+          .get();
+      final candidateArtistAlbums = await _db
+          .albumsByArtistId(candidateSong.sourceId, candidateSong.artistId!)
+          .get();
 
       // Calculate genre overlap between artists
-      final seedGenres = seedArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
-      final candidateGenres = candidateArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
+      final seedGenres =
+          seedArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
+      final candidateGenres =
+          candidateArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
 
       if (seedGenres.isNotEmpty && candidateGenres.isNotEmpty) {
         final genreOverlap = seedGenres.intersection(candidateGenres).length;
@@ -596,8 +656,8 @@ class DiscoveryService extends _$DiscoveryService {
 
       // Cache the result
       _artistSimilarityCache.putIfAbsent(seedSong.artistId!, () => {});
-      _artistSimilarityCache[seedSong.artistId!]![candidateSong.artistId!] = similarity;
-
+      _artistSimilarityCache[seedSong.artistId!]![candidateSong.artistId!] =
+          similarity;
     } catch (e) {
       log.warning('Error calculating artist similarity: $e');
     }
@@ -606,7 +666,8 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Calculate similarity between two songs based on their genres
-  Future<double> _calculateGenreSimilarity(Song seedSong, Song candidateSong) async {
+  Future<double> _calculateGenreSimilarity(
+      Song seedSong, Song candidateSong) async {
     final seedGenre = seedSong.genre;
     final candidateGenre = candidateSong.genre;
 
@@ -636,18 +697,49 @@ class DiscoveryService extends _$DiscoveryService {
 
     // Define genre relationships
     final relationships = <String, Set<String>>{
-      'rock': {'alternative', 'alternative rock', 'indie rock', 'hard rock', 'classic rock', 'progressive rock'},
-      'alternative': {'rock', 'indie', 'alternative rock', 'indie rock', 'grunge'},
+      'rock': {
+        'alternative',
+        'alternative rock',
+        'indie rock',
+        'hard rock',
+        'classic rock',
+        'progressive rock'
+      },
+      'alternative': {
+        'rock',
+        'indie',
+        'alternative rock',
+        'indie rock',
+        'grunge'
+      },
       'indie': {'alternative', 'indie rock', 'indie pop', 'indie folk'},
       'pop': {'pop rock', 'indie pop', 'electropop', 'dance pop'},
-      'metal': {'hard rock', 'heavy metal', 'death metal', 'black metal', 'progressive metal'},
-      'electronic': {'techno', 'house', 'ambient', 'electronica', 'edm', 'dance'},
+      'metal': {
+        'hard rock',
+        'heavy metal',
+        'death metal',
+        'black metal',
+        'progressive metal'
+      },
+      'electronic': {
+        'techno',
+        'house',
+        'ambient',
+        'electronica',
+        'edm',
+        'dance'
+      },
       'jazz': {'smooth jazz', 'bebop', 'swing', 'fusion', 'blues'},
       'blues': {'jazz', 'rock', 'blues rock', 'electric blues'},
       'folk': {'indie folk', 'country', 'americana', 'acoustic'},
       'country': {'folk', 'americana', 'country rock'},
       'hip hop': {'rap', 'hip-hop', 'r&b', 'urban'},
-      'classical': {'baroque', 'romantic', 'contemporary classical', 'orchestral'},
+      'classical': {
+        'baroque',
+        'romantic',
+        'contemporary classical',
+        'orchestral'
+      },
     };
 
     final related = relationships[genreLower] ?? <String>{};
@@ -717,7 +809,9 @@ class DiscoveryService extends _$DiscoveryService {
     }
 
     // Album similarity
-    if (song1.albumId != null && song2.albumId != null && song1.albumId == song2.albumId) {
+    if (song1.albumId != null &&
+        song2.albumId != null &&
+        song1.albumId == song2.albumId) {
       similarity += 0.2; // Same album is a strong signal
       factors++;
     }
@@ -769,7 +863,9 @@ class DiscoveryService extends _$DiscoveryService {
 
     for (final suffix in suffixesToRemove) {
       if (normalizedTitle.endsWith(suffix)) {
-        normalizedTitle = normalizedTitle.substring(0, normalizedTitle.length - suffix.length).trim();
+        normalizedTitle = normalizedTitle
+            .substring(0, normalizedTitle.length - suffix.length)
+            .trim();
       }
     }
 
@@ -786,7 +882,8 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Apply smart sampling to balance quality recommendations with diversity
-  List<WeightedSong> _applySmartSampling(List<WeightedSong> candidates, int limit) {
+  List<WeightedSong> _applySmartSampling(
+      List<WeightedSong> candidates, int limit) {
     if (candidates.length <= limit) return candidates;
 
     final result = <WeightedSong>[];
@@ -798,12 +895,16 @@ class DiscoveryService extends _$DiscoveryService {
 
     // For the rest, use weighted random selection from top 50% of candidates
     final remainingSlots = limit - guaranteedCount;
-    final eligibleCandidates = candidates.skip(guaranteedCount).take((candidates.length * 0.5).ceil()).toList();
+    final eligibleCandidates = candidates
+        .skip(guaranteedCount)
+        .take((candidates.length * 0.5).ceil())
+        .toList();
 
     // Create score buckets for more diverse sampling
     final scoreBuckets = <double, List<WeightedSong>>{};
     for (final candidate in eligibleCandidates) {
-      final bucket = (candidate.score * 10).round() / 10.0; // Round to nearest 0.1
+      final bucket =
+          (candidate.score * 10).round() / 10.0; // Round to nearest 0.1
       scoreBuckets.putIfAbsent(bucket, () => []).add(candidate);
     }
 
@@ -868,15 +969,18 @@ class DiscoveryService extends _$DiscoveryService {
       // We'll check artist + title (normalized) to find matches
       final localTrackSignatures = <String>{};
       try {
-        final allLocalSongs = await _getSongPool(seedSong.sourceId, DiscoveryMode.online);
+        final allLocalSongs =
+            await _getSongPool(seedSong.sourceId, DiscoveryMode.online);
         for (final song in allLocalSongs) {
           if (song.artist != null && song.title != null) {
             // Normalize artist + title for matching
-            final signature = _normalizeTrackSignature(song.artist!, song.title!);
+            final signature =
+                _normalizeTrackSignature(song.artist!, song.title!);
             localTrackSignatures.add(signature);
           }
         }
-        log.fine('Loaded ${localTrackSignatures.length} local track signatures for duplicate detection');
+        log.fine(
+            'Loaded ${localTrackSignatures.length} local track signatures for duplicate detection');
       } catch (e) {
         log.warning('Failed to load local tracks for duplicate detection: $e');
         // Continue without duplicate detection
@@ -929,14 +1033,16 @@ class DiscoveryService extends _$DiscoveryService {
           final results = await youtubeService.searchMusic(query, limit: 5);
 
           // Apply quality filtering
-          final strictFilter = config.youtubeQualityFilter == YouTubeQualityFilter.strict;
+          final strictFilter =
+              config.youtubeQualityFilter == YouTubeQualityFilter.strict;
           final filteredResults = youtubeService.filterByQuality(
             results,
             strictFilter: strictFilter,
             preferOfficial: config.youtubePreferOfficial,
           );
 
-          log.fine('YouTube search "$query": ${filteredResults.length} quality results');
+          log.fine(
+              'YouTube search "$query": ${filteredResults.length} quality results');
 
           // Convert to HybridTracks and deduplicate
           // NOTE: We don't cache tracks here - they will be cached lazily when about to play
@@ -945,14 +1051,17 @@ class DiscoveryService extends _$DiscoveryService {
             if (seenVideoIds.contains(result.videoId)) continue;
 
             // DUPLICATE DETECTION: Skip if user already owns this track locally
-            final youtubeSignature = _normalizeTrackSignature(result.author, result.title);
+            final youtubeSignature =
+                _normalizeTrackSignature(result.author, result.title);
             if (localTrackSignatures.contains(youtubeSignature)) {
-              log.fine('Skipping duplicate track: ${result.author} - ${result.title} (already owned locally)');
+              log.fine(
+                  'Skipping duplicate track: ${result.author} - ${result.title} (already owned locally)');
               continue;
             }
 
             seenVideoIds.add(result.videoId);
-            youtubeTracks.add(HybridTrackFactory.fromYouTubeSearchResult(result));
+            youtubeTracks
+                .add(HybridTrackFactory.fromYouTubeSearchResult(result));
           }
 
           // Small delay to avoid rate limiting
@@ -972,7 +1081,8 @@ class DiscoveryService extends _$DiscoveryService {
             final query = '$genre music official';
             final results = await youtubeService.searchMusic(query, limit: 5);
 
-            final strictFilter = config.youtubeQualityFilter == YouTubeQualityFilter.strict;
+            final strictFilter =
+                config.youtubeQualityFilter == YouTubeQualityFilter.strict;
             final filteredResults = youtubeService.filterByQuality(
               results,
               strictFilter: strictFilter,
@@ -985,14 +1095,17 @@ class DiscoveryService extends _$DiscoveryService {
               if (seenVideoIds.contains(result.videoId)) continue;
 
               // DUPLICATE DETECTION: Skip if user already owns this track locally
-              final youtubeSignature = _normalizeTrackSignature(result.author, result.title);
+              final youtubeSignature =
+                  _normalizeTrackSignature(result.author, result.title);
               if (localTrackSignatures.contains(youtubeSignature)) {
-                log.fine('Skipping duplicate track: ${result.author} - ${result.title} (already owned locally)');
+                log.fine(
+                    'Skipping duplicate track: ${result.author} - ${result.title} (already owned locally)');
                 continue;
               }
 
               seenVideoIds.add(result.videoId);
-              youtubeTracks.add(HybridTrackFactory.fromYouTubeSearchResult(result));
+              youtubeTracks
+                  .add(HybridTrackFactory.fromYouTubeSearchResult(result));
             }
 
             await Future.delayed(const Duration(milliseconds: 200));
@@ -1028,7 +1141,8 @@ class DiscoveryService extends _$DiscoveryService {
     double youtubeRatio,
   ) {
     try {
-      log.info('Blending ${localTracks.length} local + ${youtubeTracks.length} YouTube tracks (ratio: $youtubeRatio)');
+      log.info(
+          'Blending ${localTracks.length} local + ${youtubeTracks.length} YouTube tracks (ratio: $youtubeRatio)');
 
       if (youtubeTracks.isEmpty) {
         // No YouTube tracks, return all local
@@ -1042,14 +1156,17 @@ class DiscoveryService extends _$DiscoveryService {
 
       final blended = <HybridTrack>[];
       final totalTracks = localTracks.length;
-      final youtubeCount = (totalTracks * youtubeRatio).round().clamp(0, youtubeTracks.length);
+      final youtubeCount =
+          (totalTracks * youtubeRatio).round().clamp(0, youtubeTracks.length);
       final localCount = totalTracks - youtubeCount;
 
-      log.fine('Target blend: $localCount local + $youtubeCount YouTube = $totalTracks total');
+      log.fine(
+          'Target blend: $localCount local + $youtubeCount YouTube = $totalTracks total');
 
       // Calculate interleave pattern
       // Example for 70/30 (7 local, 3 YouTube): L L L Y L L L Y L L
-      final localPerYoutube = youtubeCount > 0 ? (localCount / youtubeCount).round() : localCount;
+      final localPerYoutube =
+          youtubeCount > 0 ? (localCount / youtubeCount).round() : localCount;
 
       int localIndex = 0;
       int youtubeIndex = 0;
@@ -1077,7 +1194,8 @@ class DiscoveryService extends _$DiscoveryService {
 
       final actualLocalCount = blended.where((t) => t.isLocal).length;
       final actualYouTubeCount = blended.where((t) => t.isYouTube).length;
-      log.info('Final blend: $actualLocalCount local + $actualYouTubeCount YouTube = ${blended.length} total');
+      log.info(
+          'Final blend: $actualLocalCount local + $actualYouTubeCount YouTube = ${blended.length} total');
 
       return blended;
     } catch (e, stackTrace) {
@@ -1112,7 +1230,8 @@ class DiscoveryService extends _$DiscoveryService {
     int? sessionId,
   }) async {
     try {
-      log.info('Building hybrid discovery playlist (size: $playlistSize, YouTube: ${config.youtubeEnabled}, offline: $includeOfflineOnly)');
+      log.info(
+          'Building hybrid discovery playlist (size: $playlistSize, YouTube: ${config.youtubeEnabled}, offline: $includeOfflineOnly)');
 
       // Check if YouTube is enabled
       if (!config.youtubeEnabled) {
@@ -1129,7 +1248,8 @@ class DiscoveryService extends _$DiscoveryService {
       // Skip service availability check - let individual requests fail gracefully
       // This allows offline work and graceful degradation
       final youtubeService = ref.read(youTubeDiscoveryServiceProvider.notifier);
-      log.info('YouTube discovery enabled - will attempt search (may fail gracefully if service unavailable)');
+      log.info(
+          'YouTube discovery enabled - will attempt search (may fail gracefully if service unavailable)');
 
       // CRITICAL: Always use online mode for recommendation generation
       // Offline mode only affects which songs get auto-downloaded, not playlist generation
@@ -1151,13 +1271,17 @@ class DiscoveryService extends _$DiscoveryService {
         sessionId: sessionId,
       );
 
-      log.fine('Generated ${localRecommendations.length} local recommendations');
+      log.fine(
+          'Generated ${localRecommendations.length} local recommendations');
 
       // Log download status for offline stations
       if (includeOfflineOnly) {
-        final downloadedCount = localRecommendations.where((s) => s.downloadFilePath != null).length;
+        final downloadedCount = localRecommendations
+            .where((s) => s.downloadFilePath != null)
+            .length;
         final needDownloadCount = localRecommendations.length - downloadedCount;
-        log.info('Offline station local tracks: $downloadedCount already downloaded, $needDownloadCount need downloading');
+        log.info(
+            'Offline station local tracks: $downloadedCount already downloaded, $needDownloadCount need downloading');
       }
 
       // Generate YouTube recommendations based on local tracks
@@ -1168,7 +1292,8 @@ class DiscoveryService extends _$DiscoveryService {
         config: config,
       );
 
-      log.fine('Generated ${youtubeRecommendations.length} YouTube recommendations');
+      log.fine(
+          'Generated ${youtubeRecommendations.length} YouTube recommendations');
 
       // Blend the tracks
       final blendedTracks = blendTracks(

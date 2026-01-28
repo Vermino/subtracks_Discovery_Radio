@@ -56,16 +56,19 @@ class SavedStations extends _$SavedStations {
 
   Future<void> deleteStation(int sessionId) async {
     try {
-      log.info('SavedStationsProvider: Deleting station with sessionId: $sessionId');
+      log.info(
+          'SavedStationsProvider: Deleting station with sessionId: $sessionId');
       final db = ref.read(databaseProvider);
 
       await db.deleteDiscoveryStation(sessionId);
-      log.info('SavedStationsProvider: Station deleted from database successfully');
+      log.info(
+          'SavedStationsProvider: Station deleted from database successfully');
 
       await refresh();
       log.info('SavedStationsProvider: Station list refreshed successfully');
     } catch (e, stackTrace) {
-      log.severe('SavedStationsProvider: Failed to delete station $sessionId', e, stackTrace);
+      log.severe('SavedStationsProvider: Failed to delete station $sessionId',
+          e, stackTrace);
       rethrow; // Rethrow to allow UI to show error
     }
   }
@@ -94,9 +97,9 @@ Future<List<Album>> albumsForStation(
   // Get the station
   final stations = await db.getStationsSortedByRecent(sourceId, limit: 100);
   final station = stations.cast<DiscoverySession?>().firstWhere(
-    (s) => s?.id == stationId,
-    orElse: () => null,
-  );
+        (s) => s?.id == stationId,
+        orElse: () => null,
+      );
 
   if (station == null) {
     return [];
@@ -113,14 +116,15 @@ Future<List<Album>> albumsForStation(
 
   // Try to get albums from the seed song's artist
   if (seedSong.artistId != null && seedSong.artistId!.isNotEmpty) {
-    final artistAlbums = await db
-        .albumsByArtistId(sourceId, seedSong.artistId)
-        .get();
+    final artistAlbums =
+        await db.albumsByArtistId(sourceId, seedSong.artistId).get();
     albums.addAll(artistAlbums.take(4));
   }
 
   // If we don't have enough albums, try getting albums from the seed genre
-  if (albums.length < 4 && station.seedGenre != null && station.seedGenre!.isNotEmpty) {
+  if (albums.length < 4 &&
+      station.seedGenre != null &&
+      station.seedGenre!.isNotEmpty) {
     final genreAlbums = await db
         .albumsByGenre(sourceId, station.seedGenre, 4 - albums.length, 0)
         .get();
@@ -128,8 +132,11 @@ Future<List<Album>> albumsForStation(
   }
 
   // If we still don't have enough, add the seed song's album
-  if (albums.length < 4 && seedSong.albumId != null && seedSong.albumId!.isNotEmpty) {
-    final seedAlbum = await db.albumById(sourceId, seedSong.albumId!).getSingleOrNull();
+  if (albums.length < 4 &&
+      seedSong.albumId != null &&
+      seedSong.albumId!.isNotEmpty) {
+    final seedAlbum =
+        await db.albumById(sourceId, seedSong.albumId!).getSingleOrNull();
     if (seedAlbum != null && !albums.any((a) => a.id == seedAlbum.id)) {
       albums.add(seedAlbum);
     }
@@ -463,7 +470,8 @@ class _DiscoveryRadioSection extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         FilledButton.icon(
-                          onPressed: () => context.navigateTo(const StationBuilderRoute()),
+                          onPressed: () =>
+                              context.navigateTo(const StationBuilderRoute()),
                           icon: const Icon(Icons.add),
                           label: const Text('Create Station'),
                         ),
@@ -479,7 +487,6 @@ class _DiscoveryRadioSection extends HookConsumerWidget {
     );
   }
 }
-
 
 class _MyStationsSection extends HookConsumerWidget {
   const _MyStationsSection();
@@ -498,7 +505,8 @@ class _MyStationsSection extends HookConsumerWidget {
               children: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     child: Text(
                       'My Stations',
                       style: theme.textTheme.titleLarge,
@@ -516,13 +524,15 @@ class _MyStationsSection extends HookConsumerWidget {
                             Icon(
                               Icons.history,
                               size: 48,
-                              color: theme.colorScheme.onSurface.withOpacity(0.3),
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'No stations yet',
                               style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.7),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -530,7 +540,8 @@ class _MyStationsSection extends HookConsumerWidget {
                               'Your discovery stations will appear here after you create them',
                               textAlign: TextAlign.center,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.5),
                               ),
                             ),
                           ],
@@ -635,9 +646,8 @@ class _StationCard extends HookConsumerWidget {
     final lastPlayed = station.lastPlayedAt != null
         ? DateTime.fromMillisecondsSinceEpoch(station.lastPlayedAt! * 1000)
         : null;
-    final lastPlayedStr = lastPlayed != null
-        ? _formatRelativeTime(lastPlayed)
-        : 'Not played yet';
+    final lastPlayedStr =
+        lastPlayed != null ? _formatRelativeTime(lastPlayed) : 'Not played yet';
 
     // Get station name or generate one from seeds
     final stationName = station.stationName ??
@@ -686,7 +696,8 @@ class _StationCard extends HookConsumerWidget {
                     color: theme.colorScheme.secondaryContainer,
                     elevation: 5,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       child: Row(
                         children: [
                           Expanded(
@@ -832,7 +843,9 @@ class _StationCard extends HookConsumerWidget {
       // Start discovery radio (playDiscoveryRadio will clear the queue automatically)
       await audioControl.playHybridDiscoveryRadio(
         seedSong: seedSong,
-        mode: station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline,
+        mode: station.mode == 'online'
+            ? DiscoveryMode.online
+            : DiscoveryMode.offline,
         playlistSize: station.playlistSize,
         sessionId: station.id,
       );
@@ -886,105 +899,107 @@ class _StationOptionsSheet extends HookConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            // Header
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      station.mode == 'online'
+                          ? Icons.radio_rounded
+                          : Icons.download_rounded,
+                      size: 32,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
                   ),
-                  child: Icon(
-                    station.mode == 'online'
-                        ? Icons.radio_rounded
-                        : Icons.download_rounded,
-                    size: 32,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        stationName,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          stationName,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${station.playlistSize} songs • ${station.mode}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        Text(
+                          '${station.playlistSize} songs • ${station.mode}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-            // Options
-            ListTile(
-              leading: const Icon(Icons.play_arrow_rounded),
-              title: const Text('Play Station'),
-              onTap: () {
-                Navigator.pop(context);
-                _playStation(context, ref, station);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                station.isFavorite == 1 ? Icons.star : Icons.star_border,
-              ),
-              title: Text(station.isFavorite == 1 ? 'Remove from Favorites' : 'Add to Favorites'),
-              onTap: () async {
-                await ref.read(savedStationsProvider.notifier).toggleFavorite(
-                      station.id,
-                      station.isFavorite != 1,
-                    );
-                if (context.mounted) {
+              // Options
+              ListTile(
+                leading: const Icon(Icons.play_arrow_rounded),
+                title: const Text('Play Station'),
+                onTap: () {
                   Navigator.pop(context);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Rename Station'),
-              onTap: () {
-                Navigator.pop(context);
-                _showRenameDialog(context, ref, station);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.thumb_up),
-              title: const Text('Manage Ratings'),
-              onTap: () {
-                Navigator.pop(context);
-                _showRatingsManagement(context, ref, station);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.delete,
-                color: theme.colorScheme.error,
+                  _playStation(context, ref, station);
+                },
               ),
-              title: Text(
-                'Delete Station',
-                style: TextStyle(color: theme.colorScheme.error),
+              ListTile(
+                leading: Icon(
+                  station.isFavorite == 1 ? Icons.star : Icons.star_border,
+                ),
+                title: Text(station.isFavorite == 1
+                    ? 'Remove from Favorites'
+                    : 'Add to Favorites'),
+                onTap: () async {
+                  await ref.read(savedStationsProvider.notifier).toggleFavorite(
+                        station.id,
+                        station.isFavorite != 1,
+                      );
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteConfirmation(context, ref, station);
-              },
-            ),
-          ],
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Rename Station'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showRenameDialog(context, ref, station);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.thumb_up),
+                title: const Text('Manage Ratings'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showRatingsManagement(context, ref, station);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.delete,
+                  color: theme.colorScheme.error,
+                ),
+                title: Text(
+                  'Delete Station',
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation(context, ref, station);
+                },
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -1013,7 +1028,9 @@ class _StationOptionsSheet extends HookConsumerWidget {
       // Start discovery radio (playDiscoveryRadio will clear the queue automatically)
       await audioControl.playHybridDiscoveryRadio(
         seedSong: seedSong,
-        mode: station.mode == 'online' ? DiscoveryMode.online : DiscoveryMode.offline,
+        mode: station.mode == 'online'
+            ? DiscoveryMode.online
+            : DiscoveryMode.offline,
         playlistSize: station.playlistSize,
         sessionId: station.id,
       );
@@ -1115,7 +1132,8 @@ class _StationOptionsSheet extends HookConsumerWidget {
           FilledButton(
             onPressed: () async {
               try {
-                log.info('User confirmed deletion of station: $stationName (ID: ${station.id})');
+                log.info(
+                    'User confirmed deletion of station: $stationName (ID: ${station.id})');
                 await stationsNotifier.deleteStation(station.id);
                 if (context.mounted) {
                   Navigator.pop(context);
@@ -1124,7 +1142,8 @@ class _StationOptionsSheet extends HookConsumerWidget {
                   );
                 }
               } catch (e, stackTrace) {
-                log.severe('Error in delete confirmation dialog', e, stackTrace);
+                log.severe(
+                    'Error in delete confirmation dialog', e, stackTrace);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1238,7 +1257,9 @@ class _RatedSongsList extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  interactionType == 'thumbs_up' ? Icons.thumb_up : Icons.thumb_down,
+                  interactionType == 'thumbs_up'
+                      ? Icons.thumb_up
+                      : Icons.thumb_down,
                   size: 64,
                   color: theme.colorScheme.onSurface.withOpacity(0.3),
                 ),
@@ -1313,9 +1334,11 @@ class _RatedSongsList extends HookConsumerWidget {
                         // Also decrement the global counter
                         // (This handles misclicks or rating corrections)
                         if (interactionType == 'thumbs_up') {
-                          await db.decrementThumbsUpCount(song.sourceId, song.id);
+                          await db.decrementThumbsUpCount(
+                              song.sourceId, song.id);
                         } else {
-                          await db.decrementThumbsDownCount(song.sourceId, song.id);
+                          await db.decrementThumbsDownCount(
+                              song.sourceId, song.id);
                         }
 
                         if (context.mounted) {

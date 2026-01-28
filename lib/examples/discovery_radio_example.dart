@@ -142,7 +142,8 @@ class DiscoveryRadioExample extends ConsumerWidget {
   }
 
   /// Show Discovery Analytics
-  Future<void> _showDiscoveryAnalytics(BuildContext context, WidgetRef ref) async {
+  Future<void> _showDiscoveryAnalytics(
+      BuildContext context, WidgetRef ref) async {
     final discoveryService = ref.read(discoveryServiceProvider);
 
     // Get analytics for the last 30 days
@@ -164,15 +165,21 @@ class DiscoveryRadioExample extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Total Sessions: ${analytics['total_sessions'] ?? 0}'),
-              Text('Average Playlist Size: ${analytics['average_playlist_size']?.toStringAsFixed(1) ?? '0'}'),
+              Text(
+                  'Average Playlist Size: ${analytics['average_playlist_size']?.toStringAsFixed(1) ?? '0'}'),
               const SizedBox(height: 16),
-              const Text('Mode Distribution:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...((analytics['mode_distribution'] as Map<String, int>?)?.entries ?? [])
+              const Text('Mode Distribution:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              ...((analytics['mode_distribution'] as Map<String, int>?)
+                          ?.entries ??
+                      [])
                   .map((entry) => Text('${entry.key}: ${entry.value}')),
               const SizedBox(height: 16),
-              const Text('Top Discovered Songs:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...((analytics['popular_songs'] as List?)?.take(5) ?? [])
-                  .map((song) => Text('${song['song_id']} (${song['play_count']} plays)')),
+              const Text('Top Discovered Songs:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              ...((analytics['popular_songs'] as List?)?.take(5) ?? []).map(
+                  (song) =>
+                      Text('${song['song_id']} (${song['play_count']} plays)')),
             ],
           ),
         ),
@@ -189,7 +196,8 @@ class DiscoveryRadioExample extends ConsumerWidget {
 
 /// Example of custom discovery configuration
 class CustomDiscoveryExample {
-  static Future<void> startPersonalizedDiscovery(WidgetRef ref, Song seedSong) async {
+  static Future<void> startPersonalizedDiscovery(
+      WidgetRef ref, Song seedSong) async {
     final discoveryService = ref.read(discoveryServiceProvider);
 
     // Create a custom configuration that heavily weights user preferences
@@ -214,14 +222,16 @@ class CustomDiscoveryExample {
   }
 
   /// Example: Discovery Radio for exploration (more diverse recommendations)
-  static Future<void> startExplorationDiscovery(WidgetRef ref, Song seedSong) async {
+  static Future<void> startExplorationDiscovery(
+      WidgetRef ref, Song seedSong) async {
     final discoveryService = ref.read(discoveryServiceProvider);
 
     // Configuration that prioritizes diversity over user preferences
     const explorationConfig = DiscoveryConfig(
       artistSimilarityWeight: 0.30,
       genreSimilarityWeight: 0.40, // Higher genre variety
-      userPreferenceWeight: 0.20,  // Lower user preference weight for exploration
+      userPreferenceWeight:
+          0.20, // Lower user preference weight for exploration
       metadataCorrelationWeight: 0.10,
       maxRecommendations: 50,
       avoidRecentlyPlayed: true,
@@ -249,7 +259,8 @@ class DiscoveryTrackingExample {
     audioControl.position.listen((position) {
       final currentSong = audioControl.mediaItem.value;
       if (currentSong != null && currentSong.duration != null) {
-        final completionPercentage = position.inMilliseconds / currentSong.duration!.inMilliseconds;
+        final completionPercentage =
+            position.inMilliseconds / currentSong.duration!.inMilliseconds;
 
         // If song is 80% complete, consider it "completed"
         if (completionPercentage >= 0.8) {
@@ -354,7 +365,8 @@ class DiscoverySettingsExample extends StatefulWidget {
   const DiscoverySettingsExample({super.key});
 
   @override
-  State<DiscoverySettingsExample> createState() => _DiscoverySettingsExampleState();
+  State<DiscoverySettingsExample> createState() =>
+      _DiscoverySettingsExampleState();
 }
 
 class _DiscoverySettingsExampleState extends State<DiscoverySettingsExample> {
@@ -410,7 +422,8 @@ class _DiscoverySettingsExampleState extends State<DiscoverySettingsExample> {
             title: const Text('Playlist Size'),
             subtitle: Slider(
               value: playlistSize.toDouble(),
-              onChanged: (value) => setState(() => playlistSize = value.round()),
+              onChanged: (value) =>
+                  setState(() => playlistSize = value.round()),
               min: 10,
               max: 100,
               divisions: 18,

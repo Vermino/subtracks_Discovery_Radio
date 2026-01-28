@@ -531,7 +531,8 @@ class _DownloadPreference extends HookConsumerWidget {
   }
 
   void _showDownloadPrefDialog(BuildContext context, WidgetRef ref) {
-    final currentPref = ref.read(settingsServiceProvider).app.downloadPreference;
+    final currentPref =
+        ref.read(settingsServiceProvider).app.downloadPreference;
 
     showDialog(
       context: context,

@@ -6,6 +6,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -39,6 +41,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -66,6 +70,8 @@
   ],
 
   "cs": [
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "resourcesAlbumCount",
     "resourcesArtistCount",
     "resourcesPlaylistCount",
@@ -92,6 +98,8 @@
     "actionsOk",
     "actionsStar",
     "actionsUnstar",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -127,11 +135,15 @@
   ],
 
   "de": [
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "settingsAboutShareLogs",
     "settingsAboutChooseLog"
   ],
 
   "es": [
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "resourcesAlbumCount",
     "resourcesArtistCount",
     "resourcesFilterAlbum",
@@ -164,6 +176,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -190,6 +204,11 @@
     "settingsServersFieldsName"
   ],
 
+  "gl": [
+    "controlsDiscoveryRadio",
+    "controlsRadio"
+  ],
+
   "it": [
     "actionsCancel",
     "actionsDelete",
@@ -197,6 +216,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -232,6 +253,8 @@
     "actionsOk",
     "actionsStar",
     "actionsUnstar",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "messagesNothingHere",
     "resourcesAlbumActionsPlay",
@@ -308,6 +331,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -341,6 +366,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -374,6 +401,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -401,6 +430,8 @@
   ],
 
   "pt": [
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "resourcesAlbumCount",
     "resourcesArtistCount",
     "resourcesFilterOwner",
@@ -416,6 +447,11 @@
     "settingsServersFieldsName"
   ],
 
+  "ru": [
+    "controlsDiscoveryRadio",
+    "controlsRadio"
+  ],
+
   "tr": [
     "actionsCancel",
     "actionsDelete",
@@ -423,6 +459,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -456,6 +494,8 @@
     "actionsDownloadCancel",
     "actionsDownloadDelete",
     "actionsOk",
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",
@@ -483,6 +523,8 @@
   ],
 
   "zh": [
+    "controlsDiscoveryRadio",
+    "controlsRadio",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",

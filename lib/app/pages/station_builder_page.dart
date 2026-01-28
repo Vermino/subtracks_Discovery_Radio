@@ -120,7 +120,8 @@ class StationBuilderPage extends HookConsumerWidget {
                 ? _SearchResults(
                     query: searchQuery.value,
                     onSeedSelected: (seed) {
-                      if (!seeds.value.any((s) => s.id == seed.id && s.type == seed.type)) {
+                      if (!seeds.value
+                          .any((s) => s.id == seed.id && s.type == seed.type)) {
                         seeds.value = [...seeds.value, seed];
                       }
                       searchController.clear();
@@ -131,7 +132,8 @@ class StationBuilderPage extends HookConsumerWidget {
                 : _SeedListView(
                     seeds: seeds.value,
                     onRemove: (seed) {
-                      seeds.value = seeds.value.where((s) => s != seed).toList();
+                      seeds.value =
+                          seeds.value.where((s) => s != seed).toList();
                     },
                   ),
           ),
@@ -241,15 +243,17 @@ class StationBuilderPage extends HookConsumerWidget {
           }
         } else if (seed.type == SeedType.artist) {
           // Get a song from this artist
-          final songs = await db.songsList(
-            sourceId,
-            ListQuery(
-              filters: IListConst([
-                FilterWith.equals(column: 'artist_id', value: seed.id),
-              ]),
-              page: const Pagination(limit: 1),
-            ),
-          ).get();
+          final songs = await db
+              .songsList(
+                sourceId,
+                ListQuery(
+                  filters: IListConst([
+                    FilterWith.equals(column: 'artist_id', value: seed.id),
+                  ]),
+                  page: const Pagination(limit: 1),
+                ),
+              )
+              .get();
           if (songs.isNotEmpty) {
             seedSong = songs.first;
             seedArtist = seed.name; // Use the artist name from the seed
@@ -258,10 +262,12 @@ class StationBuilderPage extends HookConsumerWidget {
           }
         } else if (seed.type == SeedType.album) {
           // Get a song from this album
-          final songs = await db.albumSongsList(
-            SourceId(sourceId: sourceId, id: seed.id),
-            const ListQuery(page: Pagination(limit: 1)),
-          ).get();
+          final songs = await db
+              .albumSongsList(
+                SourceId(sourceId: sourceId, id: seed.id),
+                const ListQuery(page: Pagination(limit: 1)),
+              )
+              .get();
           if (songs.isNotEmpty) {
             seedSong = songs.first;
             seedArtist = seedSong.artist;
@@ -270,15 +276,17 @@ class StationBuilderPage extends HookConsumerWidget {
           }
         } else if (seed.type == SeedType.genre) {
           // Get a song from this genre
-          final songs = await db.songsList(
-            sourceId,
-            ListQuery(
-              filters: IListConst([
-                FilterWith.equals(column: 'genre', value: seed.name),
-              ]),
-              page: const Pagination(limit: 1),
-            ),
-          ).get();
+          final songs = await db
+              .songsList(
+                sourceId,
+                ListQuery(
+                  filters: IListConst([
+                    FilterWith.equals(column: 'genre', value: seed.name),
+                  ]),
+                  page: const Pagination(limit: 1),
+                ),
+              )
+              .get();
           if (songs.isNotEmpty) {
             seedSong = songs.first;
             seedArtist = seedSong.artist;
@@ -291,7 +299,8 @@ class StationBuilderPage extends HookConsumerWidget {
       if (seedSong == null) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not find songs for the selected seeds')),
+          const SnackBar(
+              content: Text('Could not find songs for the selected seeds')),
         );
         return;
       }
@@ -322,13 +331,15 @@ class StationBuilderPage extends HookConsumerWidget {
         config: DiscoveryConfig(
           youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
           youtubeRatio: youtubeRatio,
-          youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+          youtubeQualityFilter:
+              _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
           youtubePreferOfficial: appSettings.youtubePreferOfficial,
         ),
         sessionId: sessionId,
       );
 
-      log.info('Station created and playback started - first track is local: ${seedSong.downloadFilePath != null}');
+      log.info(
+          'Station created and playback started - first track is local: ${seedSong.downloadFilePath != null}');
 
       if (!context.mounted) return;
 
@@ -349,7 +360,8 @@ class StationBuilderPage extends HookConsumerWidget {
             }
           } catch (e) {
             // Silently handle disposed state - downloads aren't critical to playback
-            log.warning('Could not trigger auto-downloads or show feedback: $e');
+            log.warning(
+                'Could not trigger auto-downloads or show feedback: $e');
           }
         });
       }
@@ -366,12 +378,14 @@ class StationBuilderPage extends HookConsumerWidget {
   /// This runs in the background and downloads playlist songs based on user preferences
   /// and network connectivity. If conditions aren't suitable (e.g., WiFi-only but on mobile),
   /// downloads are queued for later.
-  void _triggerAutoDownloads(WidgetRef ref, int sessionId, bool isOnline) async {
+  void _triggerAutoDownloads(
+      WidgetRef ref, int sessionId, bool isOnline) async {
     try {
       log.info('Triggering auto-downloads for station session: $sessionId');
 
       // Get the auto-download service
-      final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
+      final autoDownloadService =
+          ref.read(autoDownloadServiceProvider.notifier);
       final db = ref.read(databaseProvider);
       final discoveryService = ref.read(discoveryServiceProvider.notifier);
 
@@ -383,9 +397,12 @@ class StationBuilderPage extends HookConsumerWidget {
       }
 
       // Get the seed song
-      final seedSong = await db.songById(station.sourceId, station.seedSongId).getSingleOrNull();
+      final seedSong = await db
+          .songById(station.sourceId, station.seedSongId)
+          .getSingleOrNull();
       if (seedSong == null) {
-        log.warning('Seed song not found for auto-download: ${station.seedSongId}');
+        log.warning(
+            'Seed song not found for auto-download: ${station.seedSongId}');
         return;
       }
 
@@ -395,7 +412,8 @@ class StationBuilderPage extends HookConsumerWidget {
       final config = DiscoveryConfig(
         youtubeEnabled: appSettings.youtubeDiscoveryEnabled,
         youtubeRatio: station.youtubeRatio ?? appSettings.youtubeDiscoveryRatio,
-        youtubeQualityFilter: _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
+        youtubeQualityFilter:
+            _parseYoutubeQualityFilter(appSettings.youtubeQualityFilter),
         youtubePreferOfficial: appSettings.youtubePreferOfficial,
       );
 
@@ -429,7 +447,8 @@ class StationBuilderPage extends HookConsumerWidget {
         return;
       }
 
-      log.info('Found ${songsToDownload.length} songs to download for offline station');
+      log.info(
+          'Found ${songsToDownload.length} songs to download for offline station');
 
       // Trigger the download (respects user settings and network conditions)
       await autoDownloadService.downloadStationSongs(
@@ -470,14 +489,17 @@ class StationBuilderPage extends HookConsumerWidget {
       // Check network conditions
       networkModeAsync.when(
         data: (networkMode) {
-          final autoDownloadService = ref.read(autoDownloadServiceProvider.notifier);
-          final shouldDownload = autoDownloadService.shouldDownloadNow(downloadPref, networkMode);
+          final autoDownloadService =
+              ref.read(autoDownloadServiceProvider.notifier);
+          final shouldDownload =
+              autoDownloadService.shouldDownloadNow(downloadPref, networkMode);
 
           if (shouldDownload) {
             // Downloads starting immediately
             message = 'Downloading station songs in background';
             icon = Icons.download_rounded;
-          } else if (downloadPref == 'wifi_only' && networkMode == NetworkMode.mobile) {
+          } else if (downloadPref == 'wifi_only' &&
+              networkMode == NetworkMode.mobile) {
             // Queued for WiFi
             message = 'Downloads queued - will start when WiFi is available';
             icon = Icons.wifi_rounded;
@@ -511,9 +533,11 @@ class StationBuilderPage extends HookConsumerWidget {
               SnackBar(
                 content: Row(
                   children: [
-                    const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                    const Icon(Icons.download_rounded,
+                        color: Colors.white, size: 20),
                     const SizedBox(width: 12),
-                    const Expanded(child: Text('Preparing to download station songs...')),
+                    const Expanded(
+                        child: Text('Preparing to download station songs...')),
                   ],
                 ),
                 duration: const Duration(seconds: 3),
@@ -524,7 +548,8 @@ class StationBuilderPage extends HookConsumerWidget {
         },
         error: (_, __) {
           // Error getting network status - don't show anything
-          log.warning('Could not determine network status for download feedback');
+          log.warning(
+              'Could not determine network status for download feedback');
         },
       );
     } catch (e) {
@@ -570,7 +595,8 @@ class _SearchResults extends HookConsumerWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (!snapshot.hasData || snapshot.data!.values.every((list) => list.isEmpty)) {
+        if (!snapshot.hasData ||
+            snapshot.data!.values.every((list) => list.isEmpty)) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -619,7 +645,8 @@ class _SearchResults extends HookConsumerWidget {
               ...artists.map((artist) => _SearchResultTile(
                     icon: Icons.person_rounded,
                     title: artist.name,
-                    subtitle: '${artist.albumCount} album${artist.albumCount == 1 ? '' : 's'}',
+                    subtitle:
+                        '${artist.albumCount} album${artist.albumCount == 1 ? '' : 's'}',
                     onTap: () => onSeedSelected(SeedItem(
                       type: SeedType.artist,
                       id: artist.id,
@@ -812,7 +839,8 @@ class _SeedListView extends StatelessWidget {
           children: seeds.map((seed) {
             return ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width - 32, // Account for padding
+                maxWidth: MediaQuery.of(context).size.width -
+                    32, // Account for padding
               ),
               child: Chip(
                 avatar: Icon(seed.icon, size: 18),
@@ -889,22 +917,24 @@ class _CreateStationDialog extends HookConsumerWidget {
             ),
             const SizedBox(height: 8),
             ...seeds.take(3).map((seed) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                children: [
-                  Icon(seed.icon, size: 16, color: theme.colorScheme.onSurface.withOpacity(0.6)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      seed.name,
-                      style: theme.textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Icon(seed.icon,
+                          size: 16,
+                          color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          seed.name,
+                          style: theme.textTheme.bodyMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
+                )),
             if (seeds.length > 3)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -979,7 +1009,8 @@ class _CreateStationDialog extends HookConsumerWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.red.shade700.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -1036,7 +1067,8 @@ class _CreateStationDialog extends HookConsumerWidget {
           child: const Text('Cancel'),
         ),
         FilledButton.icon(
-          onPressed: () => onConfirm(size.value, isOnline.value, youtubeRatio.value),
+          onPressed: () =>
+              onConfirm(size.value, isOnline.value, youtubeRatio.value),
           icon: const Icon(Icons.play_arrow_rounded),
           label: const Text('Create Station'),
         ),

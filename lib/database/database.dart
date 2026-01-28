@@ -613,11 +613,11 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   // Rating-related methods
-  Future<void> updateSongRating(int sourceId, String songId, UserRating rating) async {
+  Future<void> updateSongRating(
+      int sourceId, String songId, UserRating rating) async {
     await (update(songs)
-          ..where((tbl) =>
-              tbl.sourceId.equals(sourceId) &
-              tbl.id.equals(songId)))
+          ..where(
+              (tbl) => tbl.sourceId.equals(sourceId) & tbl.id.equals(songId)))
         .write(SongsCompanion(userRating: Value(rating)));
   }
 
@@ -636,7 +636,8 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   Future<Map<String, int>> getRatingStatistics(int sourceId) async {
     final results = await ratingStats(sourceId).get();
     return Map.fromEntries(
-      results.map((row) => MapEntry(row.userRating.toString().split('.').last, row.count)),
+      results.map((row) =>
+          MapEntry(row.userRating.toString().split('.').last, row.count)),
     );
   }
 
@@ -681,12 +682,14 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Get most loved songs (sorted by thumbs_up_count)
-  Future<List<Song>> getMostLovedSongs(int sourceId, {int limit = 50, int offset = 0}) async {
+  Future<List<Song>> getMostLovedSongs(int sourceId,
+      {int limit = 50, int offset = 0}) async {
     return await mostLovedSongs(sourceId, limit, offset).get();
   }
 
   /// Get most disliked songs (sorted by thumbs_down_count)
-  Future<List<Song>> getMostDislikedSongs(int sourceId, {int limit = 50, int offset = 0}) async {
+  Future<List<Song>> getMostDislikedSongs(int sourceId,
+      {int limit = 50, int offset = 0}) async {
     return await mostDislikedSongs(sourceId, limit, offset).get();
   }
 
@@ -722,12 +725,14 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   Future<void> recordDiscoveryInteraction({
     required int sessionId,
     required String songId,
-    required String interactionType, // 'played', 'skipped', 'thumbs_up', 'thumbs_down', 'completed'
+    required String
+        interactionType, // 'played', 'skipped', 'thumbs_up', 'thumbs_down', 'completed'
     required int positionInPlaylist,
     int? songDurationMs,
     int? playDurationMs,
     String trackSource = 'local', // 'local' or 'youtube'
-    String? youtubeVideoId, // NULL for local tracks, video ID for YouTube tracks
+    String?
+        youtubeVideoId, // NULL for local tracks, video ID for YouTube tracks
   }) async {
     await into(discoveryInteractions).insert(
       DiscoveryInteractionsCompanion.insert(
@@ -744,17 +749,20 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Get discovery sessions for a source
-  Future<List<DiscoverySession>> getDiscoverySessions(int sourceId, {int limit = 20, int offset = 0}) async {
+  Future<List<DiscoverySession>> getDiscoverySessions(int sourceId,
+      {int limit = 20, int offset = 0}) async {
     return await discoverySessionsBySource(sourceId, limit, offset).get();
   }
 
   /// Get interactions for a discovery session
-  Future<List<DiscoveryInteraction>> getDiscoveryInteractions(int sessionId) async {
+  Future<List<DiscoveryInteraction>> getDiscoveryInteractions(
+      int sessionId) async {
     return await discoveryInteractionsBySession(sessionId).get();
   }
 
   /// Get recent discovery sessions
-  Future<List<DiscoverySession>> getRecentDiscoverySessions(int sourceId, DateTime since) async {
+  Future<List<DiscoverySession>> getRecentDiscoverySessions(
+      int sourceId, DateTime since) async {
     final timestamp = since.millisecondsSinceEpoch ~/ 1000;
     return await discoveryRecentSessions(sourceId, timestamp).get();
   }
@@ -793,8 +801,10 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Update the last played timestamp of a station
-  Future<void> updateStationLastPlayed(int sessionId, DateTime timestamp) async {
-    await discoveryUpdateLastPlayed(timestamp.millisecondsSinceEpoch ~/ 1000, sessionId);
+  Future<void> updateStationLastPlayed(
+      int sessionId, DateTime timestamp) async {
+    await discoveryUpdateLastPlayed(
+        timestamp.millisecondsSinceEpoch ~/ 1000, sessionId);
   }
 
   /// Increment the play count of a station
@@ -813,25 +823,31 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Get stations sorted by most recently played
-  Future<List<DiscoverySession>> getStationsSortedByRecent(int sourceId, {int limit = 20, int offset = 0}) async {
+  Future<List<DiscoverySession>> getStationsSortedByRecent(int sourceId,
+      {int limit = 20, int offset = 0}) async {
     return await discoveryStationsSortedByRecent(sourceId, limit, offset).get();
   }
 
   /// Get stations sorted by play count (most played first)
-  Future<List<DiscoverySession>> getStationsSortedByPlayCount(int sourceId, {int limit = 20, int offset = 0}) async {
-    return await discoveryStationsSortedByPlayCount(sourceId, limit, offset).get();
+  Future<List<DiscoverySession>> getStationsSortedByPlayCount(int sourceId,
+      {int limit = 20, int offset = 0}) async {
+    return await discoveryStationsSortedByPlayCount(sourceId, limit, offset)
+        .get();
   }
 
   /// Get a single discovery session by ID
   Future<DiscoverySession?> getDiscoverySessionById(int sessionId) async {
-    return await (select(discoverySessions)..where((tbl) => tbl.id.equals(sessionId))).getSingleOrNull();
+    return await (select(discoverySessions)
+          ..where((tbl) => tbl.id.equals(sessionId)))
+        .getSingleOrNull();
   }
 
   /// Delete a discovery station and all its interactions
   /// The foreign key constraint with ON DELETE CASCADE will automatically
   /// delete all related interactions in the discovery_interactions table
   Future<void> deleteDiscoveryStation(int sessionId) async {
-    await (delete(discoverySessions)..where((tbl) => tbl.id.equals(sessionId))).go();
+    await (delete(discoverySessions)..where((tbl) => tbl.id.equals(sessionId)))
+        .go();
   }
 
   // Station-specific personalization methods
@@ -862,7 +878,8 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Remove a specific rating for a song in a discovery station
-  Future<void> removeDiscoveryRating(int sessionId, String songId, String interactionType) async {
+  Future<void> removeDiscoveryRating(
+      int sessionId, String songId, String interactionType) async {
     await (delete(discoveryInteractions)
           ..where((tbl) =>
               tbl.sessionId.equals(sessionId) &
@@ -872,11 +889,11 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Get songs with their interaction details for a station
-  Future<List<DiscoveryInteraction>> getStationInteractionsBySongId(int sessionId, String songId) async {
+  Future<List<DiscoveryInteraction>> getStationInteractionsBySongId(
+      int sessionId, String songId) async {
     return await (select(discoveryInteractions)
           ..where((tbl) =>
-              tbl.sessionId.equals(sessionId) &
-              tbl.songId.equals(songId))
+              tbl.sessionId.equals(sessionId) & tbl.songId.equals(songId))
           ..orderBy([(tbl) => OrderingTerm.desc(tbl.timestamp)]))
         .get();
   }
@@ -917,8 +934,10 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   /// Get YouTube tracks that are expiring soon
-  Future<List<YoutubeTrack>> getExpiringYouTubeTracks(Duration beforeExpiry) async {
-    final expiresBefore = DateTime.now().add(beforeExpiry).millisecondsSinceEpoch ~/ 1000;
+  Future<List<YoutubeTrack>> getExpiringYouTubeTracks(
+      Duration beforeExpiry) async {
+    final expiresBefore =
+        DateTime.now().add(beforeExpiry).millisecondsSinceEpoch ~/ 1000;
     return await youTubeTracksExpiringSoon(expiresBefore).get();
   }
 
@@ -931,7 +950,9 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   /// Delete all expired YouTube tracks from cache
   Future<void> deleteExpiredYouTubeTracks() async {
     final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    await (delete(youtubeTracks)..where((tbl) => tbl.expiresAt.isSmallerThanValue(currentTime))).go();
+    await (delete(youtubeTracks)
+          ..where((tbl) => tbl.expiresAt.isSmallerThanValue(currentTime)))
+        .go();
   }
 
   /// Add a YouTube track to a discovery session
@@ -954,22 +975,24 @@ class SubtracksDatabase extends _$SubtracksDatabase {
     // This uses a custom query that joins youtube_tracks with youtube_discovery_items
     final results = await youTubeTracksForSession(sessionId).get();
     // Extract just the youtube track from the joined result
-    return results.map((r) => YoutubeTrack(
-      id: r.id,
-      title: r.title,
-      artist: r.artist,
-      channelName: r.channelName,
-      durationSeconds: r.durationSeconds,
-      thumbnailUrl: r.thumbnailUrl,
-      audioUrl: r.audioUrl,
-      audioBitrate: r.audioBitrate,
-      audioCodec: r.audioCodec,
-      audioQuality: r.audioQuality,
-      cachedAt: r.cachedAt,
-      expiresAt: r.expiresAt,
-      accessCount: r.accessCount,
-      lastAccessed: r.lastAccessed,
-    )).toList();
+    return results
+        .map((r) => YoutubeTrack(
+              id: r.id,
+              title: r.title,
+              artist: r.artist,
+              channelName: r.channelName,
+              durationSeconds: r.durationSeconds,
+              thumbnailUrl: r.thumbnailUrl,
+              audioUrl: r.audioUrl,
+              audioBitrate: r.audioBitrate,
+              audioCodec: r.audioCodec,
+              audioQuality: r.audioQuality,
+              cachedAt: r.cachedAt,
+              expiresAt: r.expiresAt,
+              accessCount: r.accessCount,
+              lastAccessed: r.lastAccessed,
+            ))
+        .toList();
   }
 
   /// Get the count of cached YouTube tracks
@@ -997,8 +1020,8 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }) async {
     await transaction(() async {
       final cutoffTime = DateTime.now()
-          .subtract(Duration(days: maxAgeDays))
-          .millisecondsSinceEpoch ~/
+              .subtract(Duration(days: maxAgeDays))
+              .millisecondsSinceEpoch ~/
           1000;
 
       // Get IDs of tracks to keep (recently accessed or frequently accessed)
@@ -1023,8 +1046,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
 
       if (idsToKeep.isNotEmpty) {
         // Delete tracks not in the keep list
-        await (delete(youtubeTracks)
-              ..where((tbl) => tbl.id.isNotIn(idsToKeep)))
+        await (delete(youtubeTracks)..where((tbl) => tbl.id.isNotIn(idsToKeep)))
             .go();
       }
     });

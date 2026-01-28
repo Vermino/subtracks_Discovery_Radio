@@ -397,8 +397,8 @@ void main() {
 
       // Parse video results
       final videos = jsonList
-          .where((item) =>
-              item is Map<String, dynamic> && item['type'] == 'video')
+          .where(
+              (item) => item is Map<String, dynamic> && item['type'] == 'video')
           .map((item) => InvidiousSearchResponse.fromJson(
                 item as Map<String, dynamic>,
               ))
@@ -466,8 +466,7 @@ void main() {
     });
 
     test('handles video with no audio formats', () {
-      final json =
-          jsonDecode(mockVideoResponseNoAudio) as Map<String, dynamic>;
+      final json = jsonDecode(mockVideoResponseNoAudio) as Map<String, dynamic>;
       final response = InvidiousVideoResponse.fromJson(json);
       final videoInfo = response.toVideoInfo();
 
@@ -477,8 +476,7 @@ void main() {
 
   group('URL Parsing', () {
     test('parses YouTube stream URLs correctly', () {
-      const testUrl =
-          'https://rr3---sn-test.googlevideo.com/videoplayback?'
+      const testUrl = 'https://rr3---sn-test.googlevideo.com/videoplayback?'
           'expire=1234567890&ip=1.2.3.4&id=abc&source=youtube&'
           'requiressl=yes&sig=123';
 
@@ -535,14 +533,16 @@ void main() {
   group('Performance', () {
     test('processes large search results efficiently', () {
       // Generate a large mock response
-      final largeResponse = List.generate(100, (i) => {
-            'type': 'video',
-            'videoId': 'VIDEO$i',
-            'title': 'Test Video $i',
-            'author': 'Artist $i',
-            'lengthSeconds': 180 + i,
-            'viewCount': 1000 * i,
-          });
+      final largeResponse = List.generate(
+          100,
+          (i) => {
+                'type': 'video',
+                'videoId': 'VIDEO$i',
+                'title': 'Test Video $i',
+                'author': 'Artist $i',
+                'lengthSeconds': 180 + i,
+                'viewCount': 1000 * i,
+              });
 
       final stopwatch = Stopwatch()..start();
 
