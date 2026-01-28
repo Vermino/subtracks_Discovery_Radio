@@ -52,9 +52,9 @@ void main() {
 
         final normalized = config.normalized;
         final totalWeight = normalized.artistSimilarityWeight +
-                          normalized.genreSimilarityWeight +
-                          normalized.userPreferenceWeight +
-                          normalized.metadataCorrelationWeight;
+            normalized.genreSimilarityWeight +
+            normalized.userPreferenceWeight +
+            normalized.metadataCorrelationWeight;
 
         expect(totalWeight, closeTo(1.0, 0.0001));
       });
@@ -170,7 +170,8 @@ void main() {
         );
 
         // Both songs have similar durations, so they should correlate
-        expect(song1.duration!.inMilliseconds, closeTo(song2.duration!.inMilliseconds, 30000));
+        expect(song1.duration!.inMilliseconds,
+            closeTo(song2.duration!.inMilliseconds, 30000));
       });
 
       test('songs from same album should correlate', () {

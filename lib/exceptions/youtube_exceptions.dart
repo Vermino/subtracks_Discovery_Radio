@@ -59,7 +59,8 @@ class NoAudioStreamException extends YouTubeServiceException {
   }) : super('No audio stream available for video: $videoId');
 
   @override
-  String toString() => 'NoAudioStreamException: No suitable audio stream found for video $videoId';
+  String toString() =>
+      'NoAudioStreamException: No suitable audio stream found for video $videoId';
 }
 
 /// Exception thrown when rate limit is exceeded
@@ -94,7 +95,8 @@ class VideoNotFoundException extends InvidiousApiException {
         );
 
   @override
-  String toString() => 'VideoNotFoundException: Video $videoId not found on YouTube';
+  String toString() =>
+      'VideoNotFoundException: Video $videoId not found on YouTube';
 }
 
 /// Exception thrown when JSON parsing fails

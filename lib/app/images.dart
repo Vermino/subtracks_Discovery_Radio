@@ -212,8 +212,9 @@ class CardClip extends StatelessWidget {
   Widget build(BuildContext context) {
     final cardShape = Theme.of(context).cardTheme.shape;
     return ClipRRect(
-      borderRadius:
-          cardShape is RoundedRectangleBorder ? cardShape.borderRadius : BorderRadius.zero,
+      borderRadius: cardShape is RoundedRectangleBorder
+          ? cardShape.borderRadius
+          : BorderRadius.zero,
       child: !square
           ? child
           : AspectRatio(

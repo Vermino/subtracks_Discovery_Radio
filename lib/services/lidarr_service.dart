@@ -42,12 +42,14 @@ class LidarrService extends _$LidarrService {
 
       if (response.statusCode == 200) {
         final List<dynamic> json = jsonDecode(response.body);
-        final artists =
-            json.map((e) => LidarrArtist.fromJson(e as Map<String, dynamic>)).toList();
+        final artists = json
+            .map((e) => LidarrArtist.fromJson(e as Map<String, dynamic>))
+            .toList();
         log.info('Lidarr: Found ${artists.length} results for: $artistName');
         return artists;
       } else {
-        log.warning('Lidarr: Search failed with status ${response.statusCode}: ${response.body}');
+        log.warning(
+            'Lidarr: Search failed with status ${response.statusCode}: ${response.body}');
         throw LidarrApiException(
           'Failed to search artist',
           statusCode: response.statusCode,
@@ -73,7 +75,8 @@ class LidarrService extends _$LidarrService {
     String rootFolderPath = '/music',
   }) async {
     try {
-      log.info('Lidarr: Adding artist to library: $artistName (MusicBrainz: $foreignArtistId)');
+      log.info(
+          'Lidarr: Adding artist to library: $artistName (MusicBrainz: $foreignArtistId)');
 
       final uri = Uri.parse('$baseUrl/artist');
 
@@ -101,10 +104,12 @@ class LidarrService extends _$LidarrService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         log.info('Lidarr: Successfully added artist: $artistName');
-        return LidarrArtist.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+        return LidarrArtist.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>);
       } else {
         final errorBody = response.body;
-        log.warning('Lidarr: Failed to add artist (${response.statusCode}): $errorBody');
+        log.warning(
+            'Lidarr: Failed to add artist (${response.statusCode}): $errorBody');
         throw LidarrApiException(
           'Failed to add artist: $errorBody',
           statusCode: response.statusCode,
@@ -136,7 +141,8 @@ class LidarrService extends _$LidarrService {
         final exists = artists.any((a) =>
             a is Map<String, dynamic> &&
             a['foreignArtistId'] == foreignArtistId);
-        log.fine('Lidarr: Artist $foreignArtistId ${exists ? "exists" : "does not exist"} in library');
+        log.fine(
+            'Lidarr: Artist $foreignArtistId ${exists ? "exists" : "does not exist"} in library');
         return exists;
       }
 
@@ -157,11 +163,13 @@ class LidarrService extends _$LidarrService {
     required String videoId,
   }) async {
     try {
-      log.info('Lidarr: Requesting download for "$youtubeTitle" by $youtubeArtist');
+      log.info(
+          'Lidarr: Requesting download for "$youtubeTitle" by $youtubeArtist');
 
       // Clean artist name (remove featuring, etc.)
       final cleanArtist = _cleanArtistName(youtubeArtist);
-      log.fine('Lidarr: Cleaned artist name: "$youtubeArtist" -> "$cleanArtist"');
+      log.fine(
+          'Lidarr: Cleaned artist name: "$youtubeArtist" -> "$cleanArtist"');
 
       // Search for artist
       final searchResults = await searchArtist(cleanArtist);
@@ -185,7 +193,8 @@ class LidarrService extends _$LidarrService {
 
       // Use first result (best match)
       final artist = searchResults.first;
-      log.info('Lidarr: Best match: ${artist.artistName} (${artist.foreignArtistId})');
+      log.info(
+          'Lidarr: Best match: ${artist.artistName} (${artist.foreignArtistId})');
 
       // Check if already in library
       final alreadyExists = await isArtistInLibrary(artist.foreignArtistId);
@@ -229,7 +238,8 @@ class LidarrService extends _$LidarrService {
         message: '${addedArtist.artistName} added to Lidarr for download',
       );
     } catch (e, stackTrace) {
-      log.severe('Lidarr: Failed to request download for "$youtubeTitle"', e, stackTrace);
+      log.severe('Lidarr: Failed to request download for "$youtubeTitle"', e,
+          stackTrace);
 
       // Track failed request
       await _recordLidarrRequest(
@@ -253,20 +263,28 @@ class LidarrService extends _$LidarrService {
     var cleaned = artist;
 
     // Remove featuring/ft patterns with everything after
-    cleaned = cleaned.replaceAll(RegExp(r'\s*\(feat\..*\)', caseSensitive: false), '');
-    cleaned = cleaned.replaceAll(RegExp(r'\s*\(ft\..*\)', caseSensitive: false), '');
-    cleaned = cleaned.replaceAll(RegExp(r'\s*feat\..*', caseSensitive: false), '');
-    cleaned = cleaned.replaceAll(RegExp(r'\s*ft\..*', caseSensitive: false), '');
+    cleaned = cleaned.replaceAll(
+        RegExp(r'\s*\(feat\..*\)', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'\s*\(ft\..*\)', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'\s*feat\..*', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'\s*ft\..*', caseSensitive: false), '');
 
     // Remove featuring with comma separator
-    cleaned = cleaned.replaceAll(RegExp(r',\s*feat\..*', caseSensitive: false), '');
-    cleaned = cleaned.replaceAll(RegExp(r',\s*ft\..*', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r',\s*feat\..*', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r',\s*ft\..*', caseSensitive: false), '');
 
     // Remove "VEVO" suffix
-    cleaned = cleaned.replaceAll(RegExp(r'\s*-?\s*VEVO$', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'\s*-?\s*VEVO$', caseSensitive: false), '');
 
     // Remove " - Topic" suffix (YouTube auto-generated channels)
-    cleaned = cleaned.replaceAll(RegExp(r'\s*-\s*Topic$', caseSensitive: false), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'\s*-\s*Topic$', caseSensitive: false), '');
 
     // Clean up extra whitespace
     cleaned = cleaned.trim();
@@ -309,7 +327,8 @@ class LidarrService extends _$LidarrService {
       if (response.statusCode == 200) {
         final List<dynamic> json = jsonDecode(response.body);
         return json
-            .map((e) => LidarrQualityProfile.fromJson(e as Map<String, dynamic>))
+            .map(
+                (e) => LidarrQualityProfile.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw LidarrApiException(

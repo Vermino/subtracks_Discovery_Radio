@@ -291,7 +291,8 @@ class _ProgressBar extends HookConsumerWidget {
         children: [
           Flexible(
             flex: position,
-            child: Container(color: colors?.onDarkerBackground ?? base.onDarkerBackground),
+            child: Container(
+                color: colors?.onDarkerBackground ?? base.onDarkerBackground),
           ),
           Flexible(flex: duration - position, child: Container()),
         ],

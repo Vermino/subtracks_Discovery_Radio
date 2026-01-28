@@ -29,7 +29,8 @@ class AutoDownloadService extends _$AutoDownloadService {
   }
 
   SubtracksDatabase get _db => ref.read(databaseProvider);
-  DownloadService get _downloadService => ref.read(downloadServiceProvider.notifier);
+  DownloadService get _downloadService =>
+      ref.read(downloadServiceProvider.notifier);
 
   /// Check if downloads should happen now based on user preferences and network
   ///
@@ -50,7 +51,8 @@ class AutoDownloadService extends _$AutoDownloadService {
 
       default:
         // Unknown preference - default to manual only for safety
-        log.warning('Unknown download preference: $downloadPref, defaulting to manual only');
+        log.warning(
+            'Unknown download preference: $downloadPref, defaulting to manual only');
         return false;
     }
   }
@@ -90,7 +92,8 @@ class AutoDownloadService extends _$AutoDownloadService {
         log.info('Network conditions suitable, starting downloads immediately');
         await _downloadSongsNow(songs);
       } else {
-        log.info('Network conditions not suitable, queueing downloads for later');
+        log.info(
+            'Network conditions not suitable, queueing downloads for later');
         await queueDownloads(songs, sessionId: sessionId, reason: reason);
       }
     } catch (e, stackTrace) {
@@ -123,7 +126,9 @@ class AutoDownloadService extends _$AutoDownloadService {
         // The download service uses downloadAlbum which handles albums
         // For individual songs, we need to get their album first
         if (song.albumId != null) {
-          final album = await _db.albumById(song.sourceId, song.albumId!).getSingleOrNull();
+          final album = await _db
+              .albumById(song.sourceId, song.albumId!)
+              .getSingleOrNull();
           if (album != null) {
             // Check if we should download the whole album or just this song
             // For station downloads, we'll download just the song's album
@@ -145,7 +150,8 @@ class AutoDownloadService extends _$AutoDownloadService {
       }
     }
 
-    log.info('Download complete: $downloadedCount started, $skippedCount skipped');
+    log.info(
+        'Download complete: $downloadedCount started, $skippedCount skipped');
   }
 
   /// Queue downloads for later when network conditions improve
@@ -158,7 +164,8 @@ class AutoDownloadService extends _$AutoDownloadService {
     String reason = 'station_offline',
   }) async {
     try {
-      log.info('Queueing ${songs.length} songs for later download (reason: $reason)');
+      log.info(
+          'Queueing ${songs.length} songs for later download (reason: $reason)');
 
       // For now, we'll use a simple in-memory approach
       // In a production system, you might want to persist this to the database
@@ -167,7 +174,8 @@ class AutoDownloadService extends _$AutoDownloadService {
       // Store queued downloads for this session
       // When network changes to WiFi, we'll process the queue
 
-      log.info('Songs queued successfully. They will download when WiFi is available.');
+      log.info(
+          'Songs queued successfully. They will download when WiFi is available.');
 
       // TODO: Implement persistent queue using database table if needed
       // For Phase 2, we'll rely on the network monitoring to trigger
@@ -190,7 +198,8 @@ class AutoDownloadService extends _$AutoDownloadService {
         // Handle network change
         next.whenData((newMode) {
           if (previous?.value != null && previous?.value != newMode) {
-            log.info('Network changed: ${previous?.value?.value} -> ${newMode.value}');
+            log.info(
+                'Network changed: ${previous?.value?.value} -> ${newMode.value}');
             _onNetworkChanged(newMode);
           }
         });
@@ -207,7 +216,8 @@ class AutoDownloadService extends _$AutoDownloadService {
       final settings = ref.read(settingsServiceProvider);
       final downloadPref = settings.app.downloadPreference;
 
-      log.fine('Network changed to ${newMode.value} with preference $downloadPref');
+      log.fine(
+          'Network changed to ${newMode.value} with preference $downloadPref');
 
       // Check if downloads are now allowed
       if (shouldDownloadNow(downloadPref, newMode)) {
@@ -228,7 +238,8 @@ class AutoDownloadService extends _$AutoDownloadService {
       // TODO: Implement queue processing when persistent queue is added
       // For Phase 2, this is a placeholder
 
-      log.fine('Queue processing not yet implemented - will be added in future enhancement');
+      log.fine(
+          'Queue processing not yet implemented - will be added in future enhancement');
 
       // Future implementation:
       // 1. Get queued downloads from database

@@ -200,46 +200,45 @@ class InvidiousVideoResponse {
             format is Map<String, dynamic> &&
             YouTubeAudioFormat.isAudioOnly(format['type'] as String? ?? ''))
         .map((format) {
-          final map = Map<String, dynamic>.from(format as Map<String, dynamic>);
+      final map = Map<String, dynamic>.from(format as Map<String, dynamic>);
 
-          // Normalize numeric fields - handle both Invidious and yt-dlp formats
-          // audioSampleRate: yt-dlp returns int, Freezed expects String
-          if (map['audioSampleRate'] is int) {
-            map['audioSampleRate'] = map['audioSampleRate'].toString();
-          } else if (map['audioSampleRate'] is double) {
-            map['audioSampleRate'] = map['audioSampleRate'].toInt().toString();
-          }
+      // Normalize numeric fields - handle both Invidious and yt-dlp formats
+      // audioSampleRate: yt-dlp returns int, Freezed expects String
+      if (map['audioSampleRate'] is int) {
+        map['audioSampleRate'] = map['audioSampleRate'].toString();
+      } else if (map['audioSampleRate'] is double) {
+        map['audioSampleRate'] = map['audioSampleRate'].toInt().toString();
+      }
 
-          // bitrate: yt-dlp may return double, Freezed expects int
-          if (map['bitrate'] is String) {
-            map['bitrate'] = int.tryParse(map['bitrate'] as String);
-          } else if (map['bitrate'] is double) {
-            map['bitrate'] = (map['bitrate'] as double).toInt();
-          }
+      // bitrate: yt-dlp may return double, Freezed expects int
+      if (map['bitrate'] is String) {
+        map['bitrate'] = int.tryParse(map['bitrate'] as String);
+      } else if (map['bitrate'] is double) {
+        map['bitrate'] = (map['bitrate'] as double).toInt();
+      }
 
-          // clen (content length): handle String or numeric
-          if (map['clen'] is String) {
-            map['clen'] = int.tryParse(map['clen'] as String);
-          } else if (map['clen'] is double) {
-            map['clen'] = (map['clen'] as double).toInt();
-          }
+      // clen (content length): handle String or numeric
+      if (map['clen'] is String) {
+        map['clen'] = int.tryParse(map['clen'] as String);
+      } else if (map['clen'] is double) {
+        map['clen'] = (map['clen'] as double).toInt();
+      }
 
-          // audioQuality: yt-dlp returns double (e.g. 2.0), Freezed expects String
-          if (map['audioQuality'] is double || map['audioQuality'] is int) {
-            final quality = (map['audioQuality'] as num).toInt();
-            // Map numeric quality to standard quality strings
-            if (quality >= 3) {
-              map['audioQuality'] = 'AUDIO_QUALITY_HIGH';
-            } else if (quality >= 2) {
-              map['audioQuality'] = 'AUDIO_QUALITY_MEDIUM';
-            } else {
-              map['audioQuality'] = 'AUDIO_QUALITY_LOW';
-            }
-          }
+      // audioQuality: yt-dlp returns double (e.g. 2.0), Freezed expects String
+      if (map['audioQuality'] is double || map['audioQuality'] is int) {
+        final quality = (map['audioQuality'] as num).toInt();
+        // Map numeric quality to standard quality strings
+        if (quality >= 3) {
+          map['audioQuality'] = 'AUDIO_QUALITY_HIGH';
+        } else if (quality >= 2) {
+          map['audioQuality'] = 'AUDIO_QUALITY_MEDIUM';
+        } else {
+          map['audioQuality'] = 'AUDIO_QUALITY_LOW';
+        }
+      }
 
-          return YouTubeAudioFormat.fromJson(map);
-        })
-        .toList();
+      return YouTubeAudioFormat.fromJson(map);
+    }).toList();
 
     return YouTubeVideoInfo(
       videoId: videoId,

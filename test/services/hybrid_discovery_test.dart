@@ -142,7 +142,8 @@ void main() {
 
       expect(updated.youtubeEnabled, isTrue);
       expect(updated.youtubeRatio, equals(0.5));
-      expect(updated.youtubeQualityFilter, equals(YouTubeQualityFilter.moderate));
+      expect(
+          updated.youtubeQualityFilter, equals(YouTubeQualityFilter.moderate));
       expect(updated.youtubePreferOfficial, isFalse);
 
       // Original unchanged
@@ -314,7 +315,8 @@ void main() {
       // YouTube tracks should not be consecutive
       for (int i = 1; i < youtubeIndices.length; i++) {
         final gap = youtubeIndices[i] - youtubeIndices[i - 1];
-        expect(gap, greaterThan(1), reason: 'YouTube tracks should be distributed');
+        expect(gap, greaterThan(1),
+            reason: 'YouTube tracks should be distributed');
       }
     });
 
@@ -483,10 +485,12 @@ class _MockDiscoveryService {
 
     final blended = <HybridTrack>[];
     final totalTracks = localTracks.length;
-    final youtubeCount = (totalTracks * youtubeRatio).round().clamp(0, youtubeTracks.length);
+    final youtubeCount =
+        (totalTracks * youtubeRatio).round().clamp(0, youtubeTracks.length);
     final localCount = totalTracks - youtubeCount;
 
-    final localPerYoutube = youtubeCount > 0 ? (localCount / youtubeCount).round() : localCount;
+    final localPerYoutube =
+        youtubeCount > 0 ? (localCount / youtubeCount).round() : localCount;
 
     int localIndex = 0;
     int youtubeIndex = 0;

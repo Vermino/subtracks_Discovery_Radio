@@ -103,7 +103,8 @@ void main() {
       expect(secondGet!.id, equals('mem123'));
     });
 
-    test('should retrieve track from database cache when not in memory', () async {
+    test('should retrieve track from database cache when not in memory',
+        () async {
       final cacheService = container.read(youTubeCacheServiceProvider.notifier);
 
       final searchResult = YouTubeSearchResult(
@@ -141,7 +142,10 @@ void main() {
           audioCodec: 'opus',
           audioQuality: 'AUDIO_QUALITY_HIGH',
           cachedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          expiresAt: DateTime.now().add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
+          expiresAt: DateTime.now()
+                  .add(const Duration(hours: 6))
+                  .millisecondsSinceEpoch ~/
+              1000,
         ),
       );
 
@@ -175,7 +179,8 @@ void main() {
 
       // Access the track multiple times
       await cacheService.getTrack('access123');
-      await Future.delayed(const Duration(milliseconds: 100)); // Allow async update
+      await Future.delayed(
+          const Duration(milliseconds: 100)); // Allow async update
       await cacheService.getTrack('access123');
       await Future.delayed(const Duration(milliseconds: 100));
       await cacheService.getTrack('access123');
@@ -304,7 +309,8 @@ void main() {
           audioCodec: 'opus',
           audioQuality: 'AUDIO_QUALITY_MEDIUM',
           cachedAt: oldTime.millisecondsSinceEpoch ~/ 1000,
-          expiresAt: now.add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
+          expiresAt:
+              now.add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
           accessCount: const Value(0),
         ),
       );
@@ -321,7 +327,8 @@ void main() {
           audioCodec: 'opus',
           audioQuality: 'AUDIO_QUALITY_MEDIUM',
           cachedAt: recentTime.millisecondsSinceEpoch ~/ 1000,
-          expiresAt: now.add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
+          expiresAt:
+              now.add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
           accessCount: const Value(5),
           lastAccessed: Value(recentTime.millisecondsSinceEpoch ~/ 1000),
         ),
@@ -371,7 +378,8 @@ void main() {
           audioCodec: 'opus',
           audioQuality: 'AUDIO_QUALITY_HIGH',
           cachedAt: now.millisecondsSinceEpoch ~/ 1000,
-          expiresAt: now.add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
+          expiresAt:
+              now.add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
         ),
       );
 
@@ -451,7 +459,10 @@ void main() {
           audioCodec: 'opus',
           audioQuality: 'AUDIO_QUALITY_MEDIUM',
           cachedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          expiresAt: DateTime.now().add(const Duration(hours: 6)).millisecondsSinceEpoch ~/ 1000,
+          expiresAt: DateTime.now()
+                  .add(const Duration(hours: 6))
+                  .millisecondsSinceEpoch ~/
+              1000,
         ),
       );
 

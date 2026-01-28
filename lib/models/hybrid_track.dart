@@ -95,7 +95,8 @@ extension HybridTrackX on HybridTrack {
 
   /// Get thumbnail URL if available
   String? get thumbnailUrl => map(
-        local: (track) => null, // Could extract from Song if coverArt is available
+        local: (track) =>
+            null, // Could extract from Song if coverArt is available
         youtube: (track) => track.thumbnailUrl,
       );
 
@@ -158,7 +159,6 @@ class WeightedHybridTrack {
   });
 
   @override
-  String toString() =>
-      'WeightedHybridTrack(${track.title} by ${track.artist}, '
+  String toString() => 'WeightedHybridTrack(${track.title} by ${track.artist}, '
       'source: ${track.sourceType}, score: ${score.toStringAsFixed(3)})';
 }

@@ -20,6 +20,7 @@ class SongRatingButtons extends HookConsumerWidget {
   final Song song;
   final double size;
   final bool showBoth;
+
   /// Optional: Station ID for station-specific ratings (discovery stations)
   /// If provided, ratings will be saved to discovery_interactions table
   /// If null, ratings will be saved globally to songs.user_rating
@@ -50,8 +51,10 @@ class SongRatingButtons extends HookConsumerWidget {
         builder: (context, snapshot) {
           // Determine current rating from interactions
           final interactions = snapshot.data ?? [];
-          final hasThumbsUp = interactions.any((i) => i.interactionType == 'thumbs_up');
-          final hasThumbsDown = interactions.any((i) => i.interactionType == 'thumbs_down');
+          final hasThumbsUp =
+              interactions.any((i) => i.interactionType == 'thumbs_up');
+          final hasThumbsDown =
+              interactions.any((i) => i.interactionType == 'thumbs_down');
 
           if (showBoth) {
             return Row(
@@ -133,7 +136,8 @@ class SongRatingButtons extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleThumbsUp(RatingService ratingService, Song song, BuildContext context, WidgetRef ref) async {
+  Future<void> _handleThumbsUp(RatingService ratingService, Song song,
+      BuildContext context, WidgetRef ref) async {
     if (song.userRating == UserRating.thumbsUp) {
       await ratingService.clearSongRating(song);
     } else {
@@ -146,7 +150,8 @@ class SongRatingButtons extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleThumbsDown(RatingService ratingService, Song song, BuildContext context, WidgetRef ref) async {
+  Future<void> _handleThumbsDown(RatingService ratingService, Song song,
+      BuildContext context, WidgetRef ref) async {
     if (song.userRating == UserRating.thumbsDown) {
       await ratingService.clearSongRating(song);
     } else {
@@ -164,7 +169,8 @@ class SongRatingButtons extends HookConsumerWidget {
   }
 
   // Station-specific rating handlers
-  Future<void> _handleStationThumbsUp(WidgetRef ref, Song song, bool hasThumbsUp) async {
+  Future<void> _handleStationThumbsUp(
+      WidgetRef ref, Song song, bool hasThumbsUp) async {
     final db = ref.read(databaseProvider);
 
     if (hasThumbsUp) {
@@ -190,7 +196,8 @@ class SongRatingButtons extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleStationThumbsDown(WidgetRef ref, Song song, bool hasThumbsDown) async {
+  Future<void> _handleStationThumbsDown(
+      WidgetRef ref, Song song, bool hasThumbsDown) async {
     final db = ref.read(databaseProvider);
 
     if (hasThumbsDown) {
@@ -220,7 +227,8 @@ class SongRatingButtons extends HookConsumerWidget {
     }
   }
 
-  Future<void> _handleStationToggle(WidgetRef ref, Song song, UserRating currentRating) async {
+  Future<void> _handleStationToggle(
+      WidgetRef ref, Song song, UserRating currentRating) async {
     final db = ref.read(databaseProvider);
 
     // Cycle: unrated -> thumbsUp -> thumbsDown -> unrated
@@ -279,7 +287,8 @@ class SongRatingButtons extends HookConsumerWidget {
     final db = ref.read(databaseProvider);
     final existingRequest = await db.getLidarrRequestForVideo(videoId);
     if (existingRequest != null) {
-      log.info('Lidarr: Already requested download for video $videoId (status: ${existingRequest.status})');
+      log.info(
+          'Lidarr: Already requested download for video $videoId (status: ${existingRequest.status})');
       return;
     }
 
@@ -289,32 +298,31 @@ class SongRatingButtons extends HookConsumerWidget {
     // Fire and forget - don't block the UI
     lidarrService
         .requestDownload(
-          youtubeTitle: song.title,
-          youtubeArtist: song.artist ?? 'Unknown Artist',
-          videoId: videoId,
-        )
+      youtubeTitle: song.title,
+      youtubeArtist: song.artist ?? 'Unknown Artist',
+      videoId: videoId,
+    )
         .then((result) {
-          // Show feedback to user based on result
-          result.when(
-            success: (artistName, foreignArtistId, message) {
-              _showSnackbar(ref, 'Added $artistName to Lidarr for download');
-            },
-            alreadyExists: (artistName, message) {
-              _showSnackbar(ref, '$artistName is already in your library');
-            },
-            notFound: (message) {
-              log.warning('Lidarr: $message');
-              // Don't show error snackbar for not found - it's not critical
-            },
-            error: (message, error) {
-              log.severe('Lidarr: Error requesting download - $message');
-              // Don't show error snackbar - we don't want to interrupt the user experience
-            },
-          );
-        })
-        .catchError((e, stackTrace) {
-          log.severe('Lidarr: Unexpected error triggering download', e, stackTrace);
-        });
+      // Show feedback to user based on result
+      result.when(
+        success: (artistName, foreignArtistId, message) {
+          _showSnackbar(ref, 'Added $artistName to Lidarr for download');
+        },
+        alreadyExists: (artistName, message) {
+          _showSnackbar(ref, '$artistName is already in your library');
+        },
+        notFound: (message) {
+          log.warning('Lidarr: $message');
+          // Don't show error snackbar for not found - it's not critical
+        },
+        error: (message, error) {
+          log.severe('Lidarr: Error requesting download - $message');
+          // Don't show error snackbar - we don't want to interrupt the user experience
+        },
+      );
+    }).catchError((e, stackTrace) {
+      log.severe('Lidarr: Unexpected error triggering download', e, stackTrace);
+    });
   }
 
   /// Show a snackbar message to the user
@@ -338,7 +346,8 @@ class SongRatingButtons extends HookConsumerWidget {
   }
 
   /// Show feedback when auto-download is triggered by thumbs up
-  Future<void> _showAutoDownloadFeedback(BuildContext context, WidgetRef ref, Song song) async {
+  Future<void> _showAutoDownloadFeedback(
+      BuildContext context, WidgetRef ref, Song song) async {
     try {
       final settings = ref.read(settingsServiceProvider);
 
@@ -360,7 +369,8 @@ class SongRatingButtons extends HookConsumerWidget {
       if (downloadPref == 'manual_only') {
         // Auto-download is enabled but download preference is manual - shouldn't happen but handle it
         return;
-      } else if (downloadPref == 'wifi_only' && networkMode == NetworkMode.mobile) {
+      } else if (downloadPref == 'wifi_only' &&
+          networkMode == NetworkMode.mobile) {
         message = 'Download queued for WiFi';
       } else {
         message = 'Downloading...';
@@ -381,7 +391,8 @@ class SongRatingButtons extends HookConsumerWidget {
   }
 
   /// Show feedback when auto-delete is triggered by thumbs down
-  Future<void> _showAutoDeleteFeedback(BuildContext context, WidgetRef ref, Song song) async {
+  Future<void> _showAutoDeleteFeedback(
+      BuildContext context, WidgetRef ref, Song song) async {
     try {
       final settings = ref.read(settingsServiceProvider);
 

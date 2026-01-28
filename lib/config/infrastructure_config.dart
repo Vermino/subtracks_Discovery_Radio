@@ -24,34 +24,34 @@ class InfrastructureConfig {
 
   // Headers for API calls
   static Map<String, String> get lidarrHeaders => {
-    'X-Api-Key': lidarrApiKey,
-    'Content-Type': 'application/json',
-  };
+        'X-Api-Key': lidarrApiKey,
+        'Content-Type': 'application/json',
+      };
 
   // Validation methods
   static bool get isConfigurationComplete {
     return navidromeBaseUrl.isNotEmpty &&
-           navidromeUsername.isNotEmpty &&
-           navidromePassword.isNotEmpty &&
-           lidarrBaseUrl.isNotEmpty &&
-           lidarrApiKey.isNotEmpty;
+        navidromeUsername.isNotEmpty &&
+        navidromePassword.isNotEmpty &&
+        lidarrBaseUrl.isNotEmpty &&
+        lidarrApiKey.isNotEmpty;
   }
 
   static Map<String, dynamic> get configSummary => {
-    'navidrome': {
-      'url': navidromeBaseUrl,
-      'username': navidromeUsername,
-      'configured': navidromeUsername.isNotEmpty,
-    },
-    'lidarr': {
-      'url': lidarrBaseUrl,
-      'api_key_set': lidarrApiKey.isNotEmpty,
-      'configured': lidarrApiKey.isNotEmpty,
-    },
-    'discovery': {
-      'yt_dlp_available': true,
-      'cache_limit': maxCachedDiscoveryTracks,
-      'discovery_ratio': defaultDiscoveryRatio,
-    }
-  };
+        'navidrome': {
+          'url': navidromeBaseUrl,
+          'username': navidromeUsername,
+          'configured': navidromeUsername.isNotEmpty,
+        },
+        'lidarr': {
+          'url': lidarrBaseUrl,
+          'api_key_set': lidarrApiKey.isNotEmpty,
+          'configured': lidarrApiKey.isNotEmpty,
+        },
+        'discovery': {
+          'yt_dlp_available': true,
+          'cache_limit': maxCachedDiscoveryTracks,
+          'discovery_ratio': defaultDiscoveryRatio,
+        }
+      };
 }

@@ -246,10 +246,10 @@ class _TrackInfo extends HookConsumerWidget {
         // Global rating counter badges
         if (item?.id != null)
           ref.watch(songProvider(item!.id)).when(
-            data: (song) => _RatingCounterBadges(song: song),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          )
+                data: (song) => _RatingCounterBadges(song: song),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              )
         else
           const SizedBox.shrink(),
       ],
@@ -308,7 +308,8 @@ class _Progress extends HookConsumerWidget {
     final changing = useState(false);
 
     // Use onSurface for better visibility on dark backgrounds
-    final sliderColor = colors?.theme.colorScheme.onSurface ?? base.theme.colorScheme.onSurface;
+    final sliderColor =
+        colors?.theme.colorScheme.onSurface ?? base.theme.colorScheme.onSurface;
 
     return Column(
       children: [
@@ -442,8 +443,8 @@ class _Controls extends HookConsumerWidget {
     final audio = ref.watch(audioControlProvider);
 
     // Use a bright color that contrasts well with dark backgrounds
-    final iconColor = colors?.theme.colorScheme.onSurface ??
-                     base.theme.colorScheme.onSurface;
+    final iconColor =
+        colors?.theme.colorScheme.onSurface ?? base.theme.colorScheme.onSurface;
 
     return IconTheme(
       data: IconThemeData(color: iconColor),
@@ -542,7 +543,8 @@ class _SaveStationButton extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Give this station a name to save it for later playback:'),
+            const Text(
+                'Give this station a name to save it for later playback:'),
             const SizedBox(height: 16),
             TextField(
               controller: textController,
@@ -580,7 +582,8 @@ class _SaveStationButton extends HookConsumerWidget {
     );
   }
 
-  Future<void> _saveStation(BuildContext context, WidgetRef ref, String stationName) async {
+  Future<void> _saveStation(
+      BuildContext context, WidgetRef ref, String stationName) async {
     try {
       final audioControl = ref.read(audioControlProvider);
       await audioControl.saveCurrentDiscoveryStation(stationName);
@@ -642,21 +645,25 @@ class _DiscoveryInfoButton extends HookConsumerWidget {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   ref.watch(songProvider(seedId)).when(
-                    data: (song) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(song.title),
-                        Text(
-                          song.artist ?? 'Unknown Artist',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                          ),
+                        data: (song) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(song.title),
+                            Text(
+                              song.artist ?? 'Unknown Artist',
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withOpacity(0.7),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    loading: () => const Text('Loading...'),
-                    error: (_, __) => const Text('Could not load seed song'),
-                  ),
+                        loading: () => const Text('Loading...'),
+                        error: (_, __) =>
+                            const Text('Could not load seed song'),
+                      ),
                 ],
                 const SizedBox(height: 16),
                 Container(
@@ -775,7 +782,8 @@ class _RatingButtonsForCurrentTrack extends HookConsumerWidget {
         artist: mediaItem.artist,
         album: mediaItem.album,
         duration: mediaItem.duration,
-        userRating: UserRating.unrated, // YouTube tracks don't have persisted ratings
+        userRating:
+            UserRating.unrated, // YouTube tracks don't have persisted ratings
       );
 
       // Use station-specific ratings if playing discovery station
@@ -792,22 +800,24 @@ class _RatingButtonsForCurrentTrack extends HookConsumerWidget {
     } else {
       // Local track - use the song provider
       return ref.watch(songProvider(mediaItem.id)).when(
-        data: (song) {
-          // Use station-specific ratings if playing discovery station
-          final stationId = itemData?.contextType == QueueContextType.discovery
-              ? audioControl.currentDiscoverySessionId
-              : null;
+            data: (song) {
+              // Use station-specific ratings if playing discovery station
+              final stationId =
+                  itemData?.contextType == QueueContextType.discovery
+                      ? audioControl.currentDiscoverySessionId
+                      : null;
 
-          return SongRatingButtons(
-            song: song,
-            size: 32,
-            showBoth: true, // Show both thumbs up and thumbs down
-            stationId: stationId, // Pass station ID for station-specific ratings
+              return SongRatingButtons(
+                song: song,
+                size: 32,
+                showBoth: true, // Show both thumbs up and thumbs down
+                stationId:
+                    stationId, // Pass station ID for station-specific ratings
+              );
+            },
+            loading: () => const SizedBox(width: 80, height: 32),
+            error: (_, __) => const SizedBox(width: 80, height: 32),
           );
-        },
-        loading: () => const SizedBox(width: 80, height: 32),
-        error: (_, __) => const SizedBox(width: 80, height: 32),
-      );
     }
   }
 }
@@ -829,7 +839,8 @@ class _RatingCounterBadges extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 8, right: 88), // Offset to align under track info
+      padding: const EdgeInsets.only(
+          top: 8, right: 88), // Offset to align under track info
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -839,8 +850,7 @@ class _RatingCounterBadges extends StatelessWidget {
               count: song.thumbsUpCount,
               color: theme.colorScheme.primary,
             ),
-          if (hasThumbsUp && hasThumbsDown)
-            const SizedBox(width: 12),
+          if (hasThumbsUp && hasThumbsDown) const SizedBox(width: 12),
           if (hasThumbsDown)
             _CounterBadge(
               icon: Icons.thumb_down,
