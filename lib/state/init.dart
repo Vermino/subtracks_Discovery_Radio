@@ -20,7 +20,7 @@ part 'init.g.dart';
 
 @Riverpod(keepAlive: true)
 FutureOr<Map<String, String>> env(EnvRef ref) async {
-  await dotenv.load();
+  await dotenv.load(isOptional: true);
   return dotenv.env;
 }
 
