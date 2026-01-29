@@ -69,7 +69,7 @@ void main() {
           artist: 'Test Artist',
         );
 
-        const weightedSong = WeightedSong(
+        final weightedSong = WeightedSong(
           song: song,
           score: 0.85,
           scoreBreakdown: {
@@ -92,7 +92,7 @@ void main() {
           artist: 'Test Artist',
         );
 
-        const weightedSong = WeightedSong(
+        final weightedSong = WeightedSong(
           song: song,
           score: 0.85,
           scoreBreakdown: {},
