@@ -1,15 +1,17 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Infrastructure configuration for Subtracks homelab integration
 /// Contains all external service endpoints and credentials for development
 class InfrastructureConfig {
   // Navidrome (Music Streaming Server)
-  static const String navidromeBaseUrl = 'http://192.168.0.214:4533';
-  static const String navidromeUsername = 'Vermino';
-  static const String navidromePassword = 'Jessejames2004@';
+  static String get navidromeBaseUrl => dotenv.env['NAVIDROME_URL'] ?? '';
+  static String get navidromeUsername => dotenv.env['NAVIDROME_USERNAME'] ?? '';
+  static String get navidromePassword => dotenv.env['NAVIDROME_PASSWORD'] ?? '';
   static const String navidromeApiPath = '/rest';
 
   // Lidarr (Music Collection Manager)
-  static const String lidarrBaseUrl = 'https://lidarr.404oak.com';
-  static const String lidarrApiKey = '97559dd2947143288c213cdc170f3444';
+  static String get lidarrBaseUrl => dotenv.env['LIDARR_URL'] ?? '';
+  static String get lidarrApiKey => dotenv.env['LIDARR_API_KEY'] ?? '';
   static const String lidarrApiPath = '/api/v1';
 
   // Discovery Configuration
