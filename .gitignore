@@ -50,4 +50,3 @@ commandlinetools-win.zip
 # Sensitive configuration files
 INFRASTRUCTURE.md
 CLAUDE.md
-lib/config/infrastructure_config.dart
