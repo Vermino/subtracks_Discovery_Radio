@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../cache/image_cache.dart';
+import '../l10n/app_localizations.dart';
 import '../models/support.dart';
 import '../services/audio_service.dart';
 import '../state/audio.dart';
@@ -231,6 +232,7 @@ class PlayPauseButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playing = ref.watch(playingProvider);
     final state = ref.watch(processingStateProvider);
+    final l = AppLocalizations.of(context);
 
     // Use onSurface for better visibility on dark backgrounds
     final iconColor = Theme.of(context).colorScheme.onSurface;
@@ -268,6 +270,7 @@ class PlayPauseButton extends HookConsumerWidget {
           ref.read(audioControlProvider).play();
         }
       },
+      tooltip: playing ? l.controlsPause : l.controlsPlay,
       icon: icon,
       color: iconColor,
     );

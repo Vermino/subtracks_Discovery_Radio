@@ -186,6 +186,18 @@ abstract class AppLocalizations {
   /// **'Shuffle'**
   String get controlsShuffle;
 
+  /// No description provided for @controlsPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get controlsPlay => 'Play';
+
+  /// No description provided for @controlsPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get controlsPause => 'Pause';
+
   /// No description provided for @messagesNothingHere.
   ///
   /// In en, this message translates to:
