@@ -215,6 +215,8 @@ CREATE TABLE songs(
 CREATE INDEX songs_source_id_album_id_idx ON songs (source_id, album_id);
 CREATE INDEX songs_source_id_artist_id_idx ON songs (source_id, artist_id);
 CREATE INDEX songs_download_task_id_idx ON songs (download_task_id);
+CREATE INDEX songs_source_id_genre_idx ON songs (source_id, genre);
+CREATE INDEX songs_source_id_user_rating_updated_idx ON songs (source_id, user_rating, updated);
 
 CREATE VIRTUAL TABLE songs_fts USING fts5(source_id, title, content=songs, content_rowid=rowid);
 
