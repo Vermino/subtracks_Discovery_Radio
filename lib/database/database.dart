@@ -1199,25 +1199,36 @@ JoinedSelectStatement<T, R> listQueryJoined<T extends HasResultSet, R>(
   return query;
 }
 
-CustomExpression<T> buildFilter<T extends Object>(
+Expression<T> buildFilter<T extends Object>(
   FilterWith filter,
 ) {
   return filter.when(
-    equals: (column, value, invert) => CustomExpression<T>(
-      '$column ${invert ? '<>' : '='} \'$value\'',
-    ),
-    greaterThan: (column, value, orEquals) => CustomExpression<T>(
-      '$column ${orEquals ? '>=' : '>'} $value',
-    ),
+    equals: (column, value, invert) {
+      final expr = CustomExpression<String>(column).equals(value);
+      return (invert ? expr.not() : expr) as Expression<T>;
+    },
+    greaterThan: (column, value, orEquals) {
+      final expr = CustomExpression<String>(column);
+      return (orEquals
+              ? expr.isBiggerOrEqualValue(value)
+              : expr.isBiggerThanValue(value))
+          as Expression<T>;
+    },
     isNull: (column, invert) => CustomExpression<T>(
       '$column ${invert ? 'IS NOT' : 'IS'} NULL',
     ),
-    betweenInt: (column, from, to) => CustomExpression<T>(
-      '$column BETWEEN $from AND $to',
-    ),
-    isIn: (column, invert, values) => CustomExpression<T>(
-      '$column ${invert ? 'NOT IN' : 'IN'} (${values.join(',')})',
-    ),
+    betweenInt: (column, from, to) {
+      return CustomExpression<int>(column).isBetweenValues(from, to)
+          as Expression<T>;
+    },
+    isIn: (column, invert, values) {
+      if (values.isEmpty) {
+        // Handle empty list case explicitly to avoid errors in some DBs or Drift versions
+        return CustomExpression<T>(invert ? '1=1' : '1=0');
+      }
+      final expr = CustomExpression<String>(column).isIn(values);
+      return (invert ? expr.not() : expr) as Expression<T>;
+    },
   );
 }
 
