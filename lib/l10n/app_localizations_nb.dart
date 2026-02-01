@@ -15,6 +15,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get actionsDelete => 'Delete';
 
   @override
+  String get actionsDiscoveryRadio => 'Discovery radio';
+
+  @override
   String get actionsDownload => 'Download';
 
   @override
@@ -24,7 +27,19 @@ class AppLocalizationsNb extends AppLocalizations {
   String get actionsDownloadDelete => 'Delete downloaded';
 
   @override
+  String get actionsLoading => 'Loading';
+
+  @override
   String get actionsOk => 'OK';
+
+  @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
+  String get actionsRadioPlay => 'Start radio';
 
   @override
   String get actionsStar => 'Stjernemerk';

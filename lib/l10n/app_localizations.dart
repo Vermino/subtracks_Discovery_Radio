@@ -144,6 +144,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get actionsDelete;
 
+  /// No description provided for @actionsDiscoveryRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery radio'**
+  String get actionsDiscoveryRadio;
+
   /// No description provided for @actionsDownload.
   ///
   /// In en, this message translates to:
@@ -162,11 +168,35 @@ abstract class AppLocalizations {
   /// **'Delete downloaded'**
   String get actionsDownloadDelete;
 
+  /// No description provided for @actionsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get actionsLoading;
+
   /// No description provided for @actionsOk.
   ///
   /// In en, this message translates to:
   /// **'OK'**
   String get actionsOk;
+
+  /// No description provided for @actionsPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get actionsPause;
+
+  /// No description provided for @actionsPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get actionsPlay;
+
+  /// No description provided for @actionsRadioPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Start radio'**
+  String get actionsRadioPlay;
 
   /// No description provided for @actionsStar.
   ///
