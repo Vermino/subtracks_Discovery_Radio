@@ -15,6 +15,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get actionsDelete => 'Удалить';
 
   @override
+  String get actionsDiscoveryRadio => 'Discovery radio';
+
+  @override
   String get actionsDownload => 'Скачать';
 
   @override
@@ -24,7 +27,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get actionsDownloadDelete => 'Удалить загруженное';
 
   @override
+  String get actionsLoading => 'Loading';
+
+  @override
   String get actionsOk => 'ОК';
+
+  @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
+  String get actionsRadioPlay => 'Start radio';
 
   @override
   String get actionsStar => 'Избранное';

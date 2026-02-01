@@ -15,6 +15,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get actionsDelete => '删除';
 
   @override
+  String get actionsDiscoveryRadio => 'Discovery radio';
+
+  @override
   String get actionsDownload => '下载';
 
   @override
@@ -24,7 +27,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get actionsDownloadDelete => '删除已下载';
 
   @override
+  String get actionsLoading => 'Loading';
+
+  @override
   String get actionsOk => '确定';
+
+  @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
+  String get actionsRadioPlay => 'Start radio';
 
   @override
   String get actionsStar => '收藏';

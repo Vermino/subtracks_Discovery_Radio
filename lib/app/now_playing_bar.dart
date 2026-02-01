@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 
 import '../cache/image_cache.dart';
 import '../models/support.dart';
@@ -231,13 +232,16 @@ class PlayPauseButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playing = ref.watch(playingProvider);
     final state = ref.watch(processingStateProvider);
+    final l = AppLocalizations.of(context);
 
     // Use onSurface for better visibility on dark backgrounds
     final iconColor = Theme.of(context).colorScheme.onSurface;
 
     Widget icon;
+    String tooltip;
     if (state == AudioProcessingState.loading ||
         state == AudioProcessingState.buffering) {
+      tooltip = l.actionsLoading;
       icon = Stack(
         alignment: Alignment.center,
         children: [
@@ -253,8 +257,10 @@ class PlayPauseButton extends HookConsumerWidget {
         ],
       );
     } else if (playing) {
+      tooltip = l.actionsPause;
       icon = const Icon(Icons.pause_circle_rounded);
     } else {
+      tooltip = l.actionsPlay;
       icon = const Icon(Icons.play_circle_rounded);
     }
 
@@ -269,6 +275,7 @@ class PlayPauseButton extends HookConsumerWidget {
         }
       },
       icon: icon,
+      tooltip: tooltip,
       color: iconColor,
     );
   }

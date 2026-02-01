@@ -15,6 +15,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionsDelete => 'Smazat';
 
   @override
+  String get actionsDiscoveryRadio => 'Discovery radio';
+
+  @override
   String get actionsDownload => 'Stáhnout';
 
   @override
@@ -24,7 +27,19 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionsDownloadDelete => 'Smazat stažené';
 
   @override
+  String get actionsLoading => 'Loading';
+
+  @override
   String get actionsOk => 'OK';
+
+  @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
+  String get actionsRadioPlay => 'Start radio';
 
   @override
   String get actionsStar => 'Ohodnotit';
