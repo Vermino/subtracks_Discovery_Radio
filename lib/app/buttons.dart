@@ -16,7 +16,7 @@ class ShuffleFab extends StatelessWidget {
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
-      tooltip: l.actionsCancel,
+      tooltip: l.controlsShuffle,
       child: const Icon(Icons.shuffle_rounded),
     );
   }

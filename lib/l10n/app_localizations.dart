@@ -138,6 +138,18 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get actionsCancel;
 
+  /// No description provided for @actionsPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get actionsPause;
+
+  /// No description provided for @actionsPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get actionsPlay;
+
   /// No description provided for @actionsDelete.
   ///
   /// In en, this message translates to:

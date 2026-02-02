@@ -12,6 +12,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get actionsCancel => 'Отменить';
 
   @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
   String get actionsDelete => 'Удалить';
 
   @override

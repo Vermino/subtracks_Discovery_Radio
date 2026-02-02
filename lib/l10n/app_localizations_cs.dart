@@ -12,6 +12,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get actionsCancel => 'Zrušit';
 
   @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
   String get actionsDelete => 'Smazat';
 
   @override

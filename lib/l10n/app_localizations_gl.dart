@@ -12,6 +12,12 @@ class AppLocalizationsGl extends AppLocalizations {
   String get actionsCancel => 'Cancelar';
 
   @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
   String get actionsDelete => 'Eliminar';
 
   @override

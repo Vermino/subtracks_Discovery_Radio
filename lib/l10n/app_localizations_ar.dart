@@ -12,6 +12,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get actionsCancel => 'Cancel';
 
   @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
   String get actionsDelete => 'Delete';
 
   @override
