@@ -83,7 +83,6 @@ CREATE TABLE artists(
   PRIMARY KEY (source_id, id),
   FOREIGN KEY (source_id) REFERENCES sources (id) ON DELETE CASCADE
 ) WITH Artist;
-CREATE INDEX artists_source_id ON artists (source_id);
 
 CREATE VIRTUAL TABLE artists_fts USING fts5(source_id, name, content=artists, content_rowid=rowid);
 
@@ -123,7 +122,6 @@ CREATE TABLE albums(
   PRIMARY KEY (source_id, id),
   FOREIGN KEY (source_id) REFERENCES sources (id) ON DELETE CASCADE
 ) WITH Album;
-CREATE INDEX albums_source_id ON albums (source_id);
 CREATE INDEX albums_source_id_artist_id_idx ON albums (source_id, artist_id);
 
 CREATE VIRTUAL TABLE albums_fts USING fts5(source_id, name, content=albums, content_rowid=rowid);
@@ -157,7 +155,6 @@ CREATE TABLE playlists(
   PRIMARY KEY (source_id, id),
   FOREIGN KEY (source_id) REFERENCES sources (id) ON DELETE CASCADE
 ) WITH Playlist;
-CREATE INDEX playlists_source_id ON playlists (source_id);
 CREATE TABLE playlist_songs(
   source_id INT NOT NULL,
   playlist_id TEXT NOT NULL,
@@ -167,7 +164,6 @@ CREATE TABLE playlist_songs(
   PRIMARY KEY (source_id, playlist_id, position),
   FOREIGN KEY (source_id) REFERENCES sources (id) ON DELETE CASCADE
 );
-CREATE INDEX playlist_songs_source_id_playlist_id_idx ON playlist_songs (source_id, playlist_id);
 CREATE INDEX playlist_songs_source_id_song_id_idx ON playlist_songs (source_id, song_id);
 
 CREATE VIRTUAL TABLE playlists_fts USING fts5(source_id, name, content=playlists, content_rowid=rowid);
@@ -215,6 +211,8 @@ CREATE TABLE songs(
 CREATE INDEX songs_source_id_album_id_idx ON songs (source_id, album_id);
 CREATE INDEX songs_source_id_artist_id_idx ON songs (source_id, artist_id);
 CREATE INDEX songs_download_task_id_idx ON songs (download_task_id);
+CREATE INDEX songs_source_id_genre_idx ON songs (source_id, genre);
+CREATE INDEX songs_source_id_user_rating_updated_idx ON songs (source_id, user_rating, updated);
 
 CREATE VIRTUAL TABLE songs_fts USING fts5(source_id, title, content=songs, content_rowid=rowid);
 
