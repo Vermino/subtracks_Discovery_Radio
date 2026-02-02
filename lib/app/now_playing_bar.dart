@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:subtracks/l10n/app_localizations.dart';
 
 import '../cache/image_cache.dart';
 import '../models/support.dart';
@@ -234,6 +235,7 @@ class PlayPauseButton extends HookConsumerWidget {
 
     // Use onSurface for better visibility on dark backgrounds
     final iconColor = Theme.of(context).colorScheme.onSurface;
+    final l = AppLocalizations.of(context);
 
     Widget icon;
     if (state == AudioProcessingState.loading ||
@@ -261,6 +263,7 @@ class PlayPauseButton extends HookConsumerWidget {
     return IconButton(
       iconSize: size,
       padding: EdgeInsets.zero,
+      tooltip: playing ? l.actionsPause : l.actionsPlay,
       onPressed: () {
         if (playing) {
           ref.read(audioControlProvider).pause();

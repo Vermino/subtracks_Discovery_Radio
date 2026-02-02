@@ -1,6 +1,8 @@
 {
   "ar": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -34,6 +36,8 @@
 
   "ca": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -66,6 +70,8 @@
   ],
 
   "cs": [
+    "actionsPause",
+    "actionsPlay",
     "resourcesAlbumCount",
     "resourcesArtistCount",
     "resourcesPlaylistCount",
@@ -85,6 +91,8 @@
 
   "da": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -127,11 +135,15 @@
   ],
 
   "de": [
+    "actionsPause",
+    "actionsPlay",
     "settingsAboutShareLogs",
     "settingsAboutChooseLog"
   ],
 
   "es": [
+    "actionsPause",
+    "actionsPlay",
     "resourcesAlbumCount",
     "resourcesArtistCount",
     "resourcesFilterAlbum",
@@ -159,6 +171,8 @@
 
   "fr": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -190,8 +204,15 @@
     "settingsServersFieldsName"
   ],
 
+  "gl": [
+    "actionsPause",
+    "actionsPlay"
+  ],
+
   "it": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -225,6 +246,8 @@
 
   "ja": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -303,6 +326,8 @@
 
   "nb": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -336,6 +361,8 @@
 
   "pa": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -369,6 +396,8 @@
 
   "pl": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -401,6 +430,8 @@
   ],
 
   "pt": [
+    "actionsPause",
+    "actionsPlay",
     "resourcesAlbumCount",
     "resourcesArtistCount",
     "resourcesFilterOwner",
@@ -416,8 +447,15 @@
     "settingsServersFieldsName"
   ],
 
+  "ru": [
+    "actionsPause",
+    "actionsPlay"
+  ],
+
   "tr": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -451,6 +489,8 @@
 
   "vi": [
     "actionsCancel",
+    "actionsPause",
+    "actionsPlay",
     "actionsDelete",
     "actionsDownload",
     "actionsDownloadCancel",
@@ -483,6 +523,8 @@
   ],
 
   "zh": [
+    "actionsPause",
+    "actionsPlay",
     "controlsShuffle",
     "resourcesAlbumCount",
     "resourcesArtistCount",

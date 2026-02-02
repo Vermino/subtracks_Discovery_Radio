@@ -12,6 +12,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get actionsCancel => '取消';
 
   @override
+  String get actionsPause => 'Pause';
+
+  @override
+  String get actionsPlay => 'Play';
+
+  @override
   String get actionsDelete => '删除';
 
   @override

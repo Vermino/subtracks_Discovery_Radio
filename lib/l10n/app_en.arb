@@ -1,6 +1,10 @@
 {
     "actionsCancel": "Cancel",
     "@actionsCancel": {},
+    "actionsPause": "Pause",
+    "@actionsPause": {},
+    "actionsPlay": "Play",
+    "@actionsPlay": {},
     "actionsDelete": "Delete",
     "@actionsDelete": {},
     "actionsDownload": "Download",
