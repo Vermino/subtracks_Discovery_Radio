@@ -1,0 +1,3 @@
+## 2024-05-23 - FAB Tooltips and Testing Environment
+**Learning:** Found that commonly used Floating Action Buttons (`ShuffleFab`, `RadioPlayFab`) were missing accessible tooltips or using incorrect ones. Also discovered that `flutter_test` was missing from `dev_dependencies` in `pubspec.yaml`, preventing unit tests from running without explicit addition.
+**Action:** Always verify `dev_dependencies` include `flutter_test`. When adding tooltips, ensure they are localized using the repository's manual localization patch pattern (adding concrete getters to `AppLocalizations`) if generation is unavailable.

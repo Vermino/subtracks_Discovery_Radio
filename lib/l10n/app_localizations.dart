@@ -695,6 +695,10 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Force plaintext password'**
   String get settingsServersOptionsForcePlaintextPasswordTitle;
+
+  // New strings added by Palette
+  String get controlsRadio => 'Start Radio';
+  String get controlsDiscoveryRadio => 'Discovery Radio';
 }
 
 class _AppLocalizationsDelegate
