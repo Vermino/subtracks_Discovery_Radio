@@ -38,7 +38,7 @@ class SubsonicClient {
   SubsonicClient(this.opt, this.http);
 
   String _salt() {
-    final r = Random();
+    final r = Random.secure();
     return String.fromCharCodes(
       List.generate(4, (index) => r.nextInt(92) + 33),
     );
