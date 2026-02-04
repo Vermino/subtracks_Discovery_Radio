@@ -8,6 +8,7 @@ import '../models/support.dart';
 import '../services/audio_service.dart';
 import '../state/audio.dart';
 import '../state/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'app_router.dart';
 import 'images.dart';
 import 'pages/now_playing_page.dart';
@@ -231,6 +232,7 @@ class PlayPauseButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playing = ref.watch(playingProvider);
     final state = ref.watch(processingStateProvider);
+    final l = AppLocalizations.of(context);
 
     // Use onSurface for better visibility on dark backgrounds
     final iconColor = Theme.of(context).colorScheme.onSurface;
@@ -261,6 +263,7 @@ class PlayPauseButton extends HookConsumerWidget {
     return IconButton(
       iconSize: size,
       padding: EdgeInsets.zero,
+      tooltip: playing ? l.controlsPause : l.controlsPlay,
       onPressed: () {
         if (playing) {
           ref.read(audioControlProvider).pause();

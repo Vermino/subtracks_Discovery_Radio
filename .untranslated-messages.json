@@ -29,7 +29,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "ca": [
@@ -62,7 +73,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "cs": [
@@ -80,7 +102,18 @@
     "settingsNetworkOptionsMinBufferTitle",
     "settingsNetworkOptionsOfflineMode",
     "settingsNetworkOptionsOfflineModeOff",
-    "settingsNetworkOptionsOfflineModeOn"
+    "settingsNetworkOptionsOfflineModeOn",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "da": [
@@ -123,12 +156,34 @@
     "settingsServersFieldsName",
     "settingsServersOptionsForcePlaintextPasswordDescriptionOff",
     "settingsServersOptionsForcePlaintextPasswordDescriptionOn",
-    "settingsServersOptionsForcePlaintextPasswordTitle"
+    "settingsServersOptionsForcePlaintextPasswordTitle",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "de": [
     "settingsAboutShareLogs",
-    "settingsAboutChooseLog"
+    "settingsAboutChooseLog",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "es": [
@@ -154,7 +209,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "fr": [
@@ -187,7 +253,32 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
+  ],
+
+  "gl": [
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "it": [
@@ -220,7 +311,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "ja": [
@@ -298,7 +400,18 @@
     "settingsServersMessagesConnectionOk",
     "settingsServersOptionsForcePlaintextPasswordDescriptionOff",
     "settingsServersOptionsForcePlaintextPasswordDescriptionOn",
-    "settingsServersOptionsForcePlaintextPasswordTitle"
+    "settingsServersOptionsForcePlaintextPasswordTitle",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "nb": [
@@ -331,7 +444,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "pa": [
@@ -364,7 +488,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "pl": [
@@ -397,7 +532,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "pt": [
@@ -413,7 +559,32 @@
     "settingsAboutShareLogs",
     "settingsAboutChooseLog",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
+  ],
+
+  "ru": [
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "tr": [
@@ -446,7 +617,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "vi": [
@@ -479,7 +661,18 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ],
 
   "zh": [
@@ -495,6 +688,17 @@
     "settingsNetworkOptionsOfflineModeOn",
     "settingsNetworkOptionsStreamFormat",
     "settingsNetworkOptionsStreamFormatServerDefault",
-    "settingsServersFieldsName"
+    "settingsServersFieldsName",
+    "controlsPlay",
+    "controlsPause",
+    "controlsNext",
+    "controlsPrevious",
+    "controlsRepeat",
+    "controlsQueue",
+    "controlsMore",
+    "controlsSaveStation",
+    "controlsDiscoveryInfo",
+    "controlsRadioStart",
+    "controlsDiscoveryRadio"
   ]
 }
