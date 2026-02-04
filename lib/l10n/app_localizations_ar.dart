@@ -396,4 +396,37 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsServersOptionsForcePlaintextPasswordTitle =>
       'أظهر كلمة المرور';
+
+  @override
+  String get controlsPlay => 'Play';
+
+  @override
+  String get controlsPause => 'Pause';
+
+  @override
+  String get controlsNext => 'Next track';
+
+  @override
+  String get controlsPrevious => 'Previous track';
+
+  @override
+  String get controlsRepeat => 'Repeat';
+
+  @override
+  String get controlsQueue => 'Queue';
+
+  @override
+  String get controlsMore => 'More options';
+
+  @override
+  String get controlsSaveStation => 'Save station';
+
+  @override
+  String get controlsDiscoveryInfo => 'Discovery info';
+
+  @override
+  String get controlsRadioStart => 'Start radio';
+
+  @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
 }

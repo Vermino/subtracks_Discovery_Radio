@@ -695,6 +695,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Force plaintext password'**
   String get settingsServersOptionsForcePlaintextPasswordTitle;
+
+  /// No description provided for @controlsPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get controlsPlay;
+
+  /// No description provided for @controlsPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get controlsPause;
+
+  /// No description provided for @controlsNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next track'**
+  String get controlsNext;
+
+  /// No description provided for @controlsPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous track'**
+  String get controlsPrevious;
+
+  /// No description provided for @controlsRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get controlsRepeat;
+
+  /// No description provided for @controlsQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get controlsQueue;
+
+  /// No description provided for @controlsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get controlsMore;
+
+  /// No description provided for @controlsSaveStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Save station'**
+  String get controlsSaveStation;
+
+  /// No description provided for @controlsDiscoveryInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery info'**
+  String get controlsDiscoveryInfo;
+
+  /// No description provided for @controlsRadioStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start radio'**
+  String get controlsRadioStart;
+
+  /// No description provided for @controlsDiscoveryRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery Radio'**
+  String get controlsDiscoveryRadio;
 }
 
 class _AppLocalizationsDelegate

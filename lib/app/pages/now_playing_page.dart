@@ -18,6 +18,7 @@ import '../../state/audio.dart';
 import '../../state/music.dart';
 import '../../state/settings.dart';
 import '../../state/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../app_router.dart';
 import '../images.dart';
 import '../widgets/rating_buttons.dart';
@@ -365,6 +366,7 @@ class RepeatButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final audio = ref.watch(audioControlProvider);
     final repeat = ref.watch(repeatModeProvider);
+    final l = AppLocalizations.of(context);
 
     IconData icon;
     void Function() action;
@@ -389,6 +391,7 @@ class RepeatButton extends HookConsumerWidget {
       icon: Icon(icon),
       padding: EdgeInsets.zero,
       iconSize: 30,
+      tooltip: l.controlsRepeat,
       onPressed: action,
     );
   }
@@ -407,6 +410,7 @@ class ShuffleButton extends HookConsumerWidget {
     final audio = ref.watch(audioControlProvider);
     final shuffle = ref.watch(shuffleModeProvider);
     final queueMode = ref.watch(queueModeProvider).valueOrNull;
+    final l = AppLocalizations.of(context);
 
     IconData icon;
     void Function() action;
@@ -427,6 +431,7 @@ class ShuffleButton extends HookConsumerWidget {
       icon: Icon(queueMode == QueueMode.radio ? Icons.radio_rounded : icon),
       padding: EdgeInsets.zero,
       iconSize: 30,
+      tooltip: l.controlsShuffle,
       onPressed: queueMode == QueueMode.radio ? null : action,
     );
   }
@@ -440,6 +445,7 @@ class _Controls extends HookConsumerWidget {
     final colors = ref.watch(mediaItemThemeProvider).valueOrNull;
     final base = ref.watch(baseThemeProvider);
     final audio = ref.watch(audioControlProvider);
+    final l = AppLocalizations.of(context);
 
     // Use a bright color that contrasts well with dark backgrounds
     final iconColor = colors?.theme.colorScheme.onSurface ??
@@ -459,6 +465,7 @@ class _Controls extends HookConsumerWidget {
                   icon: const Icon(Icons.skip_previous_rounded),
                   padding: EdgeInsets.zero,
                   iconSize: 60,
+                  tooltip: l.controlsPrevious,
                   onPressed: () => audio.skipToPrevious(),
                 ),
                 const PlayPauseButton(size: 90),
@@ -466,6 +473,7 @@ class _Controls extends HookConsumerWidget {
                   icon: const Icon(Icons.skip_next_rounded),
                   padding: EdgeInsets.zero,
                   iconSize: 60,
+                  tooltip: l.controlsNext,
                   onPressed: () => audio.skipToNext(),
                 ),
                 const ShuffleButton(size: 30),
@@ -482,6 +490,7 @@ class _Controls extends HookConsumerWidget {
                   icon: const Icon(Icons.queue_music_rounded),
                   padding: EdgeInsets.zero,
                   iconSize: 30,
+                  tooltip: l.controlsQueue,
                   onPressed: () => context.navigateTo(const QueueRoute()),
                 ),
                 const _MoreButton(),
@@ -500,11 +509,13 @@ class _MoreButton extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final song = ref.watch(mediaItemSongProvider).valueOrNull;
+    final l = AppLocalizations.of(context);
 
     return IconButton(
       icon: const Icon(Icons.more_horiz),
       padding: EdgeInsets.zero,
       iconSize: 30,
+      tooltip: l.controlsMore,
       onPressed: song != null
           ? () {
               showContextMenu(
@@ -525,8 +536,11 @@ class _SaveStationButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+
     return IconButton(
       icon: const Icon(Icons.bookmark_outline),
+      tooltip: l.controlsSaveStation,
       onPressed: () => _showSaveStationDialog(context, ref),
     );
   }
@@ -611,8 +625,11 @@ class _DiscoveryInfoButton extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+
     return IconButton(
       icon: const Icon(Icons.info_outline),
+      tooltip: l.controlsDiscoveryInfo,
       onPressed: () {
         final itemData = ref.read(mediaItemDataProvider);
         final seedId = itemData?.contextId;
