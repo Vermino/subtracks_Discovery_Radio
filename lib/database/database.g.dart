@@ -7503,8 +7503,6 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
   late final Sources sources = Sources(this);
   late final SubsonicSources subsonicSources = SubsonicSources(this);
   late final Artists artists = Artists(this);
-  late final Index artistsSourceId = Index('artists_source_id',
-      'CREATE INDEX artists_source_id ON artists (source_id)');
   late final ArtistsFts artistsFts = ArtistsFts(this);
   late final Trigger artistsAi = Trigger(
       'CREATE TRIGGER artists_ai AFTER INSERT ON artists BEGIN INSERT INTO artists_fts ("rowid", source_id, name) VALUES (new."rowid", new.source_id, new.name);END',
@@ -7516,8 +7514,6 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
       'CREATE TRIGGER artists_au AFTER UPDATE ON artists BEGIN INSERT INTO artists_fts (artists_fts, "rowid", source_id, name) VALUES (\'delete\', old."rowid", old.source_id, old.name);INSERT INTO artists_fts ("rowid", source_id, name) VALUES (new."rowid", new.source_id, new.name);END',
       'artists_au');
   late final Albums albums = Albums(this);
-  late final Index albumsSourceId = Index('albums_source_id',
-      'CREATE INDEX albums_source_id ON albums (source_id)');
   late final Index albumsSourceIdArtistIdIdx = Index(
       'albums_source_id_artist_id_idx',
       'CREATE INDEX albums_source_id_artist_id_idx ON albums (source_id, artist_id)');
@@ -7532,12 +7528,7 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
       'CREATE TRIGGER albums_au AFTER UPDATE ON albums BEGIN INSERT INTO albums_fts (albums_fts, "rowid", source_id, name) VALUES (\'delete\', old."rowid", old.source_id, old.name);INSERT INTO albums_fts ("rowid", source_id, name) VALUES (new."rowid", new.source_id, new.name);END',
       'albums_au');
   late final Playlists playlists = Playlists(this);
-  late final Index playlistsSourceId = Index('playlists_source_id',
-      'CREATE INDEX playlists_source_id ON playlists (source_id)');
   late final PlaylistSongs playlistSongs = PlaylistSongs(this);
-  late final Index playlistSongsSourceIdPlaylistIdIdx = Index(
-      'playlist_songs_source_id_playlist_id_idx',
-      'CREATE INDEX playlist_songs_source_id_playlist_id_idx ON playlist_songs (source_id, playlist_id)');
   late final Index playlistSongsSourceIdSongIdIdx = Index(
       'playlist_songs_source_id_song_id_idx',
       'CREATE INDEX playlist_songs_source_id_song_id_idx ON playlist_songs (source_id, song_id)');
@@ -8865,22 +8856,18 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         sources,
         subsonicSources,
         artists,
-        artistsSourceId,
         artistsFts,
         artistsAi,
         artistsAd,
         artistsAu,
         albums,
-        albumsSourceId,
         albumsSourceIdArtistIdIdx,
         albumsFts,
         albumsAi,
         albumsAd,
         albumsAu,
         playlists,
-        playlistsSourceId,
         playlistSongs,
-        playlistSongsSourceIdPlaylistIdIdx,
         playlistSongsSourceIdSongIdIdx,
         playlistsFts,
         playlistsAi,
