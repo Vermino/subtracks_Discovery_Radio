@@ -165,7 +165,7 @@ class AlbumArt extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // generate the palette used in other views ahead of time
-    ref.watch(albumArtPaletteProvider(album.id));
+    ref.listen(albumArtPaletteProvider(album.id), (_, __) {});
     final cache = ref.watch(cacheServiceProvider);
 
     Widget image = UriCacheInfoImage(cache: cache.albumArt(album));
