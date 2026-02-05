@@ -270,6 +270,7 @@ class PlayPauseButton extends HookConsumerWidget {
       },
       icon: icon,
       color: iconColor,
+      tooltip: playing ? 'Pause' : 'Play',
     );
   }
 }
