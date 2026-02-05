@@ -41,7 +41,7 @@ class AlbumCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // generate the palette used in other views ahead of time
-    ref.watch(albumArtPaletteProvider(album.id));
+    ref.listen(albumArtPaletteProvider(album.id), (_, __) {});
     final cache = ref.watch(cacheServiceProvider);
     final info = cache.albumArt(album);
 
@@ -241,7 +241,7 @@ class PlaylistListTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // generate the palette used in other views ahead of time
-    ref.watch(playlistArtPaletteProvider(playlist.id));
+    ref.listen(playlistArtPaletteProvider(playlist.id), (_, __) {});
     final cache = ref.watch(cacheServiceProvider).playlistArt(playlist);
 
     return ListTile(
