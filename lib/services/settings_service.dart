@@ -7,7 +7,6 @@ import '../database/database.dart';
 import '../http/client.dart';
 import '../models/settings.dart';
 import '../sources/subsonic/client.dart';
-import '../state/init.dart';
 import 'download_service.dart';
 
 part 'settings_service.g.dart';
@@ -86,25 +85,6 @@ class SettingsService extends _$SettingsService {
 
   Future<void> setActiveSource(int id) async {
     await _db.setActiveSource(id);
-    await init();
-  }
-
-  Future<void> addTestSource(String prefix) async {
-    final env = ref.read(envProvider).requireValue;
-
-    await createSource(
-      SourcesCompanion.insert(
-        name: env['${prefix}_SERVER_NAME']!,
-        address: Uri.parse(env['${prefix}_SERVER_URL']!),
-      ),
-      SubsonicSourcesCompanion.insert(
-        features: IList(),
-        username: env['${prefix}_SERVER_USERNAME']!,
-        password: env['${prefix}_SERVER_PASSWORD']!,
-        useTokenAuth: const Value(true),
-      ),
-    );
-
     await init();
   }
 
