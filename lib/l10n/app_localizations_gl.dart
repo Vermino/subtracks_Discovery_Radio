@@ -33,6 +33,12 @@ class AppLocalizationsGl extends AppLocalizations {
   String get actionsUnstar => 'Retirar';
 
   @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
+
+  @override
+  String get controlsRadio => 'Play radio';
+
+  @override
   String get controlsShuffle => 'Barallar';
 
   @override

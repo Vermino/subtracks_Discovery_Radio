@@ -33,6 +33,12 @@ class AppLocalizationsDa extends AppLocalizations {
   String get actionsUnstar => 'Unstar';
 
   @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
+
+  @override
+  String get controlsRadio => 'Play radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

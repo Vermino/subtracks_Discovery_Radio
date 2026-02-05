@@ -33,6 +33,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get actionsUnstar => 'ازل التمييز';
 
   @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
+
+  @override
+  String get controlsRadio => 'Play radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

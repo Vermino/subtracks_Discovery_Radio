@@ -33,6 +33,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get actionsUnstar => 'Убрать из избранного';
 
   @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
+
+  @override
+  String get controlsRadio => 'Play radio';
+
+  @override
   String get controlsShuffle => 'Перемешать';
 
   @override
