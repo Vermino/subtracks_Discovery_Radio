@@ -954,9 +954,6 @@ class DiscoveryService extends _$DiscoveryService {
             seenVideoIds.add(result.videoId);
             youtubeTracks.add(HybridTrackFactory.fromYouTubeSearchResult(result));
           }
-
-          // Small delay to avoid rate limiting
-          await Future.delayed(const Duration(milliseconds: 200));
         } catch (e) {
           log.warning('Failed YouTube search for artist "$artist": $e');
           continue;
@@ -994,8 +991,6 @@ class DiscoveryService extends _$DiscoveryService {
               seenVideoIds.add(result.videoId);
               youtubeTracks.add(HybridTrackFactory.fromYouTubeSearchResult(result));
             }
-
-            await Future.delayed(const Duration(milliseconds: 200));
           } catch (e) {
             log.warning('Failed YouTube search for genre "$genre": $e');
             continue;
