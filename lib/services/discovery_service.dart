@@ -191,6 +191,30 @@ class DiscoveryService extends _$DiscoveryService {
 
       log.fine('Found ${filteredSongs.length} candidate songs for recommendations');
 
+      // Collect relevant artist IDs to pre-fetch albums
+      // We need albums for:
+      // 1. The seed song's artist (already known)
+      // 2. All candidate songs' artists
+      // 3. All thumbs up songs' artists (for station personalization)
+      final artistIdsToFetch = <String>{};
+
+      if (seedSong.artistId != null) {
+        artistIdsToFetch.add(seedSong.artistId!);
+      }
+
+      for (final song in filteredSongs) {
+        if (song.artistId != null) {
+          artistIdsToFetch.add(song.artistId!);
+        }
+      }
+
+      // Note: thumbsUpSongs are a subset of filteredSongs, so their artists are already included
+      // unless the thumbsUpSongs list was populated from outside filteredSongs (it is not).
+
+      // Pre-fetch albums to optimize artist similarity calculation
+      // This reduces database queries from 2*N to 1
+      final artistAlbumsMap = await _getAlbumsForArtists(seedSong.sourceId, artistIdsToFetch);
+
       // Apply different recommendation strategies
       for (final song in filteredSongs) {
         // STATION-SPECIFIC FILTERING: Exclude thumbs down and frequently skipped songs
@@ -201,7 +225,8 @@ class DiscoveryService extends _$DiscoveryService {
         final scores = <String, double>{};
 
         // Artist similarity scoring
-        scores['artist'] = await _calculateArtistSimilarity(seedSong, song) * normalizedConfig.artistSimilarityWeight;
+        scores['artist'] = await _calculateArtistSimilarity(seedSong, song, artistAlbumsMap: artistAlbumsMap) *
+            normalizedConfig.artistSimilarityWeight;
 
         // Genre similarity scoring
         scores['genre'] = await _calculateGenreSimilarity(seedSong, song) * normalizedConfig.genreSimilarityWeight;
@@ -217,7 +242,7 @@ class DiscoveryService extends _$DiscoveryService {
         if (thumbsUpSongs.isNotEmpty) {
           double maxSimilarity = 0.0;
           for (final likedSong in thumbsUpSongs) {
-            final similarity = await _calculateSongSimilarity(likedSong, song);
+            final similarity = await _calculateSongSimilarity(likedSong, song, artistAlbumsMap: artistAlbumsMap);
             maxSimilarity = maxSimilarity > similarity ? maxSimilarity : similarity;
           }
           // Apply boost based on similarity to liked songs (up to 50% boost)
@@ -563,8 +588,33 @@ class DiscoveryService extends _$DiscoveryService {
     }
   }
 
+  /// Get a map of albums grouped by artist ID for a specific set of artists
+  /// optimized to prevent N+1 queries during similarity calculation
+  Future<Map<String, List<Album>>> _getAlbumsForArtists(int sourceId, Set<String> artistIds) async {
+    if (artistIds.isEmpty) return {};
+
+    // Drift doesn't support massive IN clauses well in all drivers, so we chunk it if necessary
+    // But since this is a local DB optimization, we'll try to fetch efficiently.
+    // However, drift filterAlbums uses a predicate.
+
+    // We want: sourceId = sourceId AND artistId IN (artistIds)
+    // AND artistId is not null
+
+    final allAlbums = await _db.filterAlbums(
+      (tbl) => tbl.sourceId.equals(sourceId) & tbl.artistId.isIn(artistIds),
+      (tbl) => OrderBy([]),
+      (tbl) => Limit(100000, null),
+    ).get();
+
+    return groupBy(allAlbums, (Album a) => a.artistId ?? '');
+  }
+
   /// Calculate similarity between two songs based on their artists
-  Future<double> _calculateArtistSimilarity(Song seedSong, Song candidateSong) async {
+  Future<double> _calculateArtistSimilarity(
+    Song seedSong,
+    Song candidateSong, {
+    Map<String, List<Album>>? artistAlbumsMap,
+  }) async {
     // Same artist = highest similarity
     if (seedSong.artistId == candidateSong.artistId) return 1.0;
 
@@ -581,8 +631,16 @@ class DiscoveryService extends _$DiscoveryService {
 
     try {
       // Get albums for both artists to calculate overlap
-      final seedArtistAlbums = await _db.albumsByArtistId(seedSong.sourceId, seedSong.artistId!).get();
-      final candidateArtistAlbums = await _db.albumsByArtistId(candidateSong.sourceId, candidateSong.artistId!).get();
+      List<Album> seedArtistAlbums;
+      List<Album> candidateArtistAlbums;
+
+      if (artistAlbumsMap != null) {
+        seedArtistAlbums = artistAlbumsMap[seedSong.artistId ?? ''] ?? [];
+        candidateArtistAlbums = artistAlbumsMap[candidateSong.artistId ?? ''] ?? [];
+      } else {
+        seedArtistAlbums = await _db.albumsByArtistId(seedSong.sourceId, seedSong.artistId!).get();
+        candidateArtistAlbums = await _db.albumsByArtistId(candidateSong.sourceId, candidateSong.artistId!).get();
+      }
 
       // Calculate genre overlap between artists
       final seedGenres = seedArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
@@ -698,12 +756,16 @@ class DiscoveryService extends _$DiscoveryService {
 
   /// Calculate overall similarity between two songs for station personalization
   /// Combines artist, genre, and album similarity
-  Future<double> _calculateSongSimilarity(Song song1, Song song2) async {
+  Future<double> _calculateSongSimilarity(
+    Song song1,
+    Song song2, {
+    Map<String, List<Album>>? artistAlbumsMap,
+  }) async {
     double similarity = 0.0;
     int factors = 0;
 
     // Artist similarity (highest weight)
-    final artistSim = await _calculateArtistSimilarity(song1, song2);
+    final artistSim = await _calculateArtistSimilarity(song1, song2, artistAlbumsMap: artistAlbumsMap);
     if (artistSim > 0) {
       similarity += artistSim * 0.5;
       factors++;
