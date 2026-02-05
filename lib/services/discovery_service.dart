@@ -191,6 +191,17 @@ class DiscoveryService extends _$DiscoveryService {
 
       log.fine('Found ${filteredSongs.length} candidate songs for recommendations');
 
+      // Pre-fetch seed artist albums to avoid redundant DB queries
+      List<Album>? seedArtistAlbums;
+      if (seedSong.artistId != null) {
+        try {
+          seedArtistAlbums =
+              await _db.albumsByArtistId(seedSong.sourceId, seedSong.artistId!).get();
+        } catch (e) {
+          log.warning('Failed to pre-fetch artist albums: $e');
+        }
+      }
+
       // Apply different recommendation strategies
       for (final song in filteredSongs) {
         // STATION-SPECIFIC FILTERING: Exclude thumbs down and frequently skipped songs
@@ -201,7 +212,12 @@ class DiscoveryService extends _$DiscoveryService {
         final scores = <String, double>{};
 
         // Artist similarity scoring
-        scores['artist'] = await _calculateArtistSimilarity(seedSong, song) * normalizedConfig.artistSimilarityWeight;
+        scores['artist'] = await _calculateArtistSimilarity(
+              seedSong,
+              song,
+              seedArtistAlbums: seedArtistAlbums,
+            ) *
+            normalizedConfig.artistSimilarityWeight;
 
         // Genre similarity scoring
         scores['genre'] = await _calculateGenreSimilarity(seedSong, song) * normalizedConfig.genreSimilarityWeight;
@@ -564,7 +580,11 @@ class DiscoveryService extends _$DiscoveryService {
   }
 
   /// Calculate similarity between two songs based on their artists
-  Future<double> _calculateArtistSimilarity(Song seedSong, Song candidateSong) async {
+  Future<double> _calculateArtistSimilarity(
+    Song seedSong,
+    Song candidateSong, {
+    List<Album>? seedArtistAlbums,
+  }) async {
     // Same artist = highest similarity
     if (seedSong.artistId == candidateSong.artistId) return 1.0;
 
@@ -581,11 +601,13 @@ class DiscoveryService extends _$DiscoveryService {
 
     try {
       // Get albums for both artists to calculate overlap
-      final seedArtistAlbums = await _db.albumsByArtistId(seedSong.sourceId, seedSong.artistId!).get();
-      final candidateArtistAlbums = await _db.albumsByArtistId(candidateSong.sourceId, candidateSong.artistId!).get();
+      final seedAlbums = seedArtistAlbums ??
+          await _db.albumsByArtistId(seedSong.sourceId, seedSong.artistId!).get();
+      final candidateArtistAlbums =
+          await _db.albumsByArtistId(candidateSong.sourceId, candidateSong.artistId!).get();
 
       // Calculate genre overlap between artists
-      final seedGenres = seedArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
+      final seedGenres = seedAlbums.map((a) => a.genre).whereNotNull().toSet();
       final candidateGenres = candidateArtistAlbums.map((a) => a.genre).whereNotNull().toSet();
 
       if (seedGenres.isNotEmpty && candidateGenres.isNotEmpty) {
