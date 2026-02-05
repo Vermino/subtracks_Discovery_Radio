@@ -33,6 +33,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get actionsUnstar => 'Markierung entfernen';
 
   @override
+  String get controlsDiscoveryRadio => 'Discovery Radio';
+
+  @override
+  String get controlsRadio => 'Play radio';
+
+  @override
   String get controlsShuffle => 'Zufall';
 
   @override

@@ -16,7 +16,7 @@ class ShuffleFab extends StatelessWidget {
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
-      tooltip: l.actionsCancel,
+      tooltip: l.controlsShuffle,
       child: const Icon(Icons.shuffle_rounded),
     );
   }
@@ -35,6 +35,7 @@ class RadioPlayFab extends StatelessWidget {
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
+      tooltip: AppLocalizations.of(context).controlsRadio,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -75,7 +76,7 @@ class DiscoveryRadioFab extends StatelessWidget {
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
-      tooltip: 'Discovery Radio',
+      tooltip: AppLocalizations.of(context).controlsDiscoveryRadio,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
