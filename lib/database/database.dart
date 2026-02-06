@@ -301,7 +301,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   }
 
   Expression<bool> _filterPredicate(String table, int sourceId, ListQuery opt) {
-    return opt.filters.map((filter) => buildFilter<bool>(filter)).fold(
+    return opt.filters.map((filter) => buildFilter(filter)).fold(
           CustomExpression('$table.source_id = $sourceId'),
           (previousValue, element) => previousValue & element,
         );
@@ -1199,25 +1199,34 @@ JoinedSelectStatement<T, R> listQueryJoined<T extends HasResultSet, R>(
   return query;
 }
 
-CustomExpression<T> buildFilter<T extends Object>(
+Expression<bool> buildFilter(
   FilterWith filter,
 ) {
   return filter.when(
-    equals: (column, value, invert) => CustomExpression<T>(
-      '$column ${invert ? '<>' : '='} \'$value\'',
-    ),
-    greaterThan: (column, value, orEquals) => CustomExpression<T>(
-      '$column ${orEquals ? '>=' : '>'} $value',
-    ),
-    isNull: (column, invert) => CustomExpression<T>(
-      '$column ${invert ? 'IS NOT' : 'IS'} NULL',
-    ),
-    betweenInt: (column, from, to) => CustomExpression<T>(
-      '$column BETWEEN $from AND $to',
-    ),
-    isIn: (column, invert, values) => CustomExpression<T>(
-      '$column ${invert ? 'NOT IN' : 'IN'} (${values.join(',')})',
-    ),
+    equals: (column, value, invert) {
+      final expr = CustomExpression<String>(column).equals(value);
+      return invert ? expr.not() : expr;
+    },
+    greaterThan: (column, value, orEquals) {
+      final expr = CustomExpression<String>(column);
+      final op = orEquals
+          ? expr.isBiggerOrEqual(Variable(value))
+          : expr.isBiggerThan(Variable(value));
+      return op;
+    },
+    isNull: (column, invert) {
+      final expr = CustomExpression<Object>(column);
+      return invert ? expr.isNotNull() : expr.isNull();
+    },
+    betweenInt: (column, from, to) {
+      final expr = CustomExpression<int>(column);
+      return expr.isBiggerOrEqual(Variable(from)) &
+          expr.isSmallerOrEqual(Variable(to));
+    },
+    isIn: (column, invert, values) {
+      final expr = CustomExpression<String>(column).isIn(values);
+      return invert ? expr.not() : expr;
+    },
   );
 }
 
