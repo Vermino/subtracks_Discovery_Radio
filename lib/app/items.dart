@@ -8,7 +8,6 @@ import '../services/cache_service.dart';
 import '../services/download_service.dart';
 import '../state/audio.dart';
 import '../state/music.dart';
-import '../state/theme.dart';
 import 'context_menus.dart';
 import 'images.dart';
 import 'pages/songs_page.dart';
@@ -40,8 +39,6 @@ class AlbumCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // generate the palette used in other views ahead of time
-    ref.watch(albumArtPaletteProvider(album.id));
     final cache = ref.watch(cacheServiceProvider);
     final info = cache.albumArt(album);
 
@@ -240,8 +237,6 @@ class PlaylistListTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // generate the palette used in other views ahead of time
-    ref.watch(playlistArtPaletteProvider(playlist.id));
     final cache = ref.watch(cacheServiceProvider).playlistArt(playlist);
 
     return ListTile(

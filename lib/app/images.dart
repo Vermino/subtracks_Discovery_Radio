@@ -8,7 +8,6 @@ import '../models/support.dart';
 import '../services/cache_service.dart';
 import '../state/music.dart';
 import '../state/settings.dart';
-import '../state/theme.dart';
 
 part 'images.g.dart';
 
@@ -164,8 +163,6 @@ class AlbumArt extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // generate the palette used in other views ahead of time
-    ref.watch(albumArtPaletteProvider(album.id));
     final cache = ref.watch(cacheServiceProvider);
 
     Widget image = UriCacheInfoImage(cache: cache.albumArt(album));
