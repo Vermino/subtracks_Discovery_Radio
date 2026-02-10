@@ -1,0 +1,3 @@
+## 2026-02-04 - Test Environment Deficiencies
+**Learning:** The project is missing `flutter_test` and `mockito` from `dev_dependencies` in `pubspec.yaml`. This prevents standard testing commands (`flutter test`) from working out-of-the-box. Additionally, Drift's generated code conflicts with `matcher` (part of `flutter_test`), requiring `hide isNotNull, isNull` in test imports.
+**Action:** When working on this codebase, expect tests to fail compilation unless dependencies are temporarily added. For database optimizations, verify using `build_runner` and inspection of generated code if running integration tests is blocked by policy against modifying `pubspec.yaml`.
