@@ -186,6 +186,18 @@ abstract class AppLocalizations {
   /// **'Shuffle'**
   String get controlsShuffle;
 
+  /// No description provided for @controlsDiscoveryRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery radio'**
+  String get controlsDiscoveryRadio => 'Discovery radio';
+
+  /// No description provided for @controlsRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Start radio'**
+  String get controlsRadio => 'Start radio';
+
   /// No description provided for @messagesNothingHere.
   ///
   /// In en, this message translates to:
