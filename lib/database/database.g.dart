@@ -7560,6 +7560,11 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
       'CREATE INDEX songs_source_id_artist_id_idx ON songs (source_id, artist_id)');
   late final Index songsDownloadTaskIdIdx = Index('songs_download_task_id_idx',
       'CREATE INDEX songs_download_task_id_idx ON songs (download_task_id)');
+  late final Index songsSourceIdGenreIdx = Index('songs_source_id_genre_idx',
+      'CREATE INDEX songs_source_id_genre_idx ON songs (source_id, genre)');
+  late final Index songsSourceIdUserRatingUpdatedIdx = Index(
+      'songs_source_id_user_rating_updated_idx',
+      'CREATE INDEX songs_source_id_user_rating_updated_idx ON songs (source_id, user_rating, updated)');
   late final SongsFts songsFts = SongsFts(this);
   late final Trigger songsAi = Trigger(
       'CREATE TRIGGER songs_ai AFTER INSERT ON songs BEGIN INSERT INTO songs_fts ("rowid", source_id, title) VALUES (new."rowid", new.source_id, new.title);END',
@@ -8890,6 +8895,8 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         songsSourceIdAlbumIdIdx,
         songsSourceIdArtistIdIdx,
         songsDownloadTaskIdIdx,
+        songsSourceIdGenreIdx,
+        songsSourceIdUserRatingUpdatedIdx,
         songsFts,
         songsAi,
         songsAd,
