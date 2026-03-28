@@ -29,6 +29,11 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
     log.info('YouTubeDiscoveryService initialized with base URL: ${YouTubeConfig.invidiousBaseUrl}');
   }
 
+  /// Inject HTTP client for testing
+  void setHttpClient(http.Client client) {
+    _httpClient = client;
+  }
+
   /// Search for music videos on YouTube
   ///
   /// Parameters:
@@ -199,7 +204,8 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
       }
 
       // Try to get audio stream from top results
-      for (final result in results) {
+      // Parallelize requests to find the best stream faster
+      final futures = results.map((result) async {
         try {
           final stream = await getAudioStream(result.videoId);
           if (stream != null) {
@@ -208,8 +214,14 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
           }
         } catch (e) {
           log.warning('Failed to get stream for video ${result.videoId}: $e');
-          continue;
         }
+        return null;
+      }).toList();
+
+      final stream = await _firstSuccess(futures);
+
+      if (stream != null) {
+        return stream;
       }
 
       log.warning('No audio stream found for any search result');
@@ -571,6 +583,30 @@ class YouTubeDiscoveryService extends _$YouTubeDiscoveryService {
     }
 
     return scoredResults.map((r) => r.result).toList();
+  }
+
+  /// Helper to return first successful future result
+  Future<T?> _firstSuccess<T>(Iterable<Future<T?>> futures) {
+    final completer = Completer<T?>();
+    int pending = futures.length;
+
+    if (pending == 0) return Future.value(null);
+
+    for (final future in futures) {
+      future.then((result) {
+        if (result != null) {
+          if (!completer.isCompleted) completer.complete(result);
+        } else {
+          pending--;
+          if (pending == 0 && !completer.isCompleted) completer.complete(null);
+        }
+      }).catchError((Object e) {
+        pending--;
+        if (pending == 0 && !completer.isCompleted) completer.complete(null);
+      });
+    }
+
+    return completer.future;
   }
 
   /// Dispose resources
