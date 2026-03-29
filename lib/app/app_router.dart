@@ -17,6 +17,7 @@ import 'pages/now_playing_page.dart';
 import 'pages/queue_page.dart';
 import 'pages/search_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/setup_page.dart';
 import 'pages/songs_page.dart';
 import 'pages/source_page.dart';
 import 'pages/station_builder_page.dart';
@@ -132,6 +133,21 @@ class EmptyRouterPage extends AutoRouter {
     CustomRoute(
       path: '/queue',
       page: QueuePage,
+      transitionsBuilder: kCustomTransitionBuilder,
+      durationInMilliseconds: kCustomTransitionDuration,
+      reverseDurationInMilliseconds: kCustomTransitionDuration,
+    ),
+    CustomRoute(
+      path: '/setup',
+      page: SetupPage,
+      transitionsBuilder: kCustomTransitionBuilder,
+      durationInMilliseconds: kCustomTransitionDuration,
+      reverseDurationInMilliseconds: kCustomTransitionDuration,
+    ),
+    CustomRoute(
+      path: '/setup/source',
+      page: SourcePage,
+      name: 'SetupSourceRoute',
       transitionsBuilder: kCustomTransitionBuilder,
       durationInMilliseconds: kCustomTransitionDuration,
       reverseDurationInMilliseconds: kCustomTransitionDuration,
