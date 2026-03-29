@@ -416,38 +416,85 @@ class ListSortFilterOptions extends HookConsumerWidget {
     required this.index,
   });
 
+  Future<void> _showFilterDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String column,
+    String title,
+  ) async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'Filter by ${title.toLowerCase()}',
+          ),
+          keyboardType: column.endsWith('year')
+              ? TextInputType.number
+              : TextInputType.text,
+          onSubmitted: (value) => Navigator.of(context).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    );
+
+    if (value != null && value.isNotEmpty) {
+      ref.read(libraryListsProvider.notifier).setFilter(
+            index,
+            FilterWith.equals(column: column, value: value),
+          );
+    }
+  }
+
   void Function()? _filterOnEdit(
     String column,
     BuildContext context,
     WidgetRef ref,
   ) {
     final type = column.split('.').last;
+    final l = AppLocalizations.of(context);
     switch (type) {
       case 'year':
-        return () {
-          // TODO: year filter dialog
-          // showDialog(
-          //   context: context,
-          //   builder: (context) {
-          //     return Dialog(
-          //       child: Text('adsf'),
-          //     );
-          //   },
-          // );
-        };
+        return () =>
+            _showFilterDialog(context, ref, column, l.resourcesSortByYear);
       case 'genre':
+        return () =>
+            _showFilterDialog(context, ref, column, l.resourcesFilterGenre);
       case 'album_artist':
+        return () =>
+            _showFilterDialog(context, ref, column, l.resourcesFilterArtist);
       case 'owner':
+        return () =>
+            _showFilterDialog(context, ref, column, l.resourcesFilterOwner);
       case 'album':
+        return () =>
+            _showFilterDialog(context, ref, column, l.resourcesFilterAlbum);
       case 'artist':
-        // TODO: other filter dialogs
-        return () {};
+        return () =>
+            _showFilterDialog(context, ref, column, l.resourcesFilterArtist);
       default:
         return null;
     }
   }
 
-  void Function(bool? value)? _filterOnChanged(String column, WidgetRef ref) {
+  void Function(bool? value)? _filterOnChanged(
+    String column,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     final type = column.split('.').last;
     switch (type) {
       case 'starred':
@@ -462,15 +509,18 @@ class ListSortFilterOptions extends HookConsumerWidget {
           }
         };
       case 'year':
-        // TODO: add/remove filter
-        return null;
       case 'genre':
       case 'album_artist':
       case 'owner':
       case 'album':
       case 'artist':
-        // TODO: add/remove filter
-        return null;
+        return (value) {
+          if (value == true) {
+            _filterOnEdit(column, context, ref)?.call();
+          } else {
+            ref.read(libraryListsProvider.notifier).removeFilter(index, column);
+          }
+        };
       default:
         return null;
     }
@@ -519,7 +569,7 @@ class ListSortFilterOptions extends HookConsumerWidget {
               (e) => e.column == column,
             ),
             onEdit: _filterOnEdit(column, context, ref),
-            onChanged: _filterOnChanged(column, ref),
+            onChanged: _filterOnChanged(column, context, ref),
           )
       ]),
     );
