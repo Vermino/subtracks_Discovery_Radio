@@ -33,6 +33,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get actionsUnstar => 'ازل التمييز';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

@@ -33,6 +33,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get actionsUnstar => 'Yıldızı Kaldır';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

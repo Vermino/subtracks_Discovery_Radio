@@ -33,6 +33,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get actionsUnstar => 'Retirar estrella';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

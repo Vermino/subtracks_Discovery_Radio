@@ -33,6 +33,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get actionsUnstar => 'Rimuovi dai preferiti';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override

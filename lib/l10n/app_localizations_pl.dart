@@ -33,6 +33,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get actionsUnstar => 'Usuń ulubione';
 
   @override
+  String get controlsRadio => 'Start radio';
+
+  @override
   String get controlsShuffle => 'Shuffle';
 
   @override
