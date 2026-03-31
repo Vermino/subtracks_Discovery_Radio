@@ -29,11 +29,25 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+        // Add indexes for performance optimization on frequently sorted/filtered columns
+        // These columns (title, name, created) are used in default library views.
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS songs_source_id_title_idx ON songs (source_id, title)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS albums_source_id_name_idx ON albums (source_id, name)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS albums_source_id_created_idx ON albums (source_id, created)',
+        );
+      },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
       },
@@ -215,6 +229,18 @@ class SubtracksDatabase extends _$SubtracksDatabase {
           );
           await customStatement(
             'ALTER TABLE app_settings ADD COLUMN thumbs_down_auto_delete BOOLEAN NOT NULL DEFAULT 0',
+          );
+        }
+        if (from < 12) {
+          // Add indexes for performance optimization on frequently sorted/filtered columns
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS songs_source_id_title_idx ON songs (source_id, title)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS albums_source_id_name_idx ON albums (source_id, name)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS albums_source_id_created_idx ON albums (source_id, created)',
           );
         }
       },
