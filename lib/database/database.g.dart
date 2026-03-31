@@ -7558,6 +7558,11 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
   late final Index songsSourceIdArtistIdIdx = Index(
       'songs_source_id_artist_id_idx',
       'CREATE INDEX songs_source_id_artist_id_idx ON songs (source_id, artist_id)');
+  late final Index songsSourceIdUserRatingUpdatedIdx = Index(
+      'songs_source_id_user_rating_updated_idx',
+      'CREATE INDEX songs_source_id_user_rating_updated_idx ON songs (source_id, user_rating, updated)');
+  late final Index songsSourceIdGenreIdx = Index('songs_source_id_genre_idx',
+      'CREATE INDEX songs_source_id_genre_idx ON songs (source_id, genre)');
   late final Index songsDownloadTaskIdIdx = Index('songs_download_task_id_idx',
       'CREATE INDEX songs_download_task_id_idx ON songs (download_task_id)');
   late final SongsFts songsFts = SongsFts(this);
@@ -8889,6 +8894,8 @@ abstract class _$SubtracksDatabase extends GeneratedDatabase {
         songs,
         songsSourceIdAlbumIdIdx,
         songsSourceIdArtistIdIdx,
+        songsSourceIdUserRatingUpdatedIdx,
+        songsSourceIdGenreIdx,
         songsDownloadTaskIdIdx,
         songsFts,
         songsAi,

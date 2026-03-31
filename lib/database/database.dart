@@ -29,7 +29,7 @@ class SubtracksDatabase extends _$SubtracksDatabase {
   SubtracksDatabase.connection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -216,6 +216,11 @@ class SubtracksDatabase extends _$SubtracksDatabase {
           await customStatement(
             'ALTER TABLE app_settings ADD COLUMN thumbs_down_auto_delete BOOLEAN NOT NULL DEFAULT 0',
           );
+        }
+        if (from < 12) {
+          // Add indexes for songs table
+          await migrator.create(songsSourceIdUserRatingUpdatedIdx);
+          await migrator.create(songsSourceIdGenreIdx);
         }
       },
     );
