@@ -368,19 +368,23 @@ class RepeatButton extends HookConsumerWidget {
 
     IconData icon;
     void Function() action;
+    String tooltip;
 
     switch (repeat) {
       case AudioServiceRepeatMode.all:
       case AudioServiceRepeatMode.group:
         icon = Icons.repeat_on_rounded;
+        tooltip = 'Repeat one';
         action = () => audio.setRepeatMode(AudioServiceRepeatMode.one);
         break;
       case AudioServiceRepeatMode.one:
         icon = Icons.repeat_one_on_rounded;
+        tooltip = 'Turn repeat off';
         action = () => audio.setRepeatMode(AudioServiceRepeatMode.none);
         break;
       default:
         icon = Icons.repeat_rounded;
+        tooltip = 'Repeat all';
         action = () => audio.setRepeatMode(AudioServiceRepeatMode.all);
         break;
     }
@@ -389,6 +393,7 @@ class RepeatButton extends HookConsumerWidget {
       icon: Icon(icon),
       padding: EdgeInsets.zero,
       iconSize: 30,
+      tooltip: tooltip,
       onPressed: action,
     );
   }
@@ -410,15 +415,18 @@ class ShuffleButton extends HookConsumerWidget {
 
     IconData icon;
     void Function() action;
+    String tooltip;
 
     switch (shuffle) {
       case AudioServiceShuffleMode.all:
       case AudioServiceShuffleMode.group:
         icon = Icons.shuffle_on_rounded;
+        tooltip = 'Turn shuffle off';
         action = () => audio.setShuffleMode(AudioServiceShuffleMode.none);
         break;
       default:
         icon = Icons.shuffle_rounded;
+        tooltip = 'Shuffle';
         action = () => audio.setShuffleMode(AudioServiceShuffleMode.all);
         break;
     }
@@ -427,6 +435,7 @@ class ShuffleButton extends HookConsumerWidget {
       icon: Icon(queueMode == QueueMode.radio ? Icons.radio_rounded : icon),
       padding: EdgeInsets.zero,
       iconSize: 30,
+      tooltip: queueMode == QueueMode.radio ? 'Radio mode' : tooltip,
       onPressed: queueMode == QueueMode.radio ? null : action,
     );
   }
@@ -459,6 +468,7 @@ class _Controls extends HookConsumerWidget {
                   icon: const Icon(Icons.skip_previous_rounded),
                   padding: EdgeInsets.zero,
                   iconSize: 60,
+                  tooltip: 'Previous',
                   onPressed: () => audio.skipToPrevious(),
                 ),
                 const PlayPauseButton(size: 90),
@@ -466,6 +476,7 @@ class _Controls extends HookConsumerWidget {
                   icon: const Icon(Icons.skip_next_rounded),
                   padding: EdgeInsets.zero,
                   iconSize: 60,
+                  tooltip: 'Next',
                   onPressed: () => audio.skipToNext(),
                 ),
                 const ShuffleButton(size: 30),
@@ -482,6 +493,7 @@ class _Controls extends HookConsumerWidget {
                   icon: const Icon(Icons.queue_music_rounded),
                   padding: EdgeInsets.zero,
                   iconSize: 30,
+                  tooltip: 'Queue',
                   onPressed: () => context.navigateTo(const QueueRoute()),
                 ),
                 const _MoreButton(),
@@ -505,6 +517,7 @@ class _MoreButton extends HookConsumerWidget {
       icon: const Icon(Icons.more_horiz),
       padding: EdgeInsets.zero,
       iconSize: 30,
+      tooltip: 'More options',
       onPressed: song != null
           ? () {
               showContextMenu(
@@ -527,6 +540,7 @@ class _SaveStationButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       icon: const Icon(Icons.bookmark_outline),
+      tooltip: 'Save station',
       onPressed: () => _showSaveStationDialog(context, ref),
     );
   }
@@ -613,6 +627,7 @@ class _DiscoveryInfoButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       icon: const Icon(Icons.info_outline),
+      tooltip: 'Station info',
       onPressed: () {
         final itemData = ref.read(mediaItemDataProvider);
         final seedId = itemData?.contextId;

@@ -236,8 +236,11 @@ class PlayPauseButton extends HookConsumerWidget {
     final iconColor = Theme.of(context).colorScheme.onSurface;
 
     Widget icon;
+    String tooltip;
+
     if (state == AudioProcessingState.loading ||
         state == AudioProcessingState.buffering) {
+      tooltip = 'Buffering...';
       icon = Stack(
         alignment: Alignment.center,
         children: [
@@ -253,14 +256,17 @@ class PlayPauseButton extends HookConsumerWidget {
         ],
       );
     } else if (playing) {
+      tooltip = 'Pause';
       icon = const Icon(Icons.pause_circle_rounded);
     } else {
+      tooltip = 'Play';
       icon = const Icon(Icons.play_circle_rounded);
     }
 
     return IconButton(
       iconSize: size,
       padding: EdgeInsets.zero,
+      tooltip: tooltip,
       onPressed: () {
         if (playing) {
           ref.read(audioControlProvider).pause();
