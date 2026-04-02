@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:subtracks/l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 
 class ShuffleFab extends StatelessWidget {
   final void Function()? onPressed;
@@ -16,7 +16,7 @@ class ShuffleFab extends StatelessWidget {
     return FloatingActionButton(
       heroTag: null,
       onPressed: onPressed,
-      tooltip: l.actionsCancel,
+      tooltip: l.controlsShuffle,
       child: const Icon(Icons.shuffle_rounded),
     );
   }
